@@ -687,9 +687,9 @@ function DashboardMain() {
                 </div>
               </div>
 
-              {/* Center-Right 3D Visual Centerpiece (Reduced by 30%) */}
+              {/* Center-Right 3D Visual Centerpiece (Increased Size) */}
               <div className="lg:col-span-5 relative flex items-end justify-center lg:justify-end">
-                <div className="relative w-full max-w-[335px] lg:max-w-[365px] h-[155px] sm:h-[180px] lg:h-[200px] animate-float drop-shadow-[0_15px_30px_rgba(2,132,199,0.4)]">
+                <div className="relative w-full max-w-[420px] sm:max-w-[460px] lg:max-w-[500px] h-[210px] sm:h-[240px] lg:h-[270px] -my-2 lg:-my-4 animate-float drop-shadow-[0_20px_35px_rgba(2,132,199,0.45)] scale-105 sm:scale-110 lg:scale-115 origin-bottom-right">
                   <Image
                     src="/assets/header.png"
                     alt="3D Floating Graduation Cap, Books and Laptop"
