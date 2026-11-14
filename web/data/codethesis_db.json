@@ -2,12 +2,15 @@
   "users": [
     {
       "id": "demo-student-001",
-      "email": "student@unilag.edu.ng",
+      "email": "student@futa.edu.ng",
       "passwordHash": "600423594fea874650e1782f244ee021dd4c4484fd9aae1be3baffe06f5dcf70",
-      "fullName": "Chinedu Eze",
-      "plan": "fyp-complete",
+      "fullName": "Adebayo Tunde",
+      "plan": "standard",
       "credits": 15,
-      "createdAt": "2026-11-13T13:07:42.951Z"
+      "createdAt": "2026-11-14T17:39:00.543Z",
+      "matricNumber": "FUTA/CSC/20/4182",
+      "institution": "Federal University of Technology, Akure",
+      "status": "active"
     },
     {
       "id": "usr-62318eca-11c2-494a-a27b-7f9ca8d85631",
@@ -17,9 +20,57 @@
       "plan": "free",
       "credits": 3,
       "createdAt": "2026-11-13T13:09:02.729Z"
+    },
+    {
+      "id": "demo-student-002",
+      "email": "imusa@futa.edu.ng",
+      "passwordHash": "600423594fea874650e1782f244ee021dd4c4484fd9aae1be3baffe06f5dcf70",
+      "fullName": "Ibrahim Musa",
+      "matricNumber": "FUTA/CSC/20/5091",
+      "institution": "Federal University of Technology, Akure",
+      "plan": "complete",
+      "credits": 40,
+      "status": "active",
+      "createdAt": "2026-11-14T17:39:00.545Z"
+    },
+    {
+      "id": "demo-student-003",
+      "email": "cokeke@unilag.edu.ng",
+      "passwordHash": "600423594fea874650e1782f244ee021dd4c4484fd9aae1be3baffe06f5dcf70",
+      "fullName": "Chioma Okeke",
+      "matricNumber": "UNILAG/ENG/21/0844",
+      "institution": "University of Lagos",
+      "plan": "starter",
+      "credits": 8,
+      "status": "active",
+      "createdAt": "2026-11-14T17:39:00.545Z"
+    },
+    {
+      "id": "usr-3a5cf3ca",
+      "email": "newstudent_1794678484581@unn.edu.ng",
+      "passwordHash": "600423594fea874650e1782f244ee021dd4c4484fd9aae1be3baffe06f5dcf70",
+      "fullName": "Emeka Nwosu",
+      "matricNumber": "UNN/CSC/22/0192",
+      "institution": "University of Nigeria, Nsukka",
+      "plan": "free",
+      "credits": 15,
+      "status": "active",
+      "createdAt": "2026-11-14T17:48:04.852Z"
     }
   ],
   "projects": [
+    {
+      "userId": "demo-student-001",
+      "toolId": "itf-report",
+      "title": "ITF SIWES Technical Defense Report: ADEBAYO TUNDE",
+      "course": "Computer Science",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "Comprehensive 5-Chapter SIWES technical defense report for industrial attachment at MainOne Cable Company (An Equinix Company).",
+      "fileType": "docx",
+      "id": "proj-0b973b4f",
+      "createdAt": "2026-11-14T17:15:18.395Z",
+      "updatedAt": "2026-11-14T17:15:18.395Z"
+    },
     {
       "userId": "demo-student-001",
       "toolId": "thesis",
@@ -154,6 +205,25 @@
     }
   },
   "creditLogs": [
+    {
+      "userId": "usr-3a5cf3ca",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "id": "log-97bede38",
+      "createdAt": "2026-11-14T17:48:04.858Z"
+    },
+    {
+      "id": "log-6495eed3",
+      "userId": "demo-student-001",
+      "amount": -2,
+      "type": "tool_usage",
+      "toolId": "itfReport",
+      "balanceAfter": 13,
+      "description": "Used itfReport tool (2 credits)",
+      "createdAt": "2026-11-14T17:15:18.299Z"
+    },
     {
       "id": "log-5777f624",
       "userId": "demo-student-001",

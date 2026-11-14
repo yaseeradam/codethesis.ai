@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useAuth } from '@/context/AuthContext';
 import {
   Home,
   GraduationCap,
@@ -25,7 +26,8 @@ import {
   PanelLeftClose,
   PanelLeft,
   ShieldAlert,
-  Coins
+  Coins,
+  LogOut
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -43,39 +45,11 @@ export default function AppLayout({
   subtitle,
   hideHeader = false,
 }: AppLayoutProps) {
+  const { user, logout } = useAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [userCredits, setUserCredits] = useState<number>(15);
-  const [studentName, setStudentName] = useState<string>('Adebayo Tunde');
-
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await fetch('/api/auth');
-        const data = await res.json();
-        if (data?.user?.credits !== undefined) {
-          setUserCredits(data.user.credits);
-        }
-        if (data?.user?.fullName) {
-          setStudentName(data.user.fullName);
-        }
-      } catch (err) {
-        console.warn('Could not load user session:', err);
-      }
-    }
-    fetchUser();
-
-    function handleCreditsEvent(e: any) {
-      if (typeof e?.detail?.credits === 'number') {
-        setUserCredits(e.detail.credits);
-      } else {
-        fetchUser();
-      }
-    }
-
-    window.addEventListener('credits-updated', handleCreditsEvent);
-    return () => window.removeEventListener('credits-updated', handleCreditsEvent);
-  }, []);
+  const userCredits = user?.credits ?? 15;
+  const studentName = user?.fullName || 'Student Scholar';
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-sky-400' },
@@ -273,8 +247,12 @@ export default function AppLayout({
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/60 flex-shrink-0">
                 <Image
-                  src="/assets/avatar_adebayo.jpg"
-                  alt="Adebayo Tunde Avatar"
+                  src={
+                    user?.email === 'imusa@futa.edu.ng'
+                      ? '/assets/avatar_ibrahim.jpg'
+                      : '/assets/avatar_adebayo.jpg'
+                  }
+                  alt="Student Avatar"
                   fill
                   className="object-cover"
                 />
@@ -282,7 +260,15 @@ export default function AppLayout({
               {!isSidebarCollapsed && (
                 <div className="leading-tight overflow-hidden">
                   <p className="text-xs font-bold text-white truncate">{studentName}</p>
-                  <p className="text-[10px] text-cyan-300/80 truncate">Active Student</p>
+                  <p className="text-[10px] text-cyan-300/80 truncate">
+                    {user?.institution
+                      ? user.institution.includes('FUTA')
+                        ? 'FUTA Student'
+                        : user.institution.includes('UNILAG')
+                        ? 'UNILAG Student'
+                        : user.institution
+                      : 'Active Student'}
+                  </p>
                 </div>
               )}
             </div>
@@ -290,6 +276,24 @@ export default function AppLayout({
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
             )}
           </Link>
+
+          {!isSidebarCollapsed && (
+            <div className="mt-1 px-2 flex items-center justify-between">
+              <button
+                onClick={() => logout()}
+                className="text-[11px] text-slate-400 hover:text-rose-300 flex items-center gap-1.5 transition-colors py-1 cursor-pointer"
+              >
+                <LogOut className="w-3 h-3 text-slate-400" />
+                <span>Logout &rarr;</span>
+              </button>
+              <Link
+                href="/auth/login?switch=true"
+                className="text-[10px] text-cyan-400 hover:underline"
+              >
+                Switch Account
+              </Link>
+            </div>
+          )}
         </div>
       </aside>
 

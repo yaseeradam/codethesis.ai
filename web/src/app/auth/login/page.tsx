@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import {
   GraduationCap,
   Sparkles,
@@ -12,32 +13,50 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  KeyRound,
-  Zap
+  Zap,
+  AlertCircle,
+  UserCheck
 } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('from') || '/dashboard';
+
+  const { login, loginDemo, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const [activeDemo, setActiveDemo] = useState<string | null>(null);
 
-  function handleStandardLogin(e: React.FormEvent) {
+  async function handleStandardLogin(e: React.FormEvent) {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
+    setErrorMessage('');
+
+    const res = await login(email, password);
+    if (!res.success) {
+      setErrorMessage(res.error || 'Invalid credentials. Please try again.');
       setIsSubmitting(false);
-      router.push('/dashboard');
-    }, 800);
+      return;
+    }
+
+    router.push(returnTo);
   }
 
-  function handleInstantDemoLogin() {
-    setIsDemoLoading(true);
-    setTimeout(() => {
-      setIsDemoLoading(false);
-      router.push('/dashboard');
-    }, 500);
+  async function handleQuickDemo(role: 'adebayo' | 'ibrahim' | 'chioma') {
+    setActiveDemo(role);
+    setErrorMessage('');
+
+    const res = await loginDemo(role);
+    if (!res.success) {
+      setErrorMessage(res.error || 'Demo login failed. Please try again.');
+      setActiveDemo(null);
+      return;
+    }
+
+    router.push(returnTo);
   }
 
   return (
@@ -108,19 +127,83 @@ export default function LoginPage() {
               Sign in to CodeThesis AI
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              Enter your student credentials or use the 1-click demo bypass.
+              Authenticate with your institutional account or select a student demo profile.
             </p>
           </div>
 
-          {/* 1-CLICK INSTANT DEMO STUDENT BYPASS */}
-          <button
-            onClick={handleInstantDemoLogin}
-            disabled={isDemoLoading}
-            className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black rounded-xl text-xs shadow-lg shadow-cyan-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
-          >
-            <Zap className="w-4 h-4 fill-current" />
-            <span>{isDemoLoading ? 'Entering Command Center...' : '1-Click Instant Demo Student Bypass'}</span>
-          </button>
+          {/* Error Banner */}
+          {errorMessage && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-2.5 text-xs text-red-400">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {/* 1-CLICK INSTANT DEMO STUDENT PROFILES */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
+              <span>Instant Demo Profiles (1-Click)</span>
+              <span className="text-cyan-400 font-bold">No Password Needed</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleQuickDemo('adebayo')}
+                disabled={Boolean(activeDemo) || isSubmitting}
+                className={`p-2.5 rounded-xl border text-left transition-all active:scale-95 flex flex-col justify-between ${
+                  activeDemo === 'adebayo'
+                    ? 'border-cyan-400 bg-cyan-500/20 text-white'
+                    : 'border-slate-800 bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 font-bold text-xs text-white">
+                  <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
+                  <span className="truncate">Adebayo</span>
+                </div>
+                <div className="text-[10px] text-slate-400 mt-1">
+                  <span>FUTA • 15cr</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickDemo('ibrahim')}
+                disabled={Boolean(activeDemo) || isSubmitting}
+                className={`p-2.5 rounded-xl border text-left transition-all active:scale-95 flex flex-col justify-between ${
+                  activeDemo === 'ibrahim'
+                    ? 'border-amber-400 bg-amber-500/20 text-white'
+                    : 'border-slate-800 bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 font-bold text-xs text-white">
+                  <UserCheck className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="truncate">Ibrahim</span>
+                </div>
+                <div className="text-[10px] text-slate-400 mt-1">
+                  <span>FUTA • 40cr</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickDemo('chioma')}
+                disabled={Boolean(activeDemo) || isSubmitting}
+                className={`p-2.5 rounded-xl border text-left transition-all active:scale-95 flex flex-col justify-between ${
+                  activeDemo === 'chioma'
+                    ? 'border-emerald-400 bg-emerald-500/20 text-white'
+                    : 'border-slate-800 bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 font-bold text-xs text-white">
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="truncate">Chioma</span>
+                </div>
+                <div className="text-[10px] text-slate-400 mt-1">
+                  <span>UNILAG • 8cr</span>
+                </div>
+              </button>
+            </div>
+          </div>
 
           <div className="flex items-center gap-3 text-slate-600 text-xs">
             <div className="flex-1 h-px bg-slate-800" />
@@ -131,14 +214,14 @@ export default function LoginPage() {
           {/* Standard Form */}
           <form onSubmit={handleStandardLogin} className="space-y-4 text-xs">
             <div>
-              <label className="block font-bold text-slate-300 mb-1">Institutional Email / Matric No.</label>
+              <label className="block font-bold text-slate-300 mb-1">Institutional Email</label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
-                  type="text"
+                  type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="student@futa.edu.ng or FUTA/CSC/20/4182"
+                  placeholder="student@futa.edu.ng"
                   required
                   className="w-full bg-slate-800/80 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
                 />
@@ -148,7 +231,13 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="font-bold text-slate-300">Password</label>
-                <a href="#" className="text-cyan-400 hover:underline text-[11px]">Forgot password?</a>
+                <button
+                  type="button"
+                  onClick={() => alert('Demo password for pre-seeded accounts is: password123')}
+                  className="text-cyan-400 hover:underline text-[11px]"
+                >
+                  Forgot password?
+                </button>
               </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -165,10 +254,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 border border-slate-700"
+              disabled={isSubmitting || Boolean(activeDemo)}
+              className="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-cyan-500/20 active:scale-95"
             >
-              <span>{isSubmitting ? 'Verifying...' : 'Sign In with Password'}</span>
+              <span>{isSubmitting ? 'Verifying Credentials...' : 'Sign In with Password'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </form>
@@ -176,12 +265,26 @@ export default function LoginPage() {
           {/* Footer note */}
           <div className="text-center text-[11px] text-slate-500">
             Don't have an account yet?{' '}
-            <Link href="/auth/login" className="text-cyan-400 font-bold hover:underline">
+            <Link href="/auth/register" className="text-cyan-400 font-bold hover:underline">
               Register with 15 Free Credits
             </Link>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#070F2B] flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

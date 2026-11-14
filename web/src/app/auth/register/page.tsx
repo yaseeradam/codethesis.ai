@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import CourseSelect from '@/components/ui/CourseSelect';
+import { useAuth } from '@/context/AuthContext';
 import {
   GraduationCap,
   Sparkles,
@@ -22,6 +23,7 @@ import {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { register } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,37 +39,22 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     setErrorMsg('');
 
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName,
-          email,
-          password,
-          matricNumber: matricNumber || 'FUTA/CSC/20/4182',
-          institution,
-          course,
-        }),
-      });
+    const res = await register({
+      fullName,
+      email,
+      password,
+      matricNumber: matricNumber || 'FUTA/CSC/20/4182',
+      institution,
+      course,
+    });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setErrorMsg(data.error || 'Registration failed. Please try again.');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Notify other tabs and components that credits are updated
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('credits-updated', { detail: { credits: data.user.credits } }));
-      }
-
-      router.push('/dashboard');
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Network error occurred during registration.');
+    if (!res.success) {
+      setErrorMsg(res.error || 'Registration failed. Please try again.');
       setIsSubmitting(false);
+      return;
     }
+
+    router.push('/dashboard');
   }
 
   return (

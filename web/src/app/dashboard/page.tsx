@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import {
   Home,
   GraduationCap,
@@ -192,50 +193,51 @@ const TESTIMONIALS = [
 ];
 
 function DashboardMain() {
+  const { user, logout } = useAuth();
   const searchParams = useSearchParams();
   const paymentRef = searchParams.get('ref');
   const paymentStatus = searchParams.get('payment');
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [credits, setCredits] = useState(15);
-  const [animatedCredits, setAnimatedCredits] = useState(0);
+  const currentCredits = user?.credits ?? 15;
+  const [animatedCredits, setAnimatedCredits] = useState(currentCredits);
   const [progressWidth, setProgressWidth] = useState(0);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [demoBanner, setDemoBanner] = useState<string | null>(null);
 
-  // Animate credits counter on mount
+  // Animate credits counter on mount or user credit change
   useEffect(() => {
     let start = 0;
     const duration = 800;
     const stepTime = 40;
-    const steps = duration / stepTime;
-    const increment = credits / steps;
+    const steps = Math.max(1, duration / stepTime);
+    const target = currentCredits;
+    const increment = target / steps;
 
     const timer = setInterval(() => {
       start += increment;
-      if (start >= credits) {
-        setAnimatedCredits(credits);
+      if (start >= target) {
+        setAnimatedCredits(target);
         clearInterval(timer);
       } else {
         setAnimatedCredits(Math.floor(start));
       }
     }, stepTime);
 
-    // Animate progress bar fill
+    // Animate progress bar fill proportional to 50 max baseline
     const progressTimer = setTimeout(() => {
-      setProgressWidth(60);
+      setProgressWidth(Math.min(100, Math.max(15, Math.round((target / 50) * 100))));
     }, 200);
 
     return () => {
       clearInterval(timer);
       clearTimeout(progressTimer);
     };
-  }, [credits]);
+  }, [currentCredits]);
 
   useEffect(() => {
     if (paymentRef && (paymentStatus === 'success' || paymentStatus === 'simulation')) {
-      setCredits(prev => prev + 15);
       setDemoBanner('Payment verified! 15 new generation credits have been added to your account.');
     }
   }, [paymentRef, paymentStatus]);
@@ -519,38 +521,61 @@ function DashboardMain() {
           )}
 
           {/* Student Profile Pill */}
-          <div
-            className={`flex items-center rounded-xl hover:bg-white/5 transition-colors ${
+          <Link
+            href="/settings"
+            title="Student Profile & Settings"
+            className={`flex items-center rounded-xl hover:bg-white/5 transition-colors cursor-pointer ${
               isSidebarCollapsed ? 'justify-center p-1.5' : 'justify-between px-2 py-1.5'
             }`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/60 flex-shrink-0">
                 <Image
-                  src="/assets/avatar_adebayo.jpg"
-                  alt="Adebayo Tunde Avatar"
+                  src={
+                    user?.email === 'imusa@futa.edu.ng'
+                      ? '/assets/avatar_ibrahim.jpg'
+                      : '/assets/avatar_adebayo.jpg'
+                  }
+                  alt="Student Avatar"
                   fill
                   className="object-cover"
                 />
               </div>
               {!isSidebarCollapsed && (
                 <div className="leading-tight overflow-hidden">
-                  <p className="text-xs font-bold text-white truncate">Adebayo Tunde</p>
-                  <p className="text-[10px] text-cyan-300/80 truncate">FUTA Student</p>
+                  <p className="text-xs font-bold text-white truncate">
+                    {user?.fullName || 'Student Scholar'}
+                  </p>
+                  <p className="text-[10px] text-cyan-300/80 truncate">
+                    {user?.institution
+                      ? user.institution.includes('FUTA')
+                        ? 'FUTA Student'
+                        : user.institution.includes('UNILAG')
+                        ? 'UNILAG Student'
+                        : user.institution
+                      : 'Active Student'}
+                  </p>
                 </div>
               )}
             </div>
             {!isSidebarCollapsed && <ChevronDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />}
-          </div>
+          </Link>
 
           {!isSidebarCollapsed && (
-            <div className="mt-1 px-2">
+            <div className="mt-1 px-2 flex items-center justify-between">
               <button
-                onClick={() => alert('Demo Student Session Active (Adebayo Tunde - FUTA)')}
-                className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1.5 transition-colors py-1"
+                onClick={() => logout()}
+                className="text-[11px] text-slate-400 hover:text-rose-300 flex items-center gap-1.5 transition-colors py-1 cursor-pointer"
               >
+                <LogOut className="w-3 h-3 text-slate-400" />
                 <span>Logout &rarr;</span>
               </button>
+              <Link
+                href="/auth/login?switch=true"
+                className="text-[10px] text-cyan-400 hover:underline"
+              >
+                Switch Account
+              </Link>
             </div>
           )}
         </div>
@@ -642,7 +667,7 @@ function DashboardMain() {
               {/* Left Copy & Buttons */}
               <div className="lg:col-span-7 z-10">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white">
-                  Welcome back, <span className="text-[#38BDF8]">Adebayo!</span> 👋
+                  Welcome back, <span className="text-[#38BDF8]">{user?.fullName ? user.fullName.split(' ')[0] : 'Scholar'}!</span> 👋
                 </h1>
                 <p className="text-xs sm:text-sm font-medium text-slate-200 mt-1.5">
                   Your all-in-one academic engineering workspace.
