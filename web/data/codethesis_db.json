@@ -1,0 +1,82 @@
+{
+  "users": [
+    {
+      "id": "demo-student-001",
+      "email": "student@unilag.edu.ng",
+      "passwordHash": "600423594fea874650e1782f244ee021dd4c4484fd9aae1be3baffe06f5dcf70",
+      "fullName": "Chinedu Eze",
+      "plan": "fyp-complete",
+      "credits": 30,
+      "createdAt": "2026-11-13T13:07:42.951Z"
+    },
+    {
+      "id": "usr-62318eca-11c2-494a-a27b-7f9ca8d85631",
+      "email": "ada.eze@futo.edu.ng",
+      "passwordHash": "410113af1319bc0b28990ac3c096a98d487dac52708a09f01ef7dffa859aba8b",
+      "fullName": "Ada Eze",
+      "plan": "free",
+      "credits": 3,
+      "createdAt": "2026-11-13T13:09:02.729Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-001",
+      "userId": "demo-student-001",
+      "toolId": "thesis",
+      "title": "AI-Driven Healthcare Diagnostic and Referral System",
+      "course": "Computer Science",
+      "institution": "University of Lagos",
+      "summary": "Full 5-chapter undergraduate thesis with UML diagrams and APA 7th citations.",
+      "fileType": "docx",
+      "createdAt": "2026-11-12T13:07:42.951Z",
+      "updatedAt": "2026-11-12T13:07:42.951Z"
+    },
+    {
+      "id": "proj-002",
+      "userId": "demo-student-001",
+      "toolId": "siwes-logbook",
+      "title": "24-Week Industrial Training Logbook at MainOne Data Center",
+      "course": "Computer Science",
+      "institution": "University of Lagos",
+      "summary": "Complete daily activity logs, network topology diagrams, and weekly supervisor summaries.",
+      "fileType": "docx",
+      "createdAt": "2026-11-11T13:07:42.951Z",
+      "updatedAt": "2026-11-11T13:07:42.951Z"
+    }
+  ],
+  "transactions": [
+    {
+      "userId": "demo-student-001",
+      "reference": "CT-1794575310697-10682DB1",
+      "amount": 15000,
+      "currency": "NGN",
+      "status": "success",
+      "planId": "fyp-complete",
+      "id": "tx-fe2a729d",
+      "createdAt": "2026-11-13T13:08:30.698Z",
+      "paidAt": "2026-11-13T13:08:30.755Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "reference": "CT-1794575262949-1FD1B190",
+      "amount": 15000,
+      "currency": "NGN",
+      "status": "pending",
+      "planId": "fyp-complete",
+      "id": "tx-46ff78d7",
+      "createdAt": "2026-11-13T13:07:42.955Z"
+    },
+    {
+      "id": "tx-001",
+      "userId": "demo-student-001",
+      "reference": "CT-TX-INITIAL-DEMO",
+      "amount": 8500,
+      "currency": "NGN",
+      "status": "success",
+      "planId": "standard",
+      "paidAt": "2026-11-11T13:07:42.951Z",
+      "createdAt": "2026-11-11T13:07:42.951Z"
+    }
+  ]
+}
