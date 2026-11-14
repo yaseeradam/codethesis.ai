@@ -99,12 +99,12 @@ export default function AppLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-cyan-500 selection:text-white">
+    <div className="h-screen bg-[#F1F5F9] text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-cyan-500 selection:text-white overflow-hidden">
       {/* ─────────────────────────────────────────────────────────────
-          1. LEFT COLLAPSIBLE SIDEBAR (Midnight Navy #070F2B)
+          1. LEFT FIXED SIDEBAR (Midnight Navy #070F2B)
       ─────────────────────────────────────────────────────────────── */}
       <aside
-        className={`bg-[#070F2B] text-slate-300 flex-shrink-0 flex flex-col justify-between p-3.5 lg:min-h-screen border-r border-slate-800/80 relative overflow-hidden z-20 transition-all duration-300 ease-in-out ${
+        className={`bg-[#070F2B] text-slate-300 flex-shrink-0 flex flex-col justify-between p-3.5 h-full border-r border-slate-800/80 relative overflow-hidden z-20 transition-all duration-300 ease-in-out ${
           isSidebarCollapsed ? 'w-full lg:w-[76px]' : 'w-full lg:w-[270px]'
         }`}
       >
@@ -296,32 +296,19 @@ export default function AppLayout({
       {/* ─────────────────────────────────────────────────────────────
           2. MAIN CONTENT AREA (Academic Slate #F1F5F9)
       ─────────────────────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
         {!hideHeader && (
-          <header className="sticky top-0 z-30 bg-[#F1F5F9]/90  backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/80  gap-3 transition-colors duration-200">
-            {/* Left Search & Toggle */}
+          <header className="sticky top-0 z-30 bg-[#F1F5F9]/90 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/80 gap-3 transition-colors duration-200">
+            {/* Left Search Cluster (Toggle icon removed from body per user request) */}
             <div className="flex items-center gap-3 w-full max-w-lg">
-              <button
-                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="p-2 rounded-xl bg-white  border border-slate-200/90  text-slate-600  hover:text-slate-900  hover:border-slate-300  shadow-xs transition-transform active:scale-95 flex items-center justify-center flex-shrink-0"
-                title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-                aria-label={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-              >
-                {isSidebarCollapsed ? (
-                  <PanelLeft className="w-4 h-4 text-sky-600 " />
-                ) : (
-                  <PanelLeftClose className="w-4 h-4" />
-                )}
-              </button>
-
               <div className="relative w-full">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 " />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search tools, projects, or features... (Ctrl + K)"
-                  className="w-full bg-white  border border-slate-200/90  rounded-full pl-10 pr-4 py-2 text-xs font-medium text-slate-800  placeholder-slate-400  shadow-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                  className="w-full bg-white border border-slate-200/90 rounded-full pl-10 pr-4 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 shadow-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
                 />
               </div>
             </div>

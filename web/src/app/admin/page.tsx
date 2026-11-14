@@ -227,12 +227,12 @@ export default function AdminDashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-cyan-500 selection:text-white">
+    <div className="h-screen bg-[#F1F5F9] text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-cyan-500 selection:text-white overflow-hidden">
       {/* ─────────────────────────────────────────────────────────────
           1. ADMIN SIDEBAR (Midnight Navy #070F2B)
       ─────────────────────────────────────────────────────────────── */}
       <aside
-        className={`bg-[#070F2B] text-slate-300 flex-shrink-0 flex flex-col justify-between p-3.5 lg:min-h-screen border-r border-slate-800/80 relative overflow-hidden z-20 transition-all duration-300 ease-in-out ${
+        className={`bg-[#070F2B] text-slate-300 flex-shrink-0 flex flex-col justify-between p-3.5 h-full border-r border-slate-800/80 relative overflow-hidden z-20 transition-all duration-300 ease-in-out ${
           isSidebarCollapsed ? 'w-full lg:w-[76px]' : 'w-full lg:w-[270px]'
         }`}
       >
@@ -397,7 +397,7 @@ export default function AdminDashboardPage() {
       {/* ─────────────────────────────────────────────────────────────
           2. MAIN ADMIN CONTENT WORKSPACE
       ─────────────────────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
         {/* Top Action Bar */}
         <header className="sticky top-0 z-30 bg-[#F1F5F9]/90 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/80 gap-3">
           <div className="flex items-center gap-3">
