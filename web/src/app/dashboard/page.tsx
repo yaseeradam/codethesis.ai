@@ -702,16 +702,14 @@ function DashboardMain() {
 
               {/* Center-Right 3D Visual Centerpiece */}
               <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end">
-                <div className="relative w-full max-w-[340px] aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border border-cyan-400/20 animate-float">
+                <div className="relative w-full max-w-[420px] aspect-[4/3] animate-float drop-shadow-[0_20px_40px_rgba(2,132,199,0.4)]">
                   <Image
-                    src="/assets/hero_academic_3d.jpg"
+                    src="/assets/header.png"
                     alt="3D Floating Graduation Cap, Books and Laptop"
                     fill
-                    className="object-cover"
+                    className="object-contain"
                     priority
                   />
-                  {/* Subtle edge glow */}
-                  <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl pointer-events-none" />
                 </div>
               </div>
             </div>
@@ -1027,12 +1025,12 @@ function DashboardMain() {
               </div>
 
               {/* 3D Female Support Specialist Avatar with Thumbs Up */}
-              <div className="absolute -bottom-2 -right-1 w-24 h-24 rounded-2xl overflow-hidden animate-float flex-shrink-0">
+              <div className="absolute -bottom-1 -right-2 w-28 h-28 animate-float flex-shrink-0 drop-shadow-[0_10px_25px_rgba(2,132,199,0.25)]">
                 <Image
-                  src="/assets/support_avatar_3d.jpg"
+                  src="/assets/women.png"
                   alt="3D Support Specialist"
                   fill
-                  className="object-cover"
+                  className="object-contain"
                 />
               </div>
             </div>
