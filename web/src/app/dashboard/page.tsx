@@ -36,7 +36,10 @@ import {
   ExternalLink,
   ShieldCheck,
   Coins,
-  Check
+  Check,
+  PanelLeftClose,
+  PanelLeft,
+  Menu
 } from 'lucide-react';
 
 interface Project {
@@ -194,6 +197,7 @@ function DashboardMain() {
   const paymentRef = searchParams.get('ref');
   const paymentStatus = searchParams.get('payment');
 
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [credits, setCredits] = useState(15);
   const [animatedCredits, setAnimatedCredits] = useState(0);
   const [progressWidth, setProgressWidth] = useState(0);
@@ -241,35 +245,58 @@ function DashboardMain() {
   return (
     <div className="min-h-screen bg-[#F1F5F9] text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-cyan-500 selection:text-white">
       {/* ─────────────────────────────────────────────────────────────
-          1. LEFT FIXED SIDEBAR (Midnight Navy #070F2B)
+          1. LEFT COLLAPSIBLE SIDEBAR (Midnight Navy #070F2B)
       ─────────────────────────────────────────────────────────────── */}
-      <aside className="w-full lg:w-[270px] bg-[#070F2B] text-slate-300 flex-shrink-0 flex flex-col justify-between p-4 lg:min-h-screen border-r border-slate-800/80 relative overflow-hidden z-20">
+      <aside
+        className={`bg-[#070F2B] text-slate-300 flex-shrink-0 flex flex-col justify-between p-3.5 lg:min-h-screen border-r border-slate-800/80 relative overflow-hidden z-20 transition-all duration-300 ease-in-out ${
+          isSidebarCollapsed ? 'w-full lg:w-[76px]' : 'w-full lg:w-[270px]'
+        }`}
+      >
         {/* Subtle Ambient Cyan Glow Orb at Bottom Left */}
         <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
 
-        {/* Top Brand Section */}
+        {/* Top Brand Section & Collapse Button */}
         <div>
-          <div className="flex items-center gap-3 px-2 py-3 mb-4">
-            <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-md shadow-cyan-500/20 border border-cyan-400/30 flex-shrink-0">
-              <Image
-                src="/assets/logo_codethesis_3d.jpg"
-                alt="CodeThesis AI 3D Logo"
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-white text-lg tracking-tight">CodeThesis</span>
-                <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white text-[11px] font-black px-1.5 py-0.5 rounded-md shadow-xs">
-                  AI
-                </span>
+          <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center flex-col gap-2' : 'justify-between'} px-1 py-2.5 mb-3`}>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="relative w-9 h-9 rounded-xl overflow-hidden shadow-md shadow-cyan-500/20 border border-cyan-400/30 flex-shrink-0">
+                <Image
+                  src="/assets/logo_codethesis_3d.jpg"
+                  alt="CodeThesis AI 3D Logo"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
-              <p className="text-[10px] tracking-wider uppercase text-cyan-300/80 font-medium mt-0.5">
-                Build • Document • Defend
-              </p>
+
+              {!isSidebarCollapsed && (
+                <div className="overflow-hidden transition-all duration-200">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-white text-base tracking-tight whitespace-nowrap">CodeThesis</span>
+                    <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-xs">
+                      AI
+                    </span>
+                  </div>
+                  <p className="text-[9px] tracking-wider uppercase text-cyan-300/80 font-medium mt-0.5 whitespace-nowrap">
+                    Build • Document • Defend
+                  </p>
+                </div>
+              )}
             </div>
+
+            {/* Collapse / Expand Icon Button */}
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center"
+              title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+              aria-label={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            >
+              {isSidebarCollapsed ? (
+                <PanelLeft className="w-4 h-4 text-cyan-400" />
+              ) : (
+                <PanelLeftClose className="w-4 h-4" />
+              )}
+            </button>
           </div>
 
           {/* Primary Tool Navigation */}
@@ -277,160 +304,217 @@ function DashboardMain() {
             <Link
               href="/dashboard"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] text-white shadow-md shadow-sky-600/20 transition-transform active:scale-95"
+              title="Dashboard"
+              className={`flex items-center rounded-xl text-sm font-semibold bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] text-white shadow-md shadow-sky-600/20 transition-all active:scale-95 ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'
+              }`}
             >
-              <Home className="w-4 h-4 stroke-[2.2]" />
-              <span>Dashboard</span>
+              <Home className="w-4 h-4 stroke-[2.2] flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Dashboard</span>}
             </Link>
 
             <Link
               href="/studio"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group"
+              title="Academic Studio"
+              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <GraduationCap className="w-4 h-4 text-slate-400 group-hover:text-cyan-400 transition-colors" />
-              <span>Academic Studio</span>
+              <GraduationCap className="w-4 h-4 text-slate-400 group-hover:text-cyan-400 transition-colors flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Academic Studio</span>}
             </Link>
 
             <Link
               href="/tool/thesis"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group"
+              title="Thesis Generator"
+              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <FileText className="w-4 h-4 text-slate-400 group-hover:text-amber-400 transition-colors" />
-              <span>Thesis Generator</span>
+              <FileText className="w-4 h-4 text-slate-400 group-hover:text-amber-400 transition-colors flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Thesis Generator</span>}
             </Link>
 
             <Link
               href="/tool/software-builder"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group"
+              title="Software Builder"
+              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <Code2 className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-colors" />
-              <span>Software Builder</span>
+              <Code2 className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-colors flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Software Builder</span>}
             </Link>
 
             <Link
               href="/tool/uml-diagrams"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group"
+              title="UML Diagrams"
+              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <GitFork className="w-4 h-4 text-slate-400 group-hover:text-purple-400 transition-colors" />
-              <span>UML Diagrams</span>
+              <GitFork className="w-4 h-4 text-slate-400 group-hover:text-purple-400 transition-colors flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">UML Diagrams</span>}
             </Link>
 
             <Link
               href="/tool/viva-presentation"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group"
+              title="Viva Presentation"
+              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <Presentation className="w-4 h-4 text-slate-400 group-hover:text-blue-400 transition-colors" />
-              <span>Viva Presentation</span>
+              <Presentation className="w-4 h-4 text-slate-400 group-hover:text-blue-400 transition-colors flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Viva Presentation</span>}
             </Link>
 
             <Link
               href="/tool/viva-simulator"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group"
+              title="Viva Simulator"
+              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <Mic className="w-4 h-4 text-slate-400 group-hover:text-yellow-400 transition-colors" />
-              <span>Viva Simulator</span>
+              <Mic className="w-4 h-4 text-slate-400 group-hover:text-yellow-400 transition-colors flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Viva Simulator</span>}
             </Link>
 
             <Link
               href="/tool/siwes-logbook"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group"
+              title="SIWES Logbook"
+              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <BookOpen className="w-4 h-4 text-slate-400 group-hover:text-teal-400 transition-colors" />
-              <span>SIWES Logbook</span>
+              <BookOpen className="w-4 h-4 text-slate-400 group-hover:text-teal-400 transition-colors flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">SIWES Logbook</span>}
             </Link>
 
             <Link
               href="/tool/itf-report"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group"
+              title="ITF Report"
+              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <FileCheck className="w-4 h-4 text-slate-400 group-hover:text-fuchsia-400 transition-colors" />
-              <span>ITF Report</span>
+              <FileCheck className="w-4 h-4 text-slate-400 group-hover:text-fuchsia-400 transition-colors flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">ITF Report</span>}
             </Link>
 
             <Link
               href="/tool/assignment-solver"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group"
+              title="Assignment Solver"
+              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <Calculator className="w-4 h-4 text-slate-400 group-hover:text-sky-400 transition-colors" />
-              <span>Assignment Solver</span>
+              <Calculator className="w-4 h-4 text-slate-400 group-hover:text-sky-400 transition-colors flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Assignment Solver</span>}
             </Link>
           </nav>
 
           {/* Subtle Horizontal Divider */}
-          <div className="border-t border-slate-800/80 my-3.5 mx-2" />
+          <div className="border-t border-slate-800/80 my-3 mx-1" />
 
           {/* Secondary Account Links */}
           <div className="space-y-1">
             <Link
               href="/projects"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95"
+              title="My Projects"
+              className={`flex items-center rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <FolderGit2 className="w-4 h-4 text-slate-400" />
-              <span>My Projects</span>
+              <FolderGit2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">My Projects</span>}
             </Link>
 
             <Link
               href="/pricing"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95"
+              title="Billing & Credits"
+              className={`flex items-center rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <CreditCard className="w-4 h-4 text-slate-400" />
-              <span>Billing & Credits</span>
+              <CreditCard className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Billing & Credits</span>}
             </Link>
 
             <Link
               href="/settings"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95"
+              title="Settings"
+              className={`flex items-center rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <Settings className="w-4 h-4 text-slate-400" />
-              <span>Settings</span>
+              <Settings className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Settings</span>}
             </Link>
 
             <Link
               href="/support"
               prefetch={false}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95"
+              title="Help & Support"
+              className={`flex items-center rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
             >
-              <Headphones className="w-4 h-4 text-slate-400" />
-              <span>Help & Support</span>
+              <Headphones className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Help & Support</span>}
             </Link>
           </div>
         </div>
 
         {/* Bottom Section: In-Sidebar Upgrade Card & Student Profile */}
-        <div className="mt-4 pt-2">
+        <div className="mt-4 pt-1">
           {/* Upgrade to Pro Card */}
-          <div className="relative overflow-hidden rounded-2xl p-3.5 bg-gradient-to-b from-[#131D42]/90 to-[#0B132B]/90 border border-amber-500/30 shadow-lg mb-3">
-            <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
-              <Crown className="w-4 h-4 fill-amber-400" />
-              <span>Upgrade to Pro</span>
+          {!isSidebarCollapsed ? (
+            <div className="relative overflow-hidden rounded-2xl p-3.5 bg-gradient-to-b from-[#131D42]/90 to-[#0B132B]/90 border border-amber-500/30 shadow-lg mb-3">
+              <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
+                <Crown className="w-4 h-4 fill-amber-400" />
+                <span>Upgrade to Pro</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-tight mb-2.5">
+                Unlock unlimited access to all tools and features.
+              </p>
+              <Link
+                href="/pricing"
+                prefetch={false}
+                className="block text-center w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold py-1.5 px-3 rounded-xl text-xs shadow-md gold-shimmer transition-transform active:scale-95"
+              >
+                Go Pro &rarr;
+              </Link>
             </div>
-            <p className="text-[11px] text-slate-300 leading-tight mb-2.5">
-              Unlock unlimited access to all tools and features.
-            </p>
+          ) : (
             <Link
               href="/pricing"
               prefetch={false}
-              className="block text-center w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold py-1.5 px-3 rounded-xl text-xs shadow-md gold-shimmer transition-transform active:scale-95"
+              title="Upgrade to Pro"
+              className="flex justify-center p-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 transition-colors mb-2.5"
             >
-              Go Pro &rarr;
+              <Crown className="w-4 h-4 fill-amber-400" />
             </Link>
-          </div>
+          )}
 
           {/* Student Profile Pill */}
-          <div className="flex items-center justify-between px-2 py-1.5 rounded-xl hover:bg-white/5 transition-colors">
-            <div className="flex items-center gap-2.5">
+          <div
+            className={`flex items-center rounded-xl hover:bg-white/5 transition-colors ${
+              isSidebarCollapsed ? 'justify-center p-1.5' : 'justify-between px-2 py-1.5'
+            }`}
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
               <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/60 flex-shrink-0">
                 <Image
                   src="/assets/avatar_adebayo.jpg"
@@ -439,22 +523,26 @@ function DashboardMain() {
                   className="object-cover"
                 />
               </div>
-              <div className="leading-tight">
-                <p className="text-xs font-bold text-white">Adebayo Tunde</p>
-                <p className="text-[10px] text-cyan-300/80">FUTA Student</p>
-              </div>
+              {!isSidebarCollapsed && (
+                <div className="leading-tight overflow-hidden">
+                  <p className="text-xs font-bold text-white truncate">Adebayo Tunde</p>
+                  <p className="text-[10px] text-cyan-300/80 truncate">FUTA Student</p>
+                </div>
+              )}
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            {!isSidebarCollapsed && <ChevronDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />}
           </div>
 
-          <div className="mt-1 px-2">
-            <button
-              onClick={() => alert('Demo Student Session Active (Adebayo Tunde - FUTA)')}
-              className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1.5 transition-colors py-1"
-            >
-              <span>Logout &rarr;</span>
-            </button>
-          </div>
+          {!isSidebarCollapsed && (
+            <div className="mt-1 px-2">
+              <button
+                onClick={() => alert('Demo Student Session Active (Adebayo Tunde - FUTA)')}
+                className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1.5 transition-colors py-1"
+              >
+                <span>Logout &rarr;</span>
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -463,17 +551,34 @@ function DashboardMain() {
       ─────────────────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {/* Top Header Bar */}
-        <header className="sticky top-0 z-30 bg-[#F1F5F9]/90 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/80">
-          {/* Search Pill */}
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tools, projects, or features... (Ctrl + K)"
-              className="w-full bg-white border border-slate-200/90 rounded-full pl-10 pr-4 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 shadow-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
-            />
+        <header className="sticky top-0 z-30 bg-[#F1F5F9]/90 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/80 gap-3">
+          {/* Left Collapse & Search Cluster */}
+          <div className="flex items-center gap-3 w-full max-w-lg">
+            {/* Header Sidebar Toggle Icon Button */}
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="p-2 rounded-xl bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-xs transition-transform active:scale-95 flex items-center justify-center flex-shrink-0"
+              title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+              aria-label={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            >
+              {isSidebarCollapsed ? (
+                <PanelLeft className="w-4 h-4 text-sky-600" />
+              ) : (
+                <PanelLeftClose className="w-4 h-4" />
+              )}
+            </button>
+
+            {/* Search Pill */}
+            <div className="relative w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tools, projects, or features... (Ctrl + K)"
+                className="w-full bg-white border border-slate-200/90 rounded-full pl-10 pr-4 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 shadow-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+              />
+            </div>
           </div>
 
           {/* Right Header Controls */}
@@ -504,10 +609,10 @@ function DashboardMain() {
             <Link
               href="/pricing"
               prefetch={false}
-              className="flex items-center gap-2 bg-gradient-to-r from-[#0284C7] to-[#06B6D4] hover:brightness-105 text-white font-semibold text-xs px-4 py-2 rounded-xl shadow-xs transition-transform active:scale-95"
+              className="flex items-center gap-2 bg-gradient-to-r from-[#0284C7] to-[#06B6D4] hover:brightness-105 text-white font-semibold text-xs px-4 py-2 rounded-xl shadow-xs transition-transform active:scale-95 flex-shrink-0"
             >
               <Crown className="w-3.5 h-3.5 fill-white" />
-              <span>Upgrade Plan &rarr;</span>
+              <span className="hidden sm:inline">Upgrade Plan &rarr;</span>
             </Link>
           </div>
         </header>
