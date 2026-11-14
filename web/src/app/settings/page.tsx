@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import CourseSelect from '@/components/ui/CourseSelect';
 import { useTheme } from '@/context/ThemeContext';
 import {
   Settings,
@@ -198,15 +199,11 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Department</label>
-                      <input
-                        type="text"
-                        value={department}
-                        onChange={e => setDepartment(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900"
-                      />
-                    </div>
+                    <CourseSelect
+                      value={department}
+                      onChange={setDepartment}
+                      label="Department / Course"
+                    />
 
                     <div>
                       <label className="block font-bold text-slate-700 mb-1">Degree Level</label>

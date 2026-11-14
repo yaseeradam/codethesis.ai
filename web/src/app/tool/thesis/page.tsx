@@ -18,23 +18,7 @@ import {
   RotateCcw,
   Loader2
 } from 'lucide-react';
-
-const COURSES = [
-  'Computer Science',
-  'Software Engineering',
-  'Information Technology',
-  'Cybersecurity',
-  'Electrical & Electronic Engineering',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Microbiology',
-  'Biochemistry',
-  'Accounting',
-  'Business Administration',
-  'Economics',
-  'Mass Communication',
-  'Law'
-];
+import CourseSelect from '@/components/ui/CourseSelect';
 
 export default function ThesisToolPage() {
   const [topic, setTopic] = useState('Design and Implementation of an Automated Hostel Allocation and Facility Management System');
@@ -92,18 +76,11 @@ export default function ThesisToolPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Course of Study</label>
-              <select
-                value={course}
-                onChange={e => setCourse(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              >
-                {COURSES.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
+            <CourseSelect
+              value={course}
+              onChange={setCourse}
+              label="Course of Study"
+            />
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Institution</label>

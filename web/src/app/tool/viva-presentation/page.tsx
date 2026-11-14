@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import CourseSelect from '@/components/ui/CourseSelect';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   Presentation,
@@ -39,6 +40,7 @@ export default function VivaPresentationPage() {
   const [matricNumber, setMatricNumber] = useState('FUTA/CSC/20/4182');
   const [supervisor, setSupervisor] = useState('Dr. O. A. Adeleke (B.Sc, M.Sc, Ph.D)');
   const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
+  const [course, setCourse] = useState('Computer Science');
   const [isGenerating, setIsGenerating] = useState(false);
 
   const slides: Slide[] = [
@@ -236,7 +238,7 @@ export default function VivaPresentationPage() {
         matricNumber,
         supervisor,
         institution,
-        course: 'Computer Science',
+        course,
       },
       `Viva_Defense_Slides_${studentName.replace(/\s+/g, '_')}.pptx`
     );
@@ -301,6 +303,12 @@ export default function VivaPresentationPage() {
                 />
               </div>
             </div>
+
+            <CourseSelect
+              value={course}
+              onChange={setCourse}
+              label="Course / Department"
+            />
 
             <button
               onClick={handleRecompile}

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import CourseSelect from '@/components/ui/CourseSelect';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   FileCheck,
@@ -201,6 +202,12 @@ export default function ItfReportPage() {
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800"
               />
             </div>
+
+            <CourseSelect
+              value={department}
+              onChange={setDepartment}
+              label="Course / Department of Study"
+            />
 
             <div className="grid grid-cols-2 gap-2">
               <div>

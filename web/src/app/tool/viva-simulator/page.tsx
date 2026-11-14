@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import CourseSelect from '@/components/ui/CourseSelect';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   Mic,
@@ -50,6 +51,7 @@ export default function VivaSimulatorPage() {
   const [studentInput, setStudentInput] = useState('');
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [overallScore, setOverallScore] = useState(8.4);
+  const [department, setDepartment] = useState('Computer Science');
   const [sessionActive, setSessionActive] = useState(true);
 
   const panelists: Panelist[] = [
@@ -210,7 +212,7 @@ export default function VivaSimulatorPage() {
         title: 'Hostel Allocation & Concurrency Control System',
         author: 'Adebayo Tunde',
         matricNo: 'FUTA/CSC/20/4182',
-        department: 'Computer Science',
+        department,
         examinerTone: 'Strict External Examiner',
       },
       'Viva_Defense_Cheatsheet_Adebayo_Tunde.docx'
@@ -239,6 +241,12 @@ export default function VivaSimulatorPage() {
                 Live Session
               </span>
             </div>
+
+            <CourseSelect
+              value={department}
+              onChange={setDepartment}
+              label="Defense Department / Course"
+            />
 
             <div className="space-y-2.5">
               {panelists.map(p => (
@@ -344,7 +352,7 @@ export default function VivaSimulatorPage() {
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="font-bold text-xs text-slate-900">
-                  Viva Chamber: Computer Science Departmental Board
+                  Viva Chamber: {department} Departmental Board
                 </span>
               </div>
 

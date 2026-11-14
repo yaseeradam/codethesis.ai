@@ -6,7 +6,7 @@
       "passwordHash": "600423594fea874650e1782f244ee021dd4c4484fd9aae1be3baffe06f5dcf70",
       "fullName": "Chinedu Eze",
       "plan": "fyp-complete",
-      "credits": 27,
+      "credits": 15,
       "createdAt": "2026-11-13T13:07:42.951Z"
     },
     {
@@ -20,6 +20,42 @@
     }
   ],
   "projects": [
+    {
+      "userId": "demo-student-001",
+      "toolId": "thesis",
+      "title": "Design and Implementation of an Automated Hostel Allocation and Facility Management System",
+      "course": "Electrical & Electronic Engineering",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "5-Chapter Undergraduate Thesis (~18,000+ words target) in Electrical & Electronic Engineering for Federal University of Technology, Akure. APA 7th format.",
+      "fileType": "docx",
+      "id": "proj-9e8fce9c",
+      "createdAt": "2026-11-14T13:21:59.009Z",
+      "updatedAt": "2026-11-14T13:21:59.009Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "toolId": "thesis",
+      "title": "Design and Implementation of an Automated Hostel Allocation and Facility Management System",
+      "course": "Electrical & Electronic Engineering",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "5-Chapter Undergraduate Thesis (~18,000+ words target) in Electrical & Electronic Engineering for Federal University of Technology, Akure. APA 7th format.",
+      "fileType": "docx",
+      "id": "proj-f9854fcb",
+      "createdAt": "2026-11-14T13:21:53.838Z",
+      "updatedAt": "2026-11-14T13:21:53.838Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "toolId": "thesis",
+      "title": "Design and Implementation of an Automated Hostel Allocation and Facility Management System",
+      "course": "Electrical & Electronic Engineering",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "5-Chapter Undergraduate Thesis (~18,000+ words target) in Electrical & Electronic Engineering for Federal University of Technology, Akure. APA 7th format.",
+      "fileType": "docx",
+      "id": "proj-e5dbe5b2",
+      "createdAt": "2026-11-14T13:21:51.203Z",
+      "updatedAt": "2026-11-14T13:21:51.203Z"
+    },
     {
       "userId": "demo-student-001",
       "toolId": "thesis",
@@ -116,5 +152,77 @@
       "statusText": "All Systems Online",
       "maintenanceNotice": "Platform operating normally at 100% capacity."
     }
-  }
+  },
+  "creditLogs": [
+    {
+      "id": "log-5777f624",
+      "userId": "demo-student-001",
+      "amount": -3,
+      "type": "tool_usage",
+      "toolId": "thesis",
+      "balanceAfter": 15,
+      "description": "Used thesis tool (3 credits)",
+      "createdAt": "2026-11-14T13:56:42.958Z"
+    }
+  ],
+  "vivaSessions": [
+    {
+      "id": "viva-bb2db21d",
+      "userId": "demo-student-001",
+      "topic": "Automated Microgrid Load Balancing with Smart Meters",
+      "course": "Electrical & Electronic Engineering",
+      "examinerPersona": "strict",
+      "turns": [
+        {
+          "id": "turn-1",
+          "role": "examiner",
+          "content": "Welcome candidate. We have thoroughly reviewed your dissertation draft titled \"Automated Microgrid Load Balancing with Smart Meters\" in Electrical & Electronic Engineering. Let us begin with your problem statement: Why did you decide that existing manual or conventional systems were inadequate, and what is the exact scientific or technical gap your proposed system bridges?",
+          "timestamp": "2026-11-14T13:57:03.773Z"
+        },
+        {
+          "id": "turn-student-1",
+          "role": "student",
+          "content": "In our microgrid design, we implemented localized edge consensus using lightweight raft protocol to ensure that even during severe frequency dips, load shedding occurs in under 12 milliseconds without requiring round-trip cloud latency.",
+          "feedback": "Adequate defense point, but you need to elaborate on the engineering trade-offs and justify why your approach is superior to conventional alternatives.",
+          "rating": 6,
+          "timestamp": "2026-11-14T13:57:03.944Z"
+        },
+        {
+          "id": "turn-examiner-2",
+          "role": "examiner",
+          "content": "Thank you. Now, let us turn to Chapter 3 (Research Methodology). In your system for \"Automated Microgrid Load Balancing with Smart Meters\", what sampling technique or dataset did you utilize for empirical validation, and how do you defend its statistical representation?",
+          "timestamp": "2026-11-14T13:57:03.944Z"
+        }
+      ],
+      "status": "completed",
+      "createdAt": "2026-11-14T13:57:03.773Z",
+      "updatedAt": "2026-11-14T13:57:04.131Z",
+      "scorecard": {
+        "clarity": 65,
+        "technicalDepth": 60,
+        "methodology": 62,
+        "overallScore": 62,
+        "summary": "The candidate struggled to defend empirical sampling methodology and database transaction locking. Significant revisions recommended before final departmental sign-off.",
+        "verdict": "Major Revision Needed"
+      }
+    },
+    {
+      "id": "viva-7b1be699",
+      "userId": "demo-student-001",
+      "topic": "Petroleum Pipeline Anomaly Detection using Edge ML",
+      "course": "Petroleum & Gas Engineering",
+      "examinerPersona": "industry",
+      "turns": [
+        {
+          "id": "turn-1",
+          "role": "examiner",
+          "content": "Welcome. Looking at your study on \"Petroleum Pipeline Anomaly Detection using Edge ML\", our main concern in the Nigerian tertiary environment is erratic bandwidth and intermittent power. How does your software architecture guarantee zero data corruption when a client connection drops mid-transaction?",
+          "timestamp": "2026-11-14T13:56:43.308Z"
+        }
+      ],
+      "status": "active",
+      "createdAt": "2026-11-14T13:56:43.308Z",
+      "updatedAt": "2026-11-14T13:56:43.309Z"
+    }
+  ]
 }

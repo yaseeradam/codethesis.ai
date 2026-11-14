@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import CourseSelect from '@/components/ui/CourseSelect';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   Code2,
@@ -128,6 +129,7 @@ export default function SoftwareBuilderPage() {
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [topic, setTopic] = useState('Automated Hostel Allocation System');
+  const [course, setCourse] = useState('Computer Science');
 
   function handleCopy() {
     navigator.clipboard.writeText(FILES[selectedFile]);
@@ -141,7 +143,7 @@ export default function SoftwareBuilderPage() {
       '/api/generate-software-zip',
       {
         topic,
-        course: 'Computer Science',
+        course,
         institution: 'Federal University of Technology, Akure',
       },
       `CodeThesis_Software_${topic.replace(/\s+/g, '_')}.zip`
@@ -173,6 +175,12 @@ export default function SoftwareBuilderPage() {
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
+
+            <CourseSelect
+              value={course}
+              onChange={setCourse}
+              label="Target Academic Department"
+            />
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Runtime & Database</label>

@@ -31,7 +31,10 @@ import {
   Crown,
   PanelLeftClose,
   PanelLeft,
-  Check
+  Check,
+  Key,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { AdminSettings } from '@/lib/db';
 
@@ -66,6 +69,7 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [showKeys, setShowKeys] = useState<{ [key: string]: boolean }>({});
 
   // Stats
   const [stats, setStats] = useState({
@@ -721,6 +725,171 @@ export default function AdminDashboardPage() {
                   <p className="text-[10px] text-slate-400">
                     Prepended to all student tool prompts to enforce APA 7th citations, Big-O analysis, and Nigerian university standards.
                   </p>
+                </div>
+
+                {/* Runtime AI API Key Vault */}
+                <div className="border-t border-slate-200/80 pt-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <Key className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Dynamic AI API Key Vault</span>
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Supply your AI API keys. The system rotates and falls back automatically if quota limits are reached.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Gemini Key */}
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <span>Google Gemini API Key</span>
+                          {settings.aiEngine.apiKeys?.gemini && (
+                            <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Set</span>
+                          )}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowKeys(prev => ({ ...prev, gemini: !prev.gemini }))}
+                          className="text-slate-400 hover:text-slate-600 p-1"
+                        >
+                          {showKeys.gemini ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      <input
+                        type={showKeys.gemini ? 'text' : 'password'}
+                        value={settings.aiEngine.apiKeys?.gemini || ''}
+                        onChange={e =>
+                          setSettings(prev => ({
+                            ...prev,
+                            aiEngine: {
+                              ...prev.aiEngine,
+                              apiKeys: {
+                                ...(prev.aiEngine.apiKeys || {}),
+                                gemini: e.target.value,
+                              },
+                            },
+                          }))
+                        }
+                        placeholder="AIzaSy..."
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* OpenAI Key */}
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <span>OpenAI API Key</span>
+                          {settings.aiEngine.apiKeys?.openai && (
+                            <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Set</span>
+                          )}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowKeys(prev => ({ ...prev, openai: !prev.openai }))}
+                          className="text-slate-400 hover:text-slate-600 p-1"
+                        >
+                          {showKeys.openai ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      <input
+                        type={showKeys.openai ? 'text' : 'password'}
+                        value={settings.aiEngine.apiKeys?.openai || ''}
+                        onChange={e =>
+                          setSettings(prev => ({
+                            ...prev,
+                            aiEngine: {
+                              ...prev.aiEngine,
+                              apiKeys: {
+                                ...(prev.aiEngine.apiKeys || {}),
+                                openai: e.target.value,
+                              },
+                            },
+                          }))
+                        }
+                        placeholder="sk-proj-..."
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* Anthropic Claude Key */}
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <span>Anthropic Claude Key</span>
+                          {settings.aiEngine.apiKeys?.anthropic && (
+                            <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Set</span>
+                          )}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowKeys(prev => ({ ...prev, anthropic: !prev.anthropic }))}
+                          className="text-slate-400 hover:text-slate-600 p-1"
+                        >
+                          {showKeys.anthropic ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      <input
+                        type={showKeys.anthropic ? 'text' : 'password'}
+                        value={settings.aiEngine.apiKeys?.anthropic || ''}
+                        onChange={e =>
+                          setSettings(prev => ({
+                            ...prev,
+                            aiEngine: {
+                              ...prev.aiEngine,
+                              apiKeys: {
+                                ...(prev.aiEngine.apiKeys || {}),
+                                anthropic: e.target.value,
+                              },
+                            },
+                          }))
+                        }
+                        placeholder="sk-ant-api..."
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* DeepSeek Key */}
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <span>DeepSeek API Key</span>
+                          {settings.aiEngine.apiKeys?.deepseek && (
+                            <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Set</span>
+                          )}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowKeys(prev => ({ ...prev, deepseek: !prev.deepseek }))}
+                          className="text-slate-400 hover:text-slate-600 p-1"
+                        >
+                          {showKeys.deepseek ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      <input
+                        type={showKeys.deepseek ? 'text' : 'password'}
+                        value={settings.aiEngine.apiKeys?.deepseek || ''}
+                        onChange={e =>
+                          setSettings(prev => ({
+                            ...prev,
+                            aiEngine: {
+                              ...prev.aiEngine,
+                              apiKeys: {
+                                ...(prev.aiEngine.apiKeys || {}),
+                                deepseek: e.target.value,
+                              },
+                            },
+                          }))
+                        }
+                        placeholder="sk-..."
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -51,8 +51,9 @@ export async function POST(req: NextRequest) {
       fallbackEnabled = true,
     } = adminSettings?.aiEngine || {};
 
-    const geminiKey = process.env.GEMINI_API_KEY;
-    const openaiKey = process.env.OPENAI_API_KEY;
+    const dynamicKeys = adminSettings?.aiEngine?.apiKeys || {};
+    const geminiKey = dynamicKeys.gemini || process.env.GEMINI_API_KEY;
+    const openaiKey = dynamicKeys.openai || process.env.OPENAI_API_KEY;
 
     // Helper for Gemini Call
     async function tryGemini(): Promise<string | null> {

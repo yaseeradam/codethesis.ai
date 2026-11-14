@@ -43,6 +43,46 @@ export interface Transaction {
   createdAt: string;
 }
 
+export interface CreditLog {
+  id: string;
+  userId: string;
+  amount: number; // positive for credit addition, negative for deduction
+  type: 'signup_bonus' | 'tool_usage' | 'payment_topup' | 'admin_grant' | 'refund';
+  toolId?: string;
+  balanceAfter: number;
+  description: string;
+  createdAt: string;
+}
+
+export interface VivaTurn {
+  id: string;
+  role: 'examiner' | 'student';
+  content: string;
+  feedback?: string;
+  rating?: number; // 1-10
+  timestamp: string;
+}
+
+export interface VivaSession {
+  id: string;
+  userId: string;
+  topic: string;
+  course: string;
+  examinerPersona: 'strict' | 'methodological' | 'industry';
+  turns: VivaTurn[];
+  scorecard?: {
+    clarity: number;
+    technicalDepth: number;
+    methodology: number;
+    overallScore: number;
+    summary: string;
+    verdict: 'Pass with Distinction' | 'Pass with Minor Corrections' | 'Major Revision Needed';
+  };
+  status: 'active' | 'completed';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AdminSettings {
   defaultSignupCredits: number; // The free credits granted on first login/signup (default: 15)
   toolCreditCosts: {
@@ -56,12 +96,18 @@ export interface AdminSettings {
     assignmentSolver: number; // default: 1
   };
   aiEngine: {
-    activeProvider: 'heuristic' | 'gemini' | 'openai';
+    activeProvider: 'heuristic' | 'gemini' | 'openai' | 'anthropic' | 'deepseek';
     modelName: string;
     temperature: number;
     maxTokens: number;
     systemPromptOverride: string;
     fallbackEnabled: boolean;
+    apiKeys?: {
+      gemini?: string;
+      openai?: string;
+      anthropic?: string;
+      deepseek?: string;
+    };
   };
   platformStatus: {
     online: boolean;
@@ -74,6 +120,8 @@ interface DatabaseSchema {
   users: User[];
   projects: Project[];
   transactions: Transaction[];
+  creditLogs?: CreditLog[];
+  vivaSessions?: VivaSession[];
   settings: AdminSettings;
 }
 
@@ -372,6 +420,18 @@ export async function deductUserCredits(userId: string, toolType: keyof AdminSet
   }
 
   user.credits -= cost;
+  if (!db.creditLogs) db.creditLogs = [];
+  const log: CreditLog = {
+    id: `log-${crypto.randomUUID().slice(0, 8)}`,
+    userId,
+    amount: -cost,
+    type: 'tool_usage',
+    toolId: toolType,
+    balanceAfter: user.credits,
+    description: `Used ${toolType} tool (${cost} credit${cost > 1 ? 's' : ''})`,
+    createdAt: new Date().toISOString(),
+  };
+  db.creditLogs.unshift(log);
   writeDb(db);
   return {
     success: true,
@@ -392,6 +452,17 @@ export async function addCreditsOnPayment(userId: string, creditsToAdd: number, 
   if (planId) {
     user.plan = planId as any;
   }
+  if (!db.creditLogs) db.creditLogs = [];
+  const log: CreditLog = {
+    id: `log-${crypto.randomUUID().slice(0, 8)}`,
+    userId,
+    amount: creditsToAdd,
+    type: 'payment_topup',
+    balanceAfter: user.credits,
+    description: `Payment credit top-up (${creditsToAdd} credits added${planId ? ' - ' + planId : ''})`,
+    createdAt: new Date().toISOString(),
+  };
+  db.creditLogs.unshift(log);
   writeDb(db);
   return user;
 }
@@ -468,4 +539,117 @@ export async function updateTransactionByReference(reference: string, updates: P
 export async function getTransactionByReference(reference: string): Promise<Transaction | null> {
   const db = readDb();
   return db.transactions.find(t => t.reference === reference) || null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Project Get & Update Helpers
+// ─────────────────────────────────────────────────────────────
+export async function getProjectById(projectId: string): Promise<Project | null> {
+  const db = readDb();
+  return db.projects.find(p => p.id === projectId) || null;
+}
+
+export async function updateProject(projectId: string, userId: string, updates: Partial<Project>): Promise<Project | null> {
+  const db = readDb();
+  const index = db.projects.findIndex(p => p.id === projectId && (p.userId === userId || userId === 'admin'));
+  if (index === -1) return null;
+
+  db.projects[index] = {
+    ...db.projects[index],
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+  writeDb(db);
+  return db.projects[index];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Credit Logs Operations
+// ─────────────────────────────────────────────────────────────
+export async function getCreditLogsByUserId(userId: string): Promise<CreditLog[]> {
+  const db = readDb();
+  if (!db.creditLogs) return [];
+  return db.creditLogs
+    .filter(l => l.userId === userId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function logCreditEntry(entry: Omit<CreditLog, 'id' | 'createdAt'>): Promise<CreditLog> {
+  const db = readDb();
+  if (!db.creditLogs) db.creditLogs = [];
+  const newLog: CreditLog = {
+    ...entry,
+    id: `log-${crypto.randomUUID().slice(0, 8)}`,
+    createdAt: new Date().toISOString(),
+  };
+  db.creditLogs.unshift(newLog);
+  writeDb(db);
+  return newLog;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Viva Session Operations
+// ─────────────────────────────────────────────────────────────
+export async function saveVivaSession(session: VivaSession): Promise<VivaSession> {
+  const db = readDb();
+  if (!db.vivaSessions) db.vivaSessions = [];
+  const index = db.vivaSessions.findIndex(s => s.id === session.id);
+  if (index >= 0) {
+    db.vivaSessions[index] = { ...session, updatedAt: new Date().toISOString() };
+  } else {
+    db.vivaSessions.unshift({ ...session, updatedAt: new Date().toISOString() });
+  }
+  writeDb(db);
+  return session;
+}
+
+export async function getVivaSession(sessionId: string): Promise<VivaSession | null> {
+  const db = readDb();
+  if (!db.vivaSessions) return null;
+  return db.vivaSessions.find(s => s.id === sessionId) || null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Admin AI Key Vault Operations
+// ─────────────────────────────────────────────────────────────
+export async function updateAdminApiKeys(payload: {
+  activeProvider?: 'heuristic' | 'gemini' | 'openai' | 'anthropic' | 'deepseek';
+  gemini?: string;
+  openai?: string;
+  anthropic?: string;
+  deepseek?: string;
+}): Promise<AdminSettings> {
+  const db = readDb();
+  if (!db.settings.aiEngine) {
+    db.settings.aiEngine = {
+      activeProvider: 'heuristic',
+      modelName: 'gemini-1.5-flash',
+      temperature: 0.7,
+      maxTokens: 8192,
+      systemPromptOverride: '',
+      fallbackEnabled: true,
+    };
+  }
+  if (!db.settings.aiEngine.apiKeys) {
+    db.settings.aiEngine.apiKeys = {};
+  }
+
+  if (payload.activeProvider) {
+    db.settings.aiEngine.activeProvider = payload.activeProvider;
+  }
+  if (payload.gemini !== undefined) {
+    db.settings.aiEngine.apiKeys.gemini = payload.gemini;
+  }
+  if (payload.openai !== undefined) {
+    db.settings.aiEngine.apiKeys.openai = payload.openai;
+  }
+  if (payload.anthropic !== undefined) {
+    db.settings.aiEngine.apiKeys.anthropic = payload.anthropic;
+  }
+  if (payload.deepseek !== undefined) {
+    db.settings.aiEngine.apiKeys.deepseek = payload.deepseek;
+  }
+
+  writeDb(db);
+  return db.settings;
 }

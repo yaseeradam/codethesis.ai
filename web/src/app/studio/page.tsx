@@ -31,25 +31,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
-
-const COURSES = [
-  'Computer Science',
-  'Software Engineering',
-  'Information Technology',
-  'Cybersecurity',
-  'Electrical & Electronic Engineering',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Microbiology',
-  'Biochemistry',
-  'Accounting',
-  'Business Administration',
-  'Economics',
-  'Mass Communication',
-  'Law',
-  'Architecture',
-  'Agricultural Science'
-];
+import CourseSelect from '@/components/ui/CourseSelect';
 
 const INSTITUTIONS = [
   'Federal University of Technology, Akure (FUTA)',
@@ -448,37 +430,12 @@ Double-click \`run_project.bat\` on Windows. The launcher will automatically ver
                 />
               </div>
 
-              {/* Course with Can't Find Toggle */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-slate-700 font-bold">Course of Study</label>
-                  <button
-                    onClick={() => setIsCustomCourse(!isCustomCourse)}
-                    className="text-[10px] text-blue-600 font-semibold hover:underline"
-                  >
-                    {isCustomCourse ? 'Select from list' : "Can't find course? Type it"}
-                  </button>
-                </div>
-                {isCustomCourse ? (
-                  <input
-                    type="text"
-                    value={customCourseText}
-                    onChange={e => setCustomCourseText(e.target.value)}
-                    placeholder="e.g. Mechatronics Engineering"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  />
-                ) : (
-                  <select
-                    value={course}
-                    onChange={e => setCourse(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  >
-                    {COURSES.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
+              {/* Course Selection */}
+              <CourseSelect
+                value={course}
+                onChange={setCourse}
+                label="Course of Study"
+              />
 
               {/* Institution */}
               <div>

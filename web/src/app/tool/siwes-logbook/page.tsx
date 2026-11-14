@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import CourseSelect from '@/components/ui/CourseSelect';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   BookOpen,
@@ -219,6 +220,12 @@ Pin 7: White/Brown   Pin 8: Brown
                 </button>
               </div>
             </div>
+
+            <CourseSelect
+              value={course}
+              onChange={setCourse}
+              label="Course / Department of Study"
+            />
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Company / Establishment Name</label>

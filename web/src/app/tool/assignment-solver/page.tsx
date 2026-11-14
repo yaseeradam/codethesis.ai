@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import CourseSelect from '@/components/ui/CourseSelect';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   Calculator,
@@ -144,6 +145,7 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
   ];
 
   const [isDownloading, setIsDownloading] = useState(false);
+  const [department, setDepartment] = useState('Computer Science');
   const currentPreset = presets.find(p => p.id === activePresetId) || presets[0];
 
   async function handleDownloadDocx() {
@@ -157,7 +159,7 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
         studentName: 'Adebayo Tunde',
         matricNo: 'FUTA/CSC/20/4182',
         institution: 'Federal University of Technology, Akure',
-        department: 'Department of Computer Science',
+        department,
         assignmentTitle: currentPreset.title,
         problemStatement: currentPreset.question,
         steps: currentPreset.steps,
@@ -234,6 +236,12 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
               />
             </div>
+
+            <CourseSelect
+              value={department}
+              onChange={setDepartment}
+              label="Course / Department"
+            />
 
             <button
               onClick={handleSolve}
