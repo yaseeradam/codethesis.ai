@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   BookOpen,
   Download,
@@ -15,7 +16,8 @@ import {
   ShieldCheck,
   Award,
   Layers,
-  Printer
+  Printer,
+  Loader2
 } from 'lucide-react';
 
 interface DayEntry {
@@ -150,10 +152,21 @@ Pin 7: White/Brown   Pin 8: Brown
     }
   ];
 
+  const [isDownloading, setIsDownloading] = useState(false);
   const activeWeekData = sampleWeeks[currentWeek - 1] || sampleWeeks[0];
 
-  function handleExportITFBooklet() {
-    alert(`Compiling full ${durationWeeks}-Week ITF Form 8 Logbook (.docx and PDF) with weekly blueprints and supervisor endorsements!`);
+  async function handleExportITFBooklet() {
+    setIsDownloading(true);
+    await downloadAcademicFile(
+      '/api/generate-siwes-docx',
+      {
+        course,
+        company: companyName,
+        duration: durationWeeks,
+      },
+      `SIWES_Logbook_${durationWeeks}_Weeks.docx`
+    );
+    setIsDownloading(false);
   }
 
   function handleRegenerateLogbook() {
@@ -294,10 +307,20 @@ Pin 7: White/Brown   Pin 8: Brown
 
                 <button
                   onClick={handleExportITFBooklet}
-                  className="px-3 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all"
+                  disabled={isDownloading}
+                  className="px-3 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Export ITF Logbook</span>
+                  {isDownloading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Compiling Logbook...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Export ITF Logbook</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

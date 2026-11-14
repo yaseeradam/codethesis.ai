@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   FileCheck,
   Download,
@@ -14,7 +15,8 @@ import {
   ChevronRight,
   Copy,
   Printer,
-  Layers
+  Layers,
+  Loader2
 } from 'lucide-react';
 
 interface Chapter {
@@ -137,10 +139,24 @@ export default function ItfReportPage() {
     }
   ];
 
+  const [isDownloading, setIsDownloading] = useState(false);
   const activeChapter = chapters[activeChapterIndex];
 
-  function handleExportWord() {
-    alert(`Compiling 35-Page Technical SIWES Defense Report (.docx) formatted in Times New Roman, 1.5 line spacing, and prelim pages!`);
+  async function handleExportWord() {
+    setIsDownloading(true);
+    await downloadAcademicFile(
+      '/api/generate-itf-report-docx',
+      {
+        studentName,
+        matricNumber,
+        course: department,
+        institution,
+        company: companyName,
+        duration,
+      },
+      `ITF_Technical_Report_${studentName.replace(/\s+/g, '_')}.docx`
+    );
+    setIsDownloading(false);
   }
 
   function handleRegenerate() {
@@ -261,10 +277,20 @@ export default function ItfReportPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleExportWord}
-                  className="px-3 py-1.5 bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all"
+                  disabled={isDownloading}
+                  className="px-3 py-1.5 bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download .DOCX</span>
+                  {isDownloading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Compiling Report DOCX...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download .DOCX</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

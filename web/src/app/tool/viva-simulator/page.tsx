@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   Mic,
   MicOff,
@@ -18,7 +19,8 @@ import {
   ShieldCheck,
   UserCheck,
   BrainCircuit,
-  MessageSquareQuote
+  MessageSquareQuote,
+  Loader2
 } from 'lucide-react';
 
 interface Panelist {
@@ -198,8 +200,22 @@ export default function VivaSimulatorPage() {
     }, 1400);
   }
 
-  function handleDownloadCheatsheet() {
-    alert('Downloading "Top 20 Departmental Defense Viva Questions & Model Answers Cheatsheet" (.docx)!');
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  async function handleDownloadCheatsheet() {
+    setIsDownloading(true);
+    await downloadAcademicFile(
+      '/api/generate-viva-cheatsheet-docx',
+      {
+        title: 'Hostel Allocation & Concurrency Control System',
+        author: 'Adebayo Tunde',
+        matricNo: 'FUTA/CSC/20/4182',
+        department: 'Computer Science',
+        examinerTone: 'Strict External Examiner',
+      },
+      'Viva_Defense_Cheatsheet_Adebayo_Tunde.docx'
+    );
+    setIsDownloading(false);
   }
 
   return (
@@ -302,10 +318,20 @@ export default function VivaSimulatorPage() {
 
             <button
               onClick={handleDownloadCheatsheet}
-              className="w-full py-2 px-3 bg-white/10 hover:bg-white/15 border border-white/20 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+              disabled={isDownloading}
+              className="w-full py-2 px-3 bg-white/10 hover:bg-white/15 border border-white/20 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
             >
-              <Download className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Download 20 Defense Cheatsheet (.docx)</span>
+              {isDownloading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
+                  <span>Compiling Cheatsheet DOCX...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Download 20 Defense Cheatsheet (.docx)</span>
+                </>
+              )}
             </button>
           </div>
         </div>

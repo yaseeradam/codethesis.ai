@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 import {
   Document,
   Packer,
@@ -27,6 +28,15 @@ export async function POST(req: NextRequest) {
       duration = "24 Weeks (6 Months)",
       session = "2025/2026",
     } = body;
+
+    // Deduct credits for ITF Technical Report
+    const creditCheck = await authorizeAndDeductCredits('itfReport');
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },
+        { status: 402 }
+      );
+    }
 
     const docChildren: (Paragraph | Table)[] = [];
 
@@ -610,11 +620,23 @@ export async function POST(req: NextRequest) {
 
     const buffer = await Packer.toBuffer(doc);
 
+    // Auto-archive in student repository
+    await autoArchiveProject({
+      userId: creditCheck.userId,
+      toolId: 'itf-report',
+      title: `ITF SIWES Technical Defense Report: ${studentName}`,
+      course,
+      institution,
+      summary: `Comprehensive 5-Chapter SIWES technical defense report for industrial attachment at ${company}.`,
+      fileType: 'docx',
+    });
+
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="ITF_Technical_Report_${course.replace(/\s+/g, "_")}.docx"`,
+        "X-Remaining-Credits": String(creditCheck.remainingCredits),
       },
     });
   } catch (error) {

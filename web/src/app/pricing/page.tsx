@@ -77,14 +77,44 @@ export default function PricingPage() {
     }
   ];
 
-  function handlePay(planName: string, amountNGN: number, credits: number) {
-    setIsProcessing(true);
-    setTimeout(() => {
+  async function handlePay(planName: string, amountNGN: number, credits: number) {
+    try {
+      setIsProcessing(true);
+      const res = await fetch('/api/payments/paystack/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'student@futa.edu.ng',
+          amount: amountNGN,
+          planId: planName.toLowerCase().includes('scholar') ? 'complete' : planName.toLowerCase().includes('postgrad') ? 'faculty' : 'standard',
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Payment gateway initialization failed');
+      }
+
+      if (data.mode === 'live' && data.authorization_url) {
+        window.location.href = data.authorization_url;
+        return;
+      }
+
+      // In sandbox/simulation mode: verify immediately
+      const verifyRes = await fetch(`/api/payments/paystack/verify?reference=${data.reference}`);
+      const verifyData = await verifyRes.json();
+
       setIsProcessing(false);
       setPurchaseSuccess(true);
-      setTimeout(() => setPurchaseSuccess(false), 4000);
-      alert(`Success! ₦${amountNGN.toLocaleString()} payment received via Paystack. ${credits} Academic Credits added to your balance.`);
-    }, 1500);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('credits-updated'));
+      }
+      setTimeout(() => setPurchaseSuccess(false), 5000);
+      alert(`🎉 Payment Successful!\nReference: ${data.reference}\n₦${amountNGN.toLocaleString()} received via Paystack.\n${credits} Academic Credits added to your account!`);
+    } catch (err: any) {
+      setIsProcessing(false);
+      alert(`❌ Payment error: ${err.message}`);
+    }
   }
 
   function handleCustomTopup() {

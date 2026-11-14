@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   FileText,
   Download,
@@ -14,7 +15,8 @@ import {
   Layers,
   Copy,
   Check,
-  RotateCcw
+  RotateCcw,
+  Loader2
 } from 'lucide-react';
 
 const COURSES = [
@@ -45,14 +47,24 @@ export default function ThesisToolPage() {
 
   const [activeChapter, setActiveChapter] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  function handleGenerate() {
+  async function handleDownloadDocx() {
+    setIsDownloading(true);
+    await downloadAcademicFile(
+      '/api/generate-thesis-docx',
+      { topic, course, institution, caseStudy, studentName, matricNumber, session },
+      `5_Chapter_Thesis_${course.replace(/\s+/g, '_')}.docx`
+    );
+    setIsDownloading(false);
+  }
+
+  async function handleGenerate() {
     setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
-      alert('5-Chapter Academic Thesis generated successfully! 18,450 words compiled with Crossref DOIs.');
-    }, 1200);
+    // Directly compile and download the full 5-chapter thesis document
+    await handleDownloadDocx();
+    setIsGenerating(false);
   }
 
   return (
@@ -168,11 +180,21 @@ export default function ThesisToolPage() {
             </div>
 
             <button
-              onClick={() => alert('Downloading APA 7th formatted Word document (.docx) with 1.5-inch hardcover binding clearance...')}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs flex items-center gap-2 transition-transform active:scale-95"
+              onClick={handleDownloadDocx}
+              disabled={isDownloading}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs flex items-center gap-2 transition-transform active:scale-95 disabled:opacity-50"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download .docx</span>
+              {isDownloading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Compiling DOCX...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download .docx</span>
+                </>
+              )}
             </button>
           </div>
 

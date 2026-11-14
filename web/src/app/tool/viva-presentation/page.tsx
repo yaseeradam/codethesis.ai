@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   Presentation,
   Download,
@@ -16,7 +17,8 @@ import {
   CheckCircle2,
   Lightbulb,
   Copy,
-  Layers
+  Layers,
+  Loader2
 } from 'lucide-react';
 
 interface Slide {
@@ -221,10 +223,24 @@ export default function VivaPresentationPage() {
     }
   ];
 
+  const [isDownloading, setIsDownloading] = useState(false);
   const activeSlide = slides[currentSlideIndex];
 
-  function handleExportPPTX() {
-    alert(`Compiling 15-Slide Presentation (.pptx) formatted in 16:9 Widescreen with high-contrast academic typography!`);
+  async function handleExportPPTX() {
+    setIsDownloading(true);
+    await downloadAcademicFile(
+      '/api/generate-viva-pptx',
+      {
+        topic,
+        studentName,
+        matricNumber,
+        supervisor,
+        institution,
+        course: 'Computer Science',
+      },
+      `Viva_Defense_Slides_${studentName.replace(/\s+/g, '_')}.pptx`
+    );
+    setIsDownloading(false);
   }
 
   function handleRecompile() {
@@ -345,10 +361,20 @@ export default function VivaPresentationPage() {
 
                 <button
                   onClick={handleExportPPTX}
-                  className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all"
+                  disabled={isDownloading}
+                  className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Export .PPTX</span>
+                  {isDownloading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Compiling .PPTX...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Export .PPTX</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

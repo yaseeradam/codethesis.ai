@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   Code2,
   Download,
@@ -14,7 +15,8 @@ import {
   Sparkles,
   Layers,
   CheckCircle2,
-  Server
+  Server,
+  Loader2
 } from 'lucide-react';
 
 const FILES: Record<string, string> = {
@@ -124,6 +126,7 @@ pause
 export default function SoftwareBuilderPage() {
   const [selectedFile, setSelectedFile] = useState('app.py');
   const [copied, setCopied] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [topic, setTopic] = useState('Automated Hostel Allocation System');
 
   function handleCopy() {
@@ -132,8 +135,18 @@ export default function SoftwareBuilderPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleDownloadZip() {
-    alert('Packaging turnkey software repository with app.py, schema.sql, seed_data.sql, run_project.bat, and README.md into .zip...');
+  async function handleDownloadZip() {
+    setIsDownloading(true);
+    await downloadAcademicFile(
+      '/api/generate-software-zip',
+      {
+        topic,
+        course: 'Computer Science',
+        institution: 'Federal University of Technology, Akure',
+      },
+      `CodeThesis_Software_${topic.replace(/\s+/g, '_')}.zip`
+    );
+    setIsDownloading(false);
   }
 
   return (
@@ -172,10 +185,20 @@ export default function SoftwareBuilderPage() {
 
             <button
               onClick={handleDownloadZip}
-              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95"
+              disabled={isDownloading}
+              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95 disabled:opacity-50"
             >
-              <Download className="w-4 h-4" />
-              <span>Download Complete Software .ZIP</span>
+              {isDownloading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Packaging .ZIP Repository...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  <span>Download Complete Software .ZIP</span>
+                </>
+              )}
             </button>
           </div>
 

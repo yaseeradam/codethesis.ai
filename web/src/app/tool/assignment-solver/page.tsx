@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   Calculator,
   Download,
@@ -14,7 +15,8 @@ import {
   Layers,
   ArrowRight,
   ShieldCheck,
-  Cpu
+  Cpu,
+  Loader2
 } from 'lucide-react';
 
 interface ProblemPreset {
@@ -141,7 +143,29 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
     }
   ];
 
+  const [isDownloading, setIsDownloading] = useState(false);
   const currentPreset = presets.find(p => p.id === activePresetId) || presets[0];
+
+  async function handleDownloadDocx() {
+    setIsDownloading(true);
+    await downloadAcademicFile(
+      '/api/generate-assignment-docx',
+      {
+        courseCode: 'CSC 411',
+        courseTitle: 'Advanced Algorithms and Complexity',
+        lecturer: 'Prof. M. B. Sanusi',
+        studentName: 'Adebayo Tunde',
+        matricNo: 'FUTA/CSC/20/4182',
+        institution: 'Federal University of Technology, Akure',
+        department: 'Department of Computer Science',
+        assignmentTitle: currentPreset.title,
+        problemStatement: currentPreset.question,
+        steps: currentPreset.steps,
+      },
+      `Assignment_Solution_${currentPreset.id}.docx`
+    );
+    setIsDownloading(false);
+  }
 
   function handleSolve() {
     setIsSolving(true);
@@ -252,11 +276,21 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
                 </button>
 
                 <button
-                  onClick={() => alert('Downloading solution sheet (.pdf / .docx)!')}
-                  className="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all"
+                  onClick={handleDownloadDocx}
+                  disabled={isDownloading}
+                  className="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Export PDF</span>
+                  {isDownloading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Compiling Solution...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download .DOCX</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

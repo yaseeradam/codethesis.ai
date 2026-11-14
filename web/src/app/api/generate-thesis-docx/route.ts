@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 import {
   Document,
   Packer,
@@ -26,6 +27,15 @@ export async function POST(req: NextRequest) {
       matricNumber = "FUTA/CSC/20/4182",
       session = "2025/2026",
     } = body;
+
+    // Check and deduct credits
+    const creditCheck = await authorizeAndDeductCredits('thesis');
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },
+        { status: 402 }
+      );
+    }
 
     const docChildren: (Paragraph | Table)[] = [];
 
@@ -1142,11 +1152,23 @@ export async function POST(req: NextRequest) {
 
     const buffer = await Packer.toBuffer(doc);
 
+    // Auto-archive project in student repository
+    await autoArchiveProject({
+      userId: creditCheck.userId,
+      toolId: 'thesis',
+      title: topic,
+      course,
+      institution,
+      summary: `5-Chapter Undergraduate Thesis (~18,000+ words target) in ${course} for ${institution}. APA 7th format.`,
+      fileType: 'docx',
+    });
+
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="5_Chapter_Thesis_${course.replace(/\s+/g, "_")}.docx"`,
+        "X-Remaining-Credits": String(creditCheck.remainingCredits),
       },
     });
   } catch (error) {

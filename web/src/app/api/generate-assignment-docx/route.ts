@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Packer, BorderStyle } from "docx";
+import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,6 +18,15 @@ export async function POST(req: NextRequest) {
       steps = [],
       references = []
     } = body;
+
+    // Deduct credits for Assignment Solver
+    const creditCheck = await authorizeAndDeductCredits('assignmentSolver');
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },
+        { status: 402 }
+      );
+    }
 
     const sections = [
       // Academic Institution Header
@@ -272,11 +282,23 @@ export async function POST(req: NextRequest) {
 
     const buffer = await Packer.toBuffer(doc);
 
+    // Auto-archive in student repository
+    await autoArchiveProject({
+      userId: creditCheck.userId,
+      toolId: 'assignment-solver',
+      title: `${courseCode}: ${assignmentTitle}`,
+      course: courseTitle,
+      institution,
+      summary: `Rigorous academic computational and mathematical solution formatted in APA 7th.`,
+      fileType: 'docx',
+    });
+
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="${courseCode.replace(/\\s+/g, '_')}_Assignment_Submission.docx"`,
+        "X-Remaining-Credits": String(creditCheck.remainingCredits),
       },
     });
   } catch (error: any) {

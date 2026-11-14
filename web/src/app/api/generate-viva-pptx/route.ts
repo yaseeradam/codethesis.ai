@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import pptxgen from "pptxgenjs";
+import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,6 +14,15 @@ export async function POST(req: NextRequest) {
       supervisor = "Dr. A. O. Adebayo",
       session = "2025/2026",
     } = body;
+
+    // Deduct credits for Viva Presentation
+    const creditCheck = await authorizeAndDeductCredits('vivaPresentation');
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },
+        { status: 402 }
+      );
+    }
 
     const pres = new pptxgen();
     pres.layout = "LAYOUT_16x9";
@@ -227,11 +237,23 @@ export async function POST(req: NextRequest) {
     // Generate PPTX Buffer
     const buffer = await pres.write({ outputType: "nodebuffer" });
 
+    // Auto-archive in student repository
+    await autoArchiveProject({
+      userId: creditCheck.userId,
+      toolId: 'viva-presentation',
+      title: `Viva Defense Presentation Deck: ${topic}`,
+      course,
+      institution,
+      summary: `15-Slide Widescreen (16:9) defense presentation deck in Midnight Navy and Gold.`,
+      fileType: 'pptx',
+    });
+
     return new NextResponse(new Uint8Array(buffer as Buffer), {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "Content-Disposition": `attachment; filename="Viva_Defense_Slides_${course.replace(/\s+/g, "_")}.pptx"`,
+        "X-Remaining-Credits": String(creditCheck.remainingCredits),
       },
     });
   } catch (error) {

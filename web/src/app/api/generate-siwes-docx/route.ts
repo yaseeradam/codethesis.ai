@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 import {
   Document,
   Packer,
@@ -23,6 +24,15 @@ export async function POST(req: NextRequest) {
       duration = 24, 
       weeks: inputWeeks 
     } = body;
+
+    // Deduct credits for SIWES Logbook
+    const creditCheck = await authorizeAndDeductCredits('siwesLogbook');
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },
+        { status: 402 }
+      );
+    }
 
     const numWeeks = Number(duration) === 12 ? 12 : 24;
 
@@ -665,11 +675,23 @@ export async function POST(req: NextRequest) {
 
     const buffer = await Packer.toBuffer(doc);
 
+    // Auto-archive in student repository
+    await autoArchiveProject({
+      userId: creditCheck.userId,
+      toolId: 'siwes-logbook',
+      title: `${numWeeks}-Week SIWES Industrial Training Logbook`,
+      course,
+      institution: 'Nigerian Tertiary Institution',
+      summary: `Complete ${numWeeks}-Week day-by-day industrial attachment logbook for ${company}.`,
+      fileType: 'docx',
+    });
+
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="SIWES_Logbook_${(course || "Course").replace(/\s+/g, "_")}.docx"`,
+        "X-Remaining-Credits": String(creditCheck.remainingCredits),
       },
     });
   } catch (error) {

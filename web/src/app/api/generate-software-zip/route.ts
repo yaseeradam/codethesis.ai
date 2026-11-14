@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
+import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,6 +10,15 @@ export async function POST(req: NextRequest) {
       course = "Computer Science",
       institution = "Federal University of Technology, Akure",
     } = body;
+
+    // Deduct credits for Software Builder
+    const creditCheck = await authorizeAndDeductCredits('softwareBuilder');
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },
+        { status: 402 }
+      );
+    }
 
     const zip = new JSZip();
 
@@ -492,11 +502,23 @@ with socketserver.TCPServer(("", PORT), ProjectHandler) as httpd:
     // Generate ZIP buffer
     const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
 
+    // Auto-archive in student repository
+    await autoArchiveProject({
+      userId: creditCheck.userId,
+      toolId: 'software-builder',
+      title: topic,
+      course,
+      institution,
+      summary: `Zero-pip Python & SQLite web application with 1-click run_project.bat offline launcher.`,
+      fileType: 'zip',
+    });
+
     return new NextResponse(new Uint8Array(zipBuffer), {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="CodeThesis_Software_${course.replace(/\s+/g, "_")}.zip"`,
+        "X-Remaining-Credits": String(creditCheck.remainingCredits),
       },
     });
   } catch (error) {

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAdminSettings } from '@/lib/db';
+import { authorizeAndDeductCredits, ToolKey } from '@/lib/credits';
 
 interface GeneratePayload {
   type: 'thesis_chapter' | 'siwes_entry' | 'itf_chapter' | 'assignment' | 'viva_qa' | 'freeform';
@@ -7,121 +9,150 @@ interface GeneratePayload {
   institution?: string;
   chapterNumber?: number;
   prompt?: string;
+  deductCredits?: boolean;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body: GeneratePayload = await req.json();
-    const { type, topic, course = 'General Studies', institution = 'University', chapterNumber, prompt } = body;
+    const { type, topic, course = 'General Studies', institution = 'University', chapterNumber, prompt, deductCredits = false } = body;
 
     if (!topic && !prompt) {
       return NextResponse.json({ error: 'Topic or prompt is required' }, { status: 400 });
     }
 
+    // 0. Optional Credit Check if requested by caller
+    let creditInfo: { remainingCredits?: number; cost?: number } = {};
+    if (deductCredits) {
+      let toolKey: ToolKey = 'thesis';
+      if (type === 'siwes_entry') toolKey = 'siwesLogbook';
+      else if (type === 'itf_chapter') toolKey = 'itfReport';
+      else if (type === 'assignment') toolKey = 'assignmentSolver';
+      else if (type === 'viva_qa') toolKey = 'vivaSimulator';
+
+      const creditResult = await authorizeAndDeductCredits(toolKey);
+      if (!creditResult.allowed) {
+        return NextResponse.json(
+          { error: creditResult.errorMessage, cost: creditResult.cost, remainingCredits: creditResult.remainingCredits },
+          { status: 402 }
+        );
+      }
+      creditInfo = { remainingCredits: creditResult.remainingCredits, cost: creditResult.cost };
+    }
+
+    // Fetch dynamic admin parameters & provider preferences from database
+    const adminSettings = await getAdminSettings();
+    const {
+      activeProvider = 'heuristic',
+      modelName = 'gemini-1.5-flash',
+      temperature = 0.7,
+      maxTokens = 8192,
+      systemPromptOverride = 'You are CodeThesis AI, the authoritative academic engineering copilot for tertiary university dissertations.',
+      fallbackEnabled = true,
+    } = adminSettings?.aiEngine || {};
+
     const geminiKey = process.env.GEMINI_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
 
-    // 1. Try Gemini API if available
-    if (geminiKey) {
+    // Helper for Gemini Call
+    async function tryGemini(): Promise<string | null> {
+      if (!geminiKey) return null;
       try {
-        const systemPrompt = `You are a distinguished university professor and academic researcher. 
-Generate rigorous, comprehensive, publishable academic content adhering strictly to APA 7th edition citation style. 
-Topic: "${topic || prompt}". Course: "${course}". Institution: "${institution}".
-Do not use conversational filler. Provide deep, scholarly analysis with clear academic subheadings, empirical foundations, and realistic DOI references.`;
-
+        const fullSystemPrompt = `${systemPromptOverride}\nTopic: "${topic || prompt}". Course: "${course}". Institution: "${institution}". Adhere strictly to formal academic English and APA 7th citations.`;
         const userQuery = prompt || `Generate an exhaustive academic section for Chapter ${chapterNumber || 1} on the topic: ${topic}. Include introduction, theoretical framework, methodology/implementation analysis, and references.`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName || 'gemini-1.5-flash'}:generateContent?key=${geminiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [
-              {
-                role: 'user',
-                parts: [{ text: `${systemPrompt}\n\nTask: ${userQuery}` }],
-              },
-            ],
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 3500,
-            },
+            contents: [{ role: 'user', parts: [{ text: `${fullSystemPrompt}\n\nTask: ${userQuery}` }] }],
+            generationConfig: { temperature, maxOutputTokens: Math.min(maxTokens, 4000) },
           }),
         });
 
         if (response.ok) {
           const data = await response.json();
-          const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (generatedText) {
-            return NextResponse.json({
-              success: true,
-              provider: 'google-gemini-1.5-flash',
-              content: generatedText,
-              topic,
-              course,
-            });
-          }
+          return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
         }
-      } catch (geminiErr) {
-        console.warn('Gemini API call failed, falling back to academic engine:', geminiErr);
+      } catch (err) {
+        console.warn('Gemini request failed:', err);
       }
+      return null;
     }
 
-    // 2. Try OpenAI API if available
-    if (openaiKey) {
+    // Helper for OpenAI Call
+    async function tryOpenAI(): Promise<string | null> {
+      if (!openaiKey) return null;
       try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${openaiKey}`,
+            Authorization: `Bearer ${openaiKey}`,
           },
           body: JSON.stringify({
             model: 'gpt-4o-mini',
             messages: [
-              {
-                role: 'system',
-                content: 'You are an academic dissertation specialist. Write in-depth, rigorous, research-grade content with formal academic English and APA 7th citations.',
-              },
-              {
-                role: 'user',
-                content: prompt || `Write an in-depth academic treatise for Chapter ${chapterNumber || 1} on: ${topic} in the context of ${course} at ${institution}.`,
-              },
+              { role: 'system', content: systemPromptOverride },
+              { role: 'user', content: prompt || `Write an in-depth academic treatise for Chapter ${chapterNumber || 1} on: ${topic} in the context of ${course} at ${institution}.` },
             ],
-            max_tokens: 3000,
-            temperature: 0.7,
+            max_tokens: Math.min(maxTokens, 3000),
+            temperature,
           }),
         });
 
         if (response.ok) {
           const data = await response.json();
-          const generatedText = data.choices?.[0]?.message?.content;
-          if (generatedText) {
-            return NextResponse.json({
-              success: true,
-              provider: 'openai-gpt-4o-mini',
-              content: generatedText,
-              topic,
-              course,
-            });
-          }
+          return data.choices?.[0]?.message?.content || null;
         }
-      } catch (openaiErr) {
-        console.warn('OpenAI API call failed, falling back to academic engine:', openaiErr);
+      } catch (err) {
+        console.warn('OpenAI request failed:', err);
+      }
+      return null;
+    }
+
+    // Priority Execution based on Admin Provider configuration
+    let generatedContent: string | null = null;
+    let providerUsed = 'academic-heuristic';
+
+    if (activeProvider === 'gemini') {
+      generatedContent = await tryGemini();
+      if (generatedContent) providerUsed = `google-${modelName}`;
+      else if (fallbackEnabled) {
+        generatedContent = await tryOpenAI();
+        if (generatedContent) providerUsed = 'openai-gpt-4o-mini (fallback)';
+      }
+    } else if (activeProvider === 'openai') {
+      generatedContent = await tryOpenAI();
+      if (generatedContent) providerUsed = 'openai-gpt-4o-mini';
+      else if (fallbackEnabled) {
+        generatedContent = await tryGemini();
+        if (generatedContent) providerUsed = `google-${modelName} (fallback)`;
       }
     }
 
-    // 3. Fallback: High-Fidelity Academic Generation Engine (Zero Downtime Guarantee)
-    const synthesizedContent = generateAcademicEngineContent(type, topic, course, institution, chapterNumber);
+    // Fallback: CodeThesis Academic Heuristic Engine
+    if (!generatedContent) {
+      const synthesizedContent = generateAcademicEngineContent(type, topic, course, institution, chapterNumber);
+      return NextResponse.json({
+        success: true,
+        provider: 'codethesis-academic-engine (deterministic zero-downtime fallback)',
+        content: synthesizedContent.content,
+        sections: synthesizedContent.sections,
+        citations: synthesizedContent.citations,
+        topic,
+        course,
+        ...creditInfo,
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      provider: 'codethesis-academic-engine',
-      content: synthesizedContent.content,
-      sections: synthesizedContent.sections,
-      citations: synthesizedContent.citations,
+      provider: providerUsed,
+      content: generatedContent,
       topic,
       course,
-      note: 'Processed via CodeThesis Scholarly Pipeline (configure GEMINI_API_KEY in .env for custom live LLM completions)',
+      ...creditInfo,
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Generation failed' }, { status: 500 });

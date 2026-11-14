@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Packer, BorderStyle } from "docx";
+import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,6 +13,15 @@ export async function POST(req: NextRequest) {
       examinerTone = "Strict External Examiner",
       questions = []
     } = body;
+
+    // Deduct credits for Viva Simulator
+    const creditCheck = await authorizeAndDeductCredits('vivaSimulator');
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },
+        { status: 402 }
+      );
+    }
 
     const defaultQuestions = [
       {
@@ -176,11 +186,23 @@ export async function POST(req: NextRequest) {
 
     const buffer = await Packer.toBuffer(doc);
 
+    // Auto-archive in student repository
+    await autoArchiveProject({
+      userId: creditCheck.userId,
+      toolId: 'viva-simulator',
+      title: `Defense Oral Examination Prep Sheet: ${title}`,
+      course: department,
+      institution: 'Nigerian University',
+      summary: `Top 20 Departmental Defense Viva Questions & Model Answers with examiner psychology notes.`,
+      fileType: 'docx',
+    });
+
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="Viva_Defense_Cheatsheet_${author.replace(/\\s+/g, '_')}.docx"`,
+        "X-Remaining-Credits": String(creditCheck.remainingCredits),
       },
     });
   } catch (error: any) {

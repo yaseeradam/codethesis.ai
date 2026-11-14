@@ -130,42 +130,48 @@ export default function AdminDashboardPage() {
         setStudents(usersData.users);
       }
 
-      // Sample transactions
-      setTransactions([
-        {
-          id: 'tx-001',
-          reference: 'CT-TX-849201948',
-          userId: 'demo-student-001',
-          amount: 8500,
-          currency: 'NGN',
-          status: 'success',
-          planId: 'standard (FYP Pro)',
-          channel: 'Paystack Card',
-          createdAt: '2026-11-14 09:20 AM',
-        },
-        {
-          id: 'tx-002',
-          reference: 'CT-TX-109283746',
-          userId: 'demo-student-002',
-          amount: 15000,
-          currency: 'NGN',
-          status: 'success',
-          planId: 'complete (Faculty Pass)',
-          channel: 'Bank Transfer',
-          createdAt: '2026-11-13 04:45 PM',
-        },
-        {
-          id: 'tx-003',
-          reference: 'CT-TX-551029481',
-          userId: 'demo-student-003',
-          amount: 3500,
-          currency: 'NGN',
-          status: 'success',
-          planId: 'starter (SIWES)',
-          channel: 'USSD / OPay',
-          createdAt: '2026-11-12 11:15 AM',
-        },
-      ]);
+      const txRes = await fetch('/api/admin/transactions');
+      const txData = await txRes.json();
+      if (txData.success && Array.isArray(txData.transactions) && txData.transactions.length > 0) {
+        setTransactions(txData.transactions);
+      } else {
+        // Fallback sample transactions if no transactions in DB
+        setTransactions([
+          {
+            id: 'tx-001',
+            reference: 'CT-TX-849201948',
+            userId: 'demo-student-001',
+            amount: 8500,
+            currency: 'NGN',
+            status: 'success',
+            planId: 'standard (FYP Pro)',
+            channel: 'Paystack Card',
+            createdAt: '2026-11-14 09:20 AM',
+          },
+          {
+            id: 'tx-002',
+            reference: 'CT-TX-109283746',
+            userId: 'demo-student-002',
+            amount: 15000,
+            currency: 'NGN',
+            status: 'success',
+            planId: 'complete (Faculty Pass)',
+            channel: 'Bank Transfer',
+            createdAt: '2026-11-13 04:45 PM',
+          },
+          {
+            id: 'tx-003',
+            reference: 'CT-TX-551029481',
+            userId: 'demo-student-003',
+            amount: 3500,
+            currency: 'NGN',
+            status: 'success',
+            planId: 'starter (SIWES)',
+            channel: 'USSD / OPay',
+            createdAt: '2026-11-12 11:15 AM',
+          },
+        ]);
+      }
     } catch (err) {
       console.error('Failed to load admin data:', err);
     } finally {

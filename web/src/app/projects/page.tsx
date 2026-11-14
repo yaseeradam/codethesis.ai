@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
+import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   FolderGit2,
   Plus,
@@ -19,7 +20,8 @@ import {
   Sparkles,
   CheckCircle2,
   Layers,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from 'lucide-react';
 
 interface ProjectItem {
@@ -39,8 +41,9 @@ interface ProjectItem {
 export default function ProjectsPage() {
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  const [projectsList, setProjectsList] = useState<ProjectItem[]>([
+  const initialProjects: ProjectItem[] = [
     {
       id: 'proj-1',
       title: 'Automated Hostel Allocation and Concurrency Control Suite',
@@ -90,7 +93,60 @@ export default function ProjectsPage() {
       lastModified: 'Nov 10, 2026',
       studioUrl: '/tool/viva-presentation'
     }
-  ]);
+  ];
+
+  const [projectsList, setProjectsList] = useState<ProjectItem[]>(initialProjects);
+
+  // Fetch real archived projects from backend database
+  useEffect(() => {
+    async function loadProjects() {
+      try {
+        const res = await fetch('/api/projects');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.projects) && data.projects.length > 0) {
+          const mappedDb: ProjectItem[] = data.projects.map((p: any) => {
+            let category: ProjectItem['category'] = 'thesis';
+            let studioUrl = '/studio';
+            if (p.toolId === 'softwareBuilder') {
+              category = 'software';
+              studioUrl = '/tool/software-builder';
+            } else if (p.toolId === 'siwesLogbook' || p.toolId === 'itfReport') {
+              category = 'siwes';
+              studioUrl = p.toolId === 'siwesLogbook' ? '/tool/siwes-logbook' : '/tool/itf-report';
+            } else if (p.toolId === 'vivaPresentation' || p.toolId === 'vivaSimulator') {
+              category = 'presentation';
+              studioUrl = p.toolId === 'vivaPresentation' ? '/tool/viva-presentation' : '/tool/viva-simulator';
+            }
+
+            return {
+              id: p.id,
+              title: p.title,
+              category,
+              course: p.course || 'Computer Science (B.Sc)',
+              institution: p.institution || 'Tertiary Institution',
+              wordCount: p.metadata?.wordCount || (category === 'thesis' ? 18450 : category === 'siwes' ? 12000 : undefined),
+              linesOfCode: p.metadata?.linesOfCode || (category === 'software' ? 1850 : undefined),
+              defenseReadiness: p.metadata?.defenseReadiness || 93,
+              status: 'Complete' as const,
+              lastModified: p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently',
+              studioUrl
+            };
+          });
+
+          // Prepend DB projects without duplicating IDs
+          setProjectsList(prev => {
+            const existingIds = new Set(mappedDb.map(m => m.id));
+            const retainedInitial = initialProjects.filter(item => !existingIds.has(item.id));
+            return [...mappedDb, ...retainedInitial];
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load user projects:', err);
+      }
+    }
+
+    loadProjects();
+  }, []);
 
   const filteredProjects = projectsList.filter(proj => {
     const matchesFilter = activeFilter === 'all' || proj.category === activeFilter;
@@ -100,14 +156,64 @@ export default function ProjectsPage() {
     return matchesFilter && matchesSearch;
   });
 
-  function handleDeleteProject(id: string) {
+  async function handleDeleteProject(id: string) {
     if (confirm('Are you sure you want to delete this project from your workspace?')) {
+      try {
+        await fetch(`/api/projects?id=${id}`, { method: 'DELETE' });
+      } catch (err) {
+        console.error('Failed to delete project on server:', err);
+      }
       setProjectsList(prev => prev.filter(p => p.id !== id));
     }
   }
 
-  function handleDownloadBundle(title: string) {
-    alert(`Packaging full project archive (.zip) for "${title}" containing Chapter 1–5 (.docx), source code (.py), vector UMLs (.svg), and slides (.pptx)!`);
+  async function handleDownloadBundle(project: ProjectItem) {
+    try {
+      setDownloadingId(project.id);
+      let endpoint = '/api/generate-thesis-docx';
+      let payload: Record<string, any> = {
+        topic: project.title,
+        institution: project.institution,
+        course: project.course,
+      };
+      let fallback = `${project.title.replace(/[^a-zA-Z0-9]/g, '_')}.docx`;
+
+      if (project.category === 'software') {
+        endpoint = '/api/generate-software-zip';
+        payload = {
+          projectName: project.title,
+          language: 'Python',
+          framework: 'Tkinter + SQLite',
+        };
+        fallback = `${project.title.replace(/[^a-zA-Z0-9]/g, '_')}_software.zip`;
+      } else if (project.category === 'siwes') {
+        endpoint = '/api/generate-siwes-docx';
+        payload = {
+          studentName: 'Student Candidate',
+          companyName: 'MainOne Equinix Datacenter',
+          department: project.course,
+          durationWeeks: 24,
+          institution: project.institution,
+        };
+        fallback = `${project.title.replace(/[^a-zA-Z0-9]/g, '_')}_siwes.docx`;
+      } else if (project.category === 'presentation') {
+        endpoint = '/api/generate-viva-pptx';
+        payload = {
+          projectTitle: project.title,
+          studentName: 'Candidate',
+          department: project.course,
+          institution: project.institution,
+          numSlides: 15,
+        };
+        fallback = `${project.title.replace(/[^a-zA-Z0-9]/g, '_')}_viva.pptx`;
+      }
+
+      await downloadAcademicFile(endpoint, payload, fallback);
+    } catch (err) {
+      console.error('Bundle download error:', err);
+    } finally {
+      setDownloadingId(null);
+    }
   }
 
   return (
@@ -271,11 +377,16 @@ export default function ProjectsPage() {
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleDownloadBundle(project.title)}
-                    className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-all"
-                    title="Download Complete Bundle (.zip)"
+                    onClick={() => handleDownloadBundle(project)}
+                    disabled={downloadingId === project.id}
+                    className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-all disabled:opacity-50"
+                    title="Download Complete Package"
                   >
-                    <Download className="w-4 h-4" />
+                    {downloadingId === project.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    ) : (
+                      <Download className="w-4 h-4" />
+                    )}
                   </button>
 
                   <button

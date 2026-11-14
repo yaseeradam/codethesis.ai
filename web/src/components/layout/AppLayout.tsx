@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from '@/context/ThemeContext';
@@ -27,7 +27,8 @@ import {
   Moon,
   PanelLeftClose,
   PanelLeft,
-  ShieldAlert
+  ShieldAlert,
+  Coins
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -47,7 +48,38 @@ export default function AppLayout({
 }: AppLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userCredits, setUserCredits] = useState<number>(15);
+  const [studentName, setStudentName] = useState<string>('Adebayo Tunde');
   const { theme, resolvedTheme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await fetch('/api/auth');
+        const data = await res.json();
+        if (data?.user?.credits !== undefined) {
+          setUserCredits(data.user.credits);
+        }
+        if (data?.user?.fullName) {
+          setStudentName(data.user.fullName);
+        }
+      } catch (err) {
+        console.warn('Could not load user session:', err);
+      }
+    }
+    fetchUser();
+
+    function handleCreditsEvent(e: any) {
+      if (typeof e?.detail?.credits === 'number') {
+        setUserCredits(e.detail.credits);
+      } else {
+        fetchUser();
+      }
+    }
+
+    window.addEventListener('credits-updated', handleCreditsEvent);
+    return () => window.removeEventListener('credits-updated', handleCreditsEvent);
+  }, []);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-sky-400' },
@@ -253,8 +285,8 @@ export default function AppLayout({
               </div>
               {!isSidebarCollapsed && (
                 <div className="leading-tight overflow-hidden">
-                  <p className="text-xs font-bold text-white truncate">Adebayo Tunde</p>
-                  <p className="text-[10px] text-cyan-300/80 truncate">FUTA Student</p>
+                  <p className="text-xs font-bold text-white truncate">{studentName}</p>
+                  <p className="text-[10px] text-cyan-300/80 truncate">Active Student</p>
                 </div>
               )}
             </div>
@@ -325,6 +357,17 @@ export default function AppLayout({
                   <Moon className="w-4 h-4 text-slate-600 hover:text-blue-600" />
                 )}
               </button>
+
+              {/* Live Academic Credit Badge */}
+              <Link
+                href="/pricing"
+                prefetch={false}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 transition-all shadow-2xs"
+                title="Academic Generation Credits — Click to Manage or Recharge"
+              >
+                <Coins className="w-3.5 h-3.5 text-amber-500 fill-amber-500 animate-pulse" />
+                <span>{userCredits} Credits</span>
+              </Link>
 
               <Link
                 href="/pricing"

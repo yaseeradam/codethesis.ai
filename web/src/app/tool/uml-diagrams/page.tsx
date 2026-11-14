@@ -448,6 +448,42 @@ export default function UmlDiagramsToolPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  function handleExportSvg() {
+    try {
+      const container = document.getElementById('uml-svg-container');
+      const svg = container ? container.querySelector('svg') : null;
+      let svgText = '';
+      if (svg) {
+        svgText = new XMLSerializer().serializeToString(svg);
+      } else {
+        svgText = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 480"><rect width="850" height="480" fill="#070F2B"/><text x="50%" y="50%" fill="#38BDF8" font-family="sans-serif" font-size="20" text-anchor="middle">${currentPreset.name} - ${projectTitle}</text></svg>`;
+      }
+      const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `UML_${currentPreset.name.replace(/\s+/g, '_')}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(`SVG Export error: ${err.message}`);
+    }
+  }
+
+  function handleExportMermaid() {
+    const blob = new Blob([currentPreset.mermaidCode], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentPreset.id}_diagram.mmd`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   function handleGenerateNew() {
     setIsGenerating(true);
     setTimeout(() => {
@@ -594,17 +630,26 @@ export default function UmlDiagramsToolPage() {
                 </button>
 
                 <button
-                  onClick={() => alert(`Downloading high-resolution ${currentPreset.name} (.svg vector and .png)`)}
-                  className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all"
+                  onClick={handleExportMermaid}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all"
+                  title="Download Mermaid Source File (.mmd)"
+                >
+                  <Code2 className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Export .MMD</span>
+                </button>
+
+                <button
+                  onClick={handleExportSvg}
+                  className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all active:scale-95"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Export SVG</span>
+                  <span>Export SVG Vector</span>
                 </button>
               </div>
             </div>
 
             {/* Display Area */}
-            <div className="p-4 bg-slate-100/50 min-h-[460px] flex items-center justify-center overflow-auto">
+            <div id="uml-svg-container" className="p-4 bg-slate-100/50 min-h-[460px] flex items-center justify-center overflow-auto">
               {activeTab === 'visual' ? (
                 <div
                   style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }}
