@@ -39,7 +39,8 @@ import {
   Check,
   PanelLeftClose,
   PanelLeft,
-  Menu
+  Menu,
+  ShieldAlert
 } from 'lucide-react';
 
 interface Project {
@@ -473,6 +474,18 @@ function DashboardMain() {
             >
               <Headphones className="w-4 h-4 text-slate-400 flex-shrink-0" />
               {!isSidebarCollapsed && <span className="truncate">Help & Support</span>}
+            </Link>
+
+            <Link
+              href="/admin"
+              prefetch={false}
+              title="Admin Control Center"
+              className={`flex items-center rounded-xl text-xs font-semibold text-amber-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
+            >
+              <ShieldAlert className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Admin Controls</span>}
             </Link>
           </div>
         </div>
