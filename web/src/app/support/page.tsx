@@ -103,12 +103,12 @@ export default function SupportPage() {
           </div>
 
           {/* Right Floating Cutout Asset */}
-          <div className="relative w-44 h-44 lg:w-52 lg:h-52 flex-shrink-0 z-10 drop-shadow-xl animate-float">
+          <div className="relative w-44 h-56 lg:w-52 lg:h-64 flex-shrink-0 z-10 drop-shadow-xl animate-float self-end">
             <Image
               src="/assets/women.png"
               alt="CodeThesis Student Support Advisor"
               fill
-              className="object-contain"
+              className="object-contain object-bottom"
               priority
             />
           </div>

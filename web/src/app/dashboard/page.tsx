@@ -701,13 +701,13 @@ function DashboardMain() {
               </div>
 
               {/* Center-Right 3D Visual Centerpiece */}
-              <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end">
-                <div className="relative w-full max-w-[420px] aspect-[4/3] animate-float drop-shadow-[0_20px_40px_rgba(2,132,199,0.4)]">
+              <div className="lg:col-span-5 relative flex items-end justify-center lg:justify-end">
+                <div className="relative w-full max-w-[480px] lg:max-w-[520px] h-[220px] sm:h-[260px] lg:h-[290px] animate-float drop-shadow-[0_20px_40px_rgba(2,132,199,0.45)]">
                   <Image
                     src="/assets/header.png"
                     alt="3D Floating Graduation Cap, Books and Laptop"
                     fill
-                    className="object-contain"
+                    className="object-contain object-center lg:object-right-bottom"
                     priority
                   />
                 </div>
@@ -1005,32 +1005,32 @@ function DashboardMain() {
             </div>
 
             {/* Card 3: Need Help? Support Card (3 Cols) */}
-            <div className="md:col-span-3 bg-gradient-to-br from-[#EBF3FC] to-[#DDEBFA] border border-blue-200/60 rounded-3xl p-5 relative overflow-hidden flex flex-col justify-between shadow-xs">
-              <div>
-                <div className="flex items-center gap-2 text-slate-900 mb-1">
-                  <Headphones className="w-4 h-4 text-blue-600" />
+            <div className="md:col-span-3 bg-gradient-to-br from-[#EBF3FC] to-[#DDEBFA] dark:from-[#0E1A3D] dark:to-[#0B1530] border border-blue-200/60 dark:border-blue-900/40 rounded-3xl p-5 relative overflow-hidden flex flex-col justify-between shadow-xs min-h-[175px]">
+              <div className="relative z-10 max-w-[150px] sm:max-w-[160px]">
+                <div className="flex items-center gap-2 text-slate-900 dark:text-white mb-1">
+                  <Headphones className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
                   <h3 className="text-xs font-bold tracking-tight">Need Help?</h3>
                 </div>
-                <p className="text-[11px] text-slate-600 leading-tight mb-4 max-w-[140px]">
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-tight mb-4">
                   Our support team is always ready to help you.
                 </p>
 
                 <Link
                   href="/support"
                   prefetch={false}
-                  className="inline-flex items-center gap-1.5 bg-[#0B132B] hover:bg-[#132047] text-white font-semibold px-3.5 py-1.5 rounded-full text-xs shadow-xs transition-transform active:scale-95"
+                  className="inline-flex items-center gap-1.5 bg-[#0B132B] dark:bg-cyan-500 hover:bg-[#132047] dark:hover:bg-cyan-400 text-white dark:text-slate-950 font-semibold px-3.5 py-1.5 rounded-full text-xs shadow-xs transition-transform active:scale-95 whitespace-nowrap"
                 >
                   <span>Contact Support &rarr;</span>
                 </Link>
               </div>
 
-              {/* 3D Female Support Specialist Avatar with Thumbs Up */}
-              <div className="absolute -bottom-1 -right-2 w-28 h-28 animate-float flex-shrink-0 drop-shadow-[0_10px_25px_rgba(2,132,199,0.25)]">
+              {/* 3D Female Support Specialist Avatar with Thumbs Up - Anchored flush to bottom right */}
+              <div className="absolute bottom-0 right-0 w-[135px] sm:w-[150px] lg:w-[160px] h-[155px] sm:h-[170px] lg:h-[185px] flex-shrink-0 drop-shadow-[0_10px_20px_rgba(2,132,199,0.3)] pointer-events-none z-0">
                 <Image
                   src="/assets/women.png"
-                  alt="3D Support Specialist"
+                  alt="3D Support Specialist in Blue Hijab"
                   fill
-                  className="object-contain"
+                  className="object-contain object-bottom"
                 />
               </div>
             </div>
