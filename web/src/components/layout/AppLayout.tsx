@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useTheme } from '@/context/ThemeContext';
 import {
   Home,
   GraduationCap,
@@ -23,8 +22,6 @@ import {
   ChevronDown,
   Search,
   Bell,
-  Sun,
-  Moon,
   PanelLeftClose,
   PanelLeft,
   ShieldAlert,
@@ -50,7 +47,6 @@ export default function AppLayout({
   const [searchQuery, setSearchQuery] = useState('');
   const [userCredits, setUserCredits] = useState<number>(15);
   const [studentName, setStudentName] = useState<string>('Adebayo Tunde');
-  const { theme, resolvedTheme, toggleTheme } = useTheme();
 
   useEffect(() => {
     async function fetchUser() {
@@ -103,7 +99,7 @@ export default function AppLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] dark:bg-[#070F2B] text-slate-900 dark:text-slate-100 flex flex-col lg:flex-row font-sans selection:bg-cyan-500 selection:text-white transition-colors duration-200">
+    <div className="min-h-screen bg-[#F1F5F9] text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-cyan-500 selection:text-white">
       {/* ─────────────────────────────────────────────────────────────
           1. LEFT COLLAPSIBLE SIDEBAR (Midnight Navy #070F2B)
       ─────────────────────────────────────────────────────────────── */}
@@ -302,30 +298,30 @@ export default function AppLayout({
       ─────────────────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {!hideHeader && (
-          <header className="sticky top-0 z-30 bg-[#F1F5F9]/90 dark:bg-[#070F2B]/90 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 gap-3 transition-colors duration-200">
+          <header className="sticky top-0 z-30 bg-[#F1F5F9]/90  backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/80  gap-3 transition-colors duration-200">
             {/* Left Search & Toggle */}
             <div className="flex items-center gap-3 w-full max-w-lg">
               <button
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="p-2 rounded-xl bg-white dark:bg-[#0E1738] border border-slate-200/90 dark:border-[#1E2D58] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700 shadow-xs transition-transform active:scale-95 flex items-center justify-center flex-shrink-0"
+                className="p-2 rounded-xl bg-white  border border-slate-200/90  text-slate-600  hover:text-slate-900  hover:border-slate-300  shadow-xs transition-transform active:scale-95 flex items-center justify-center flex-shrink-0"
                 title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
                 aria-label={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
               >
                 {isSidebarCollapsed ? (
-                  <PanelLeft className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                  <PanelLeft className="w-4 h-4 text-sky-600 " />
                 ) : (
                   <PanelLeftClose className="w-4 h-4" />
                 )}
               </button>
 
               <div className="relative w-full">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 " />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search tools, projects, or features... (Ctrl + K)"
-                  className="w-full bg-white dark:bg-[#0E1738] border border-slate-200/90 dark:border-[#1E2D58] rounded-full pl-10 pr-4 py-2 text-xs font-medium text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 shadow-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                  className="w-full bg-white  border border-slate-200/90  rounded-full pl-10 pr-4 py-2 text-xs font-medium text-slate-800  placeholder-slate-400  shadow-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
                 />
               </div>
             </div>
@@ -336,7 +332,7 @@ export default function AppLayout({
                 onClick={() =>
                   alert('3 Notifications: 1) E-commerce thesis docx compiled, 2) Viva simulator ready, 3) +15 Credits loaded.')
                 }
-                className="relative p-2 rounded-full bg-white dark:bg-[#0E1738] border border-slate-200/80 dark:border-[#1E2D58] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white shadow-xs transition-transform active:scale-95"
+                className="relative p-2 rounded-full bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-xs transition-transform active:scale-95"
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4" />
@@ -345,24 +341,11 @@ export default function AppLayout({
                 </span>
               </button>
 
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-full bg-white dark:bg-[#0E1738] border border-slate-200/80 dark:border-[#1E2D58] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white shadow-xs transition-transform active:scale-95 flex items-center justify-center"
-                aria-label={`Toggle theme (currently ${resolvedTheme})`}
-                title={`Switch to ${resolvedTheme === 'dark' ? 'Light' : 'Dark'} Mode`}
-              >
-                {resolvedTheme === 'dark' ? (
-                  <Sun className="w-4 h-4 text-amber-400" />
-                ) : (
-                  <Moon className="w-4 h-4 text-slate-600 hover:text-blue-600" />
-                )}
-              </button>
-
               {/* Live Academic Credit Badge */}
               <Link
                 href="/pricing"
                 prefetch={false}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 transition-all shadow-2xs"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-700 font-bold text-xs hover:bg-amber-500/20 transition-all shadow-2xs"
                 title="Academic Generation Credits — Click to Manage or Recharge"
               >
                 <Coins className="w-3.5 h-3.5 text-amber-500 fill-amber-500 animate-pulse" />

@@ -24,8 +24,6 @@ import {
   LogOut,
   Search,
   Bell,
-  Sun,
-  Moon,
   ArrowRight,
   Play,
   CheckCircle2,
@@ -204,7 +202,6 @@ function DashboardMain() {
   const [progressWidth, setProgressWidth] = useState(0);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [demoBanner, setDemoBanner] = useState<string | null>(null);
 
   // Animate credits counter on mount
@@ -608,16 +605,6 @@ function DashboardMain() {
               </span>
             </button>
 
-            {/* Theme Toggle Pill */}
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2 rounded-full bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-xs transition-transform active:scale-95 flex items-center gap-1"
-              aria-label="Toggle theme"
-            >
-              <Sun className="w-3.5 h-3.5 text-amber-500" />
-              <Moon className="w-3.5 h-3.5 text-slate-400" />
-            </button>
-
             {/* Upgrade Plan Button */}
             <Link
               href="/pricing"
@@ -649,40 +636,40 @@ function DashboardMain() {
           )}
 
           {/* ─────────────────────────────────────────────────────────────
-              3. HERO BANNER: "Welcome back, Adebayo! 👋"
+              3. HERO BANNER: "Welcome back, Adebayo! 👋" (Reduced by 30%)
           ─────────────────────────────────────────────────────────────── */}
-          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#070E27] via-[#0B1C4D] to-[#0A266E] border border-blue-900/40 p-6 md:p-8 text-white shadow-xl">
+          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#070E27] via-[#0B1C4D] to-[#0A266E] border border-blue-900/40 p-4 sm:p-5 md:p-6 text-white shadow-lg">
             {/* Background Ambient Ring Lighting */}
-            <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-cyan-500/15 blur-3xl pointer-events-none" />
-            <div className="absolute right-1/4 bottom-0 w-60 h-60 rounded-full bg-blue-600/10 blur-2xl pointer-events-none" />
+            <div className="absolute -right-16 -top-16 w-60 h-60 rounded-full bg-cyan-500/15 blur-2xl pointer-events-none" />
+            <div className="absolute right-1/4 bottom-0 w-44 h-44 rounded-full bg-blue-600/10 blur-xl pointer-events-none" />
 
             {/* Top-Right Platform Status Badge */}
-            <div className="absolute top-6 right-6 z-10 hidden sm:flex items-center gap-2 bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 text-xs px-3 py-1.5 rounded-full font-medium shadow-xs backdrop-blur-md">
-              <span className="relative flex h-2 w-2">
+            <div className="absolute top-4 right-4 z-10 hidden sm:flex items-center gap-1.5 bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 text-[11px] px-2.5 py-1 rounded-full font-medium shadow-xs backdrop-blur-md">
+              <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
               </span>
               <span>Platform Status: <strong className="text-emerald-300 font-semibold">All Systems Online</strong></span>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
               {/* Left Copy & Buttons */}
               <div className="lg:col-span-7 z-10">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white">
                   Welcome back, <span className="text-[#38BDF8]">Adebayo!</span> 👋
                 </h1>
-                <p className="text-sm sm:text-base font-medium text-slate-200 mt-2">
+                <p className="text-xs sm:text-sm font-medium text-slate-200 mt-1.5">
                   Your all-in-one academic engineering workspace.
                 </p>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1 mb-6">
+                <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5 mb-4">
                   Turn your ideas into world-class projects with the power of AI.
                 </p>
 
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <Link
                     href="/studio"
                     prefetch={false}
-                    className="bg-[#00A3FF] hover:bg-[#0092E6] text-white font-bold px-5 py-2.5 rounded-full text-xs shadow-lg shadow-cyan-500/30 flex items-center gap-2 transition-transform active:scale-95"
+                    className="bg-[#00A3FF] hover:bg-[#0092E6] text-white font-bold px-4 py-2 rounded-full text-xs shadow-md shadow-cyan-500/30 flex items-center gap-1.5 transition-transform active:scale-95"
                   >
                     <span>Start a New Project</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -690,19 +677,19 @@ function DashboardMain() {
 
                   <button
                     onClick={() => alert('CodeThesis AI Demo: Watch 2-minute walkthrough of the 5-Chapter Thesis generator, Live Viva Oral simulator, and Turnkey Python app launcher.')}
-                    className="border border-white/40 hover:bg-white/10 text-white font-semibold px-5 py-2.5 rounded-full text-xs flex items-center gap-2 transition-transform active:scale-95"
+                    className="border border-white/40 hover:bg-white/10 text-white font-semibold px-4 py-2 rounded-full text-xs flex items-center gap-1.5 transition-transform active:scale-95"
                   >
-                    <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center">
-                      <Play className="w-2.5 h-2.5 fill-white text-white ml-0.5" />
+                    <div className="w-3.5 h-3.5 rounded-full bg-white/20 flex items-center justify-center">
+                      <Play className="w-2 h-2 fill-white text-white ml-0.5" />
                     </div>
                     <span>Watch Demo</span>
                   </button>
                 </div>
               </div>
 
-              {/* Center-Right 3D Visual Centerpiece */}
+              {/* Center-Right 3D Visual Centerpiece (Reduced by 30%) */}
               <div className="lg:col-span-5 relative flex items-end justify-center lg:justify-end">
-                <div className="relative w-full max-w-[480px] lg:max-w-[520px] h-[220px] sm:h-[260px] lg:h-[290px] animate-float drop-shadow-[0_20px_40px_rgba(2,132,199,0.45)]">
+                <div className="relative w-full max-w-[335px] lg:max-w-[365px] h-[155px] sm:h-[180px] lg:h-[200px] animate-float drop-shadow-[0_15px_30px_rgba(2,132,199,0.4)]">
                   <Image
                     src="/assets/header.png"
                     alt="3D Floating Graduation Cap, Books and Laptop"

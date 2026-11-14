@@ -38,24 +38,17 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var stored = localStorage.getItem('codethesis_theme');
-                  var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  if (stored === 'dark' || (!stored && systemDark)) {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    document.documentElement.style.colorScheme = 'dark';
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.setAttribute('data-theme', 'light');
-                    document.documentElement.style.colorScheme = 'light';
-                  }
+                  localStorage.removeItem('codethesis_theme');
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.setAttribute('data-theme', 'light');
+                  document.documentElement.style.colorScheme = 'light';
                 } catch (e) {}
               })();
             `,
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-slate-50 dark:bg-[#070F2B] text-slate-900 dark:text-slate-100 antialiased transition-colors duration-200">
+      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 antialiased">
         <ThemeProvider>
           {children}
         </ThemeProvider>
