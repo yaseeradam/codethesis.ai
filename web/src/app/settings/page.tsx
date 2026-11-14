@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { useTheme } from '@/context/ThemeContext';
 import {
   Settings,
   User,
@@ -14,7 +15,10 @@ import {
   Eye,
   EyeOff,
   Sparkles,
-  BookOpen
+  BookOpen,
+  Sun,
+  Moon,
+  Monitor
 } from 'lucide-react';
 
 const NIGERIAN_UNIVERSITIES = [
@@ -37,7 +41,8 @@ const NIGERIAN_UNIVERSITIES = [
 ];
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'ai-keys' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'ai-keys' | 'security' | 'appearance'>('profile');
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   // Profile state
   const [fullName, setFullName] = useState('ADEBAYO TUNDE');
@@ -81,6 +86,7 @@ export default function SettingsPage() {
             {[
               { id: 'profile', label: 'Student Profile', icon: User, desc: 'Name, Matric No. & Contact' },
               { id: 'academic', label: 'Institutional Standards', icon: GraduationCap, desc: 'University, Degree & Department' },
+              { id: 'appearance', label: 'Appearance & Theme', icon: Sun, desc: 'Light, Dark Mode & System' },
               { id: 'ai-keys', label: 'Custom AI Keys (BYOK)', icon: Key, desc: 'Bring Your Own API Keys' },
               { id: 'security', label: 'Format & Citation Rules', icon: BookOpen, desc: 'APA 7th, Margins & Python Stack' }
             ].map(tab => {
@@ -230,6 +236,127 @@ export default function SettingsPage() {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB: Appearance & Theme */}
+            {activeTab === 'appearance' && (
+              <div className="space-y-4">
+                <div className="border-b border-slate-200 pb-3">
+                  <h3 className="font-extrabold text-sm text-slate-900">Interface Appearance & Dark Mode</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Customize your visual environment. CodeThesis uses an Obsidian Midnight Navy palette designed for long nighttime research sessions.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Light Card */}
+                  <button
+                    type="button"
+                    onClick={() => setTheme('light')}
+                    className={`p-4 rounded-2xl border text-left transition-all relative ${
+                      theme === 'light'
+                        ? 'border-blue-500 bg-blue-50/70 shadow-sm ring-2 ring-blue-500/20'
+                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="w-full h-20 rounded-xl bg-[#F1F5F9] border border-slate-300 p-2.5 flex flex-col justify-between mb-3 shadow-inner">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                        <div className="w-12 h-2 rounded bg-slate-300" />
+                      </div>
+                      <div className="w-full h-8 rounded-lg bg-white border border-slate-200 p-1 flex items-center gap-1.5">
+                        <div className="w-6 h-6 rounded bg-slate-100" />
+                        <div className="w-16 h-2 rounded bg-slate-200" />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sun className="w-4 h-4 text-amber-500" />
+                        <span className="font-bold text-xs text-slate-900">Light Mode</span>
+                      </div>
+                      {theme === 'light' && (
+                        <Check className="w-4 h-4 text-blue-600" />
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">High-contrast daytime academic slate</p>
+                  </button>
+
+                  {/* Dark Card */}
+                  <button
+                    type="button"
+                    onClick={() => setTheme('dark')}
+                    className={`p-4 rounded-2xl border text-left transition-all relative ${
+                      theme === 'dark'
+                        ? 'border-cyan-500 bg-slate-900 shadow-md ring-2 ring-cyan-500/20'
+                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="w-full h-20 rounded-xl bg-[#070F2B] border border-slate-800 p-2.5 flex flex-col justify-between mb-3 shadow-inner">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
+                        <div className="w-12 h-2 rounded bg-slate-700" />
+                      </div>
+                      <div className="w-full h-8 rounded-lg bg-[#0E1738] border border-[#1E2D58] p-1 flex items-center gap-1.5">
+                        <div className="w-6 h-6 rounded bg-[#162450]" />
+                        <div className="w-16 h-2 rounded bg-slate-700" />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Moon className="w-4 h-4 text-cyan-400" />
+                        <span className="font-bold text-xs text-slate-900">Dark Mode</span>
+                      </div>
+                      {theme === 'dark' && (
+                        <Check className="w-4 h-4 text-cyan-400" />
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">Obsidian Navy with soft contrast</p>
+                  </button>
+
+                  {/* System Auto Card */}
+                  <button
+                    type="button"
+                    onClick={() => setTheme('system')}
+                    className={`p-4 rounded-2xl border text-left transition-all relative ${
+                      theme === 'system'
+                        ? 'border-purple-500 bg-purple-50/70 shadow-sm ring-2 ring-purple-500/20'
+                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="w-full h-20 rounded-xl bg-gradient-to-r from-[#F1F5F9] via-slate-400 to-[#070F2B] border border-slate-300 p-2.5 flex flex-col justify-between mb-3 shadow-inner">
+                      <div className="flex items-center justify-between">
+                        <Sun className="w-3.5 h-3.5 text-amber-500" />
+                        <Moon className="w-3.5 h-3.5 text-cyan-400" />
+                      </div>
+                      <div className="text-[10px] font-bold text-center text-slate-800 bg-white/70 py-0.5 rounded">
+                        OS Dynamic
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Monitor className="w-4 h-4 text-purple-600" />
+                        <span className="font-bold text-xs text-slate-900">System Sync</span>
+                      </div>
+                      {theme === 'system' && (
+                        <Check className="w-4 h-4 text-purple-600" />
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">Adapts automatically to OS preference</p>
+                  </button>
+                </div>
+
+                <div className="p-3 bg-cyan-50/70 border border-cyan-200 rounded-xl text-[11px] text-cyan-900 flex items-center justify-between">
+                  <span className="font-medium">
+                    Current Active Engine: <strong className="font-black text-cyan-700 uppercase">{resolvedTheme} MODE</strong>
+                  </span>
+                  <span className="text-[10px] bg-cyan-100 text-cyan-800 font-bold px-2 py-0.5 rounded-full">
+                    Persisted in Client Storage
+                  </span>
                 </div>
               </div>
             )}

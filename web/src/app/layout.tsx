@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CodeThesis — The All-in-One University Project, SIWES & Assignment Platform",
+  title: "CodeThesis AI — The Commercial Academic SaaS for Tertiary Students",
   description: "Generate 12-24 weeks SIWES logbooks, 5-chapter academic dissertations, and turnkey working software with zero effort.",
   icons: {
     icon: "/logo.jpg",
@@ -26,9 +27,38 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 antialiased">
-        {children}
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full`}
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var stored = localStorage.getItem('codethesis_theme');
+                  var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (stored === 'dark' || (!stored && systemDark)) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    document.documentElement.style.colorScheme = 'light';
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-slate-50 dark:bg-[#070F2B] text-slate-900 dark:text-slate-100 antialiased transition-colors duration-200">
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
