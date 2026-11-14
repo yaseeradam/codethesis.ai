@@ -17,7 +17,12 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
     const { 
       course = "Computer Science / Engineering", 
       company = "MainOne / Equinix Tier III Data Center", 

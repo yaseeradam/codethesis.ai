@@ -6,7 +6,7 @@
       "passwordHash": "600423594fea874650e1782f244ee021dd4c4484fd9aae1be3baffe06f5dcf70",
       "fullName": "Chinedu Eze",
       "plan": "fyp-complete",
-      "credits": 30,
+      "credits": 27,
       "createdAt": "2026-11-13T13:07:42.951Z"
     },
     {
@@ -20,6 +20,18 @@
     }
   ],
   "projects": [
+    {
+      "userId": "demo-student-001",
+      "toolId": "thesis",
+      "title": "DESIGN AND IMPLEMENTATION OF AN AUTOMATED HOSTEL ALLOCATION AND FACILITY MANAGEMENT SYSTEM",
+      "course": "Computer Science",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "5-Chapter Undergraduate Thesis (~18,000+ words target) in Computer Science for Federal University of Technology, Akure. APA 7th format.",
+      "fileType": "docx",
+      "id": "proj-64f3beaa",
+      "createdAt": "2026-11-14T12:48:43.065Z",
+      "updatedAt": "2026-11-14T12:48:43.065Z"
+    },
     {
       "id": "proj-001",
       "userId": "demo-student-001",
@@ -78,5 +90,31 @@
       "paidAt": "2026-11-11T13:07:42.951Z",
       "createdAt": "2026-11-11T13:07:42.951Z"
     }
-  ]
+  ],
+  "settings": {
+    "defaultSignupCredits": 15,
+    "toolCreditCosts": {
+      "thesis": 3,
+      "softwareBuilder": 2,
+      "siwesLogbook": 2,
+      "itfReport": 2,
+      "vivaPresentation": 1,
+      "vivaSimulator": 1,
+      "umlDiagrams": 1,
+      "assignmentSolver": 1
+    },
+    "aiEngine": {
+      "activeProvider": "heuristic",
+      "modelName": "gemini-1.5-flash",
+      "temperature": 0.7,
+      "maxTokens": 8192,
+      "systemPromptOverride": "You are CodeThesis AI, the authoritative academic engineering copilot for tertiary university dissertations.",
+      "fallbackEnabled": true
+    },
+    "platformStatus": {
+      "online": true,
+      "statusText": "All Systems Online",
+      "maintenanceNotice": "Platform operating normally at 100% capacity."
+    }
+  }
 }

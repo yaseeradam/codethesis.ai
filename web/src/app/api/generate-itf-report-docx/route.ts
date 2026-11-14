@@ -17,7 +17,12 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
     const {
       studentName = "CHIDI EZE",
       matricNumber = "FUTA/CSC/20/4182",

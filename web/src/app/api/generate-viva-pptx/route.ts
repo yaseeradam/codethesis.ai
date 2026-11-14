@@ -4,7 +4,12 @@ import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
     const {
       topic = "DESIGN AND IMPLEMENTATION OF AN AUTOMATED HOSTEL ALLOCATION AND FACILITY MANAGEMENT SYSTEM",
       course = "Computer Science",

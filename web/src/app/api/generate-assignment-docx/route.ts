@@ -4,7 +4,12 @@ import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
     const {
       courseCode = "CSC 411",
       courseTitle = "Advanced Algorithms and Complexity",
