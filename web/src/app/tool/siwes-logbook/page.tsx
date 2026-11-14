@@ -1,0 +1,382 @@
+'use client';
+
+import React, { useState } from 'react';
+import AppLayout from '@/components/layout/AppLayout';
+import {
+  BookOpen,
+  Download,
+  Calendar,
+  Sparkles,
+  CheckCircle2,
+  Building2,
+  FileCheck,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
+  Award,
+  Layers,
+  Printer
+} from 'lucide-react';
+
+interface DayEntry {
+  day: string;
+  date: string;
+  taskTitle: string;
+  description: string;
+  toolsUsed: string;
+}
+
+interface WeekLog {
+  weekNumber: number;
+  dateRange: string;
+  department: string;
+  weeklySummary: string;
+  schematicTitle: string;
+  schematicDiagram: string;
+  supervisorRemark: string;
+  days: DayEntry[];
+}
+
+export default function SiwesLogbookPage() {
+  const [durationWeeks, setDurationWeeks] = useState<'12' | '24'>('24');
+  const [companyName, setCompanyName] = useState('MainOne Cable Company / Equinix Tier III Data Centre');
+  const [companyDepartment, setCompanyDepartment] = useState('Network Operations Centre (NOC) & Systems Infrastructure');
+  const [industrySupervisor, setIndustrySupervisor] = useState('Engr. Babatunde Sanusi (MNSE, COREN Reg.)');
+  const [institution, setInstitution] = useState('Federal University of Technology, Akure');
+  const [course, setCourse] = useState('Computer Engineering / Computer Science');
+  const [currentWeek, setCurrentWeek] = useState(1);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const sampleWeeks: WeekLog[] = [
+    {
+      weekNumber: 1,
+      dateRange: 'Monday, 2nd June - Friday, 6th June',
+      department: 'Enterprise Datacenter Operations',
+      weeklySummary: 'Completed company HSE safety induction, structured cabling overview, and Cat6 UTP termination according to ANSI/TIA-568-B standard.',
+      schematicTitle: 'Figure 1.1: T568B RJ-45 Color Code Wiring Sequence',
+      schematicDiagram: `Pin 1: White/Orange  Pin 2: Orange
+Pin 3: White/Green   Pin 4: Blue
+Pin 5: White/Blue    Pin 6: Green
+Pin 7: White/Brown   Pin 8: Brown
+[Modular 8P8C Gold-Plated Crimp Handshake Verified via Fluke Cable Analyzer]`,
+      supervisorRemark: 'Tunde showed commendable precision during modular crimping with 0% pair crossover errors.',
+      days: [
+        {
+          day: 'Monday',
+          date: 'June 02',
+          taskTitle: 'Orientation, Safety Briefing & Facility Tour',
+          description: 'Attended mandatory NOC orientation conducted by HSE department. Briefed on ESD (Electrostatic Discharge) wrist strap protocols and Class C gas fire suppression (FM-200).',
+          toolsUsed: 'HSE Safety Manual, Anti-static wrist straps, Carbon Dioxide extinguishers.'
+        },
+        {
+          day: 'Tuesday',
+          date: 'June 03',
+          taskTitle: 'Cat6 Ethernet Termination & Crimp Standards',
+          description: 'Practiced structured copper termination using TIA/EIA-568-B pinouts. Stripped PVC jacket, untwisted pairs with minimal slack to prevent near-end crosstalk (NEXT).',
+          toolsUsed: 'Klein Tools Crimper, Cat6 UTP spool, 8P8C RJ45 connectors, Cable stripper.'
+        },
+        {
+          day: 'Wednesday',
+          date: 'June 04',
+          taskTitle: 'Cable Continuity & Fluke Channel Certification',
+          description: 'Conducted continuity and attenuation certification on 24 patch leads installed in Rack B04. Tested for wiremap faults, split pairs, and propagation delay.',
+          toolsUsed: 'Fluke DSX-5000 CableAnalyzer, Toner probe generator.'
+        },
+        {
+          day: 'Thursday',
+          date: 'June 05',
+          taskTitle: 'Patch Panel Punch Down & Cable Dressing',
+          description: 'Terminated 48-port Krone-style Cat6 110 punch down block. Bundled feeder cables using hook-and-loop Velcro ties to maintain clean bend radius.',
+          toolsUsed: 'Impact 110 Punch-down tool, Velcro ties, Cable comb.'
+        },
+        {
+          day: 'Friday',
+          date: 'June 06',
+          taskTitle: 'Rack B04 Documentation & Weekly Log Endorsement',
+          description: 'Labeled patch ports in accordance with ANSI/TIA-606-B labeling standard. Drafted spreadsheet matrix mapping switch interfaces to server ILO ports.',
+          toolsUsed: 'Brother P-Touch Industrial Labeler, MS Excel.'
+        }
+      ]
+    },
+    {
+      weekNumber: 2,
+      dateRange: 'Monday, 9th June - Friday, 13th June',
+      department: 'IP Routing & Switch Infrastructure',
+      weeklySummary: 'Configured Cisco Catalyst 2960 switches, 802.1Q trunking encapsulation, inter-VLAN routing on router-on-a-stick topology.',
+      schematicTitle: 'Figure 2.1: Router-on-a-stick Inter-VLAN Sub-interface Schema',
+      schematicDiagram: `[Cisco 2911 Router] --(Gig0/0.10: VLAN 10 192.168.10.1/24)
+                    --(Gig0/0.20: VLAN 20 192.168.20.1/24)
+                         | (802.1Q Trunk Link)
+[Cisco 2960 Switch] -- Fa0/1-12 (VLAN 10: NOC Staff)
+                    -- Fa0/13-24 (VLAN 20: Server Cluster)`,
+      supervisorRemark: 'Demonstrated solid command of Cisco IOS CLI syntax and sub-interface encapsulation.',
+      days: [
+        {
+          day: 'Monday',
+          date: 'June 09',
+          taskTitle: 'Cisco Switch Initial Staging & Password Recovery',
+          description: 'Connected console cable (RJ45 to DB9) to Cisco Catalyst 2960. Executed baud-rate 9600 configuration, established secret enable passwords and line vty 0 4.',
+          toolsUsed: 'PuTTY terminal, Cisco Console rollover cable, USB-to-Serial adapter.'
+        },
+        {
+          day: 'Tuesday',
+          date: 'June 10',
+          taskTitle: 'VLAN Segmentation & Access Port Assignment',
+          description: 'Created VLAN 10 (MANAGEMENT), VLAN 20 (SERVERS), and VLAN 30 (GUEST). Assigned static access switchports and verified with "show vlan brief".',
+          toolsUsed: 'Cisco IOS 15.0 CLI, PuTTY.'
+        },
+        {
+          day: 'Wednesday',
+          date: 'June 11',
+          taskTitle: '802.1Q Trunk Configuration & Native VLAN Hardening',
+          description: 'Configured Gig0/1 as dot1q trunk. Changed default native VLAN from 1 to unused VLAN 999 to mitigate VLAN hopping security exploits.',
+          toolsUsed: 'Cisco IOS CLI, Wireshark packet capture.'
+        },
+        {
+          day: 'Thursday',
+          date: 'June 12',
+          taskTitle: 'DHCP Pool Relay & Router-on-a-Stick Routing',
+          description: 'Configured sub-interfaces on Cisco 2911 router (Gig0/0.10, Gig0/0.20) with encapsulation dot1Q. Configured ip helper-address pointing to central DHCP.',
+          toolsUsed: 'Cisco IOS, Wireshark, DHCP Snooping tables.'
+        },
+        {
+          day: 'Friday',
+          date: 'June 13',
+          taskTitle: 'End-to-End ICMP Ping & Traceroute Verification',
+          description: 'Verified routing between VLAN 10 and VLAN 20 hosts. Measured Round Trip Time (RTT) latency of 0.8ms. Logged configuration to TFTP backup server.',
+          toolsUsed: 'SolarWinds TFTP Server, Ping, Traceroute.'
+        }
+      ]
+    }
+  ];
+
+  const activeWeekData = sampleWeeks[currentWeek - 1] || sampleWeeks[0];
+
+  function handleExportITFBooklet() {
+    alert(`Compiling full ${durationWeeks}-Week ITF Form 8 Logbook (.docx and PDF) with weekly blueprints and supervisor endorsements!`);
+  }
+
+  function handleRegenerateLogbook() {
+    setIsGenerating(true);
+    setTimeout(() => {
+      setIsGenerating(false);
+      alert(`Generated complete ${durationWeeks}-Week SIWES logbook entries for ${companyName}!`);
+    }, 1200);
+  }
+
+  return (
+    <AppLayout
+      activeItem="siwes-logbook"
+      title="SIWES Logbook Generator"
+      subtitle="Generates 12 & 24 Weeks (60–120 days) ITF Form 8 compliant daily technical entries, blueprints, and supervisor sign-offs"
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Inputs Pane (4 Cols) */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-3">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider">
+              <Building2 className="w-4 h-4 text-teal-600" />
+              <span>SIWES Attachment Profile</span>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">SIWES Attachment Duration</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDurationWeeks('12')}
+                  className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+                    durationWeeks === '12'
+                      ? 'border-teal-500 bg-teal-50 text-teal-900'
+                      : 'border-slate-200 bg-slate-50 text-slate-600'
+                  }`}
+                >
+                  12 Weeks (3 Months)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDurationWeeks('24')}
+                  className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+                    durationWeeks === '24'
+                      ? 'border-teal-500 bg-teal-50 text-teal-900'
+                      : 'border-slate-200 bg-slate-50 text-slate-600'
+                  }`}
+                >
+                  24 Weeks (6 Months)
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Company / Establishment Name</label>
+              <input
+                type="text"
+                value={companyName}
+                onChange={e => setCompanyName(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-medium"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Department Assigned</label>
+              <input
+                type="text"
+                value={companyDepartment}
+                onChange={e => setCompanyDepartment(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Industry Supervisor Name & Title</label>
+              <input
+                type="text"
+                value={industrySupervisor}
+                onChange={e => setIndustrySupervisor(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800"
+              />
+            </div>
+
+            <button
+              onClick={handleRegenerateLogbook}
+              disabled={isGenerating}
+              className="w-full py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-xl text-xs font-bold shadow-xs hover:opacity-95 active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{isGenerating ? 'Compiling 120 Days...' : `Generate ${durationWeeks}-Week Logbook (2 Credits)`}</span>
+            </button>
+          </div>
+
+          {/* ITF Compliance Notice */}
+          <div className="bg-teal-50/80 border border-teal-200 rounded-2xl p-4 text-xs text-teal-950 space-y-2">
+            <div className="flex items-center gap-2 font-bold text-teal-900">
+              <ShieldCheck className="w-4 h-4 text-teal-600 flex-shrink-0" />
+              <span>ITF Form 8 Strict Compliance</span>
+            </div>
+            <p className="text-[11px] leading-relaxed text-teal-800">
+              Approved layout matching the official Federal Republic of Nigeria Industrial Training Fund logbook specification with daily breakdown, weekly sketch, and supervisor remarks.
+            </p>
+          </div>
+        </div>
+
+        {/* Right Logbook Sheet Preview (8 Cols) */}
+        <div className="lg:col-span-8 space-y-4">
+          <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+            {/* Top Toolbar */}
+            <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-xs text-slate-900">
+                  WEEK {activeWeekData.weekNumber} of {durationWeeks}
+                </span>
+                <span className="text-[10px] bg-teal-100 text-teal-800 font-bold px-2 py-0.5 rounded-full">
+                  {activeWeekData.dateRange}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentWeek(prev => Math.max(1, prev - 1))}
+                    disabled={currentWeek === 1}
+                    className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-xs font-bold text-slate-700 px-2">Wk {currentWeek}</span>
+                  <button
+                    onClick={() => setCurrentWeek(prev => Math.min(sampleWeeks.length, prev + 1))}
+                    disabled={currentWeek === sampleWeeks.length}
+                    className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <button
+                  onClick={handleExportITFBooklet}
+                  className="px-3 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export ITF Logbook</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Simulated Official ITF Table Sheet */}
+            <div className="p-6 bg-slate-50/50 space-y-6">
+              {/* Daily Entries Table */}
+              <div className="bg-white border border-slate-300 rounded-xl overflow-hidden shadow-xs">
+                <div className="bg-slate-800 text-white px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center justify-between">
+                  <span>Daily Progress Record (Monday - Friday)</span>
+                  <span className="text-[10px] text-slate-300">Department: {activeWeekData.department}</span>
+                </div>
+
+                <div className="divide-y divide-slate-200">
+                  {activeWeekData.days.map((entry, idx) => (
+                    <div key={idx} className="p-3.5 text-xs hover:bg-slate-50/80 transition-colors">
+                      <div className="flex items-baseline justify-between mb-1">
+                        <div className="font-bold text-slate-900 flex items-center gap-2">
+                          <span className="w-16 px-1.5 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-teal-800 text-[10px] font-black text-center">
+                            {entry.day}
+                          </span>
+                          <span>{entry.taskTitle}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-semibold">{entry.date}</span>
+                      </div>
+                      <p className="text-slate-600 text-[11px] leading-relaxed pl-18">
+                        {entry.description}
+                      </p>
+                      <div className="mt-1.5 text-[10px] text-slate-500 pl-18 flex items-center gap-1">
+                        <span className="font-bold text-slate-700">Tools & Apparatus:</span>
+                        <span>{entry.toolsUsed}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Weekly Schematic Diagram Blueprint */}
+              <div className="bg-white border border-slate-300 rounded-xl p-4 shadow-xs space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-900 border-b border-slate-200 pb-2">
+                  <span>Weekly Technical Schematic Blueprint</span>
+                  <span className="text-[10px] text-teal-700 font-semibold">{activeWeekData.schematicTitle}</span>
+                </div>
+                <div className="bg-slate-950 text-emerald-400 p-3.5 rounded-lg font-mono text-[11px] leading-relaxed overflow-x-auto border border-slate-800">
+                  <pre>{activeWeekData.schematicDiagram}</pre>
+                </div>
+              </div>
+
+              {/* Industry Supervisor Endorsement Box */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white border border-slate-300 rounded-xl p-3.5 text-xs space-y-2 shadow-xs">
+                  <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">
+                    Student Weekly Summary
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed italic">
+                    "{activeWeekData.weeklySummary}"
+                  </p>
+                </div>
+
+                <div className="bg-white border border-teal-300 rounded-xl p-3.5 text-xs space-y-2 shadow-xs relative">
+                  <div className="flex items-center justify-between font-bold text-teal-900 text-[11px] uppercase tracking-wider">
+                    <span>Supervisor Endorsement</span>
+                    <span className="text-[9px] bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded font-black">
+                      VERIFIED
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-700 italic">
+                    "{activeWeekData.supervisorRemark}"
+                  </p>
+                  <div className="pt-2 border-t border-slate-200 text-[10px] text-slate-500 flex justify-between">
+                    <span>Supervisor: {industrySupervisor.split('(')[0]}</span>
+                    <span className="font-bold text-teal-700">Signature Stamp Affixed</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  );
+}
