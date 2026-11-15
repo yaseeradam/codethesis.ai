@@ -45,7 +45,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Role-Based Access Control: Protect /admin routes
+  // Role-Based Access Control: Protect /admin and /api/admin routes
+  if (pathname.startsWith('/api/admin')) {
+    if (!isAuthenticated || !sessionCookie?.value) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
+    }
+    const payload = decodeSessionPayload(sessionCookie.value);
+    if (!payload || payload.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Forbidden. Admin privileges required.' }, { status: 403 });
+    }
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith('/admin')) {
     if (isAuthenticated && sessionCookie?.value) {
       const payload = decodeSessionPayload(sessionCookie.value);
@@ -76,6 +87,7 @@ export const config = {
     '/settings/:path*',
     '/admin',
     '/admin/:path*',
+    '/api/admin/:path*',
     '/auth/login',
     '/auth/register',
     '/auth/forgot-password',
