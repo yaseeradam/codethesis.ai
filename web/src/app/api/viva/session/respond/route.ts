@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getVivaSession, saveVivaSession, VivaTurn } from '@/lib/db';
+import { evaluateVivaAnswer } from '@/lib/ai';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,33 +31,19 @@ export async function POST(req: NextRequest) {
 
     const turnCount = session.turns.filter(t => t.role === 'student').length + 1;
 
-    // Evaluate answer depth and calculate score (1-10)
-    const answerLength = answer.trim().split(/\s+/).length;
-    let rating = 7;
-    let feedback = '';
+    // Evaluate answer with Live AI Engine (Gemini / Groq / OpenRouter)
+    const aiResult = await evaluateVivaAnswer({
+      topic: session.topic,
+      course: session.course,
+      examinerPersona: session.examinerPersona,
+      studentAnswer: answer,
+      history: session.turns,
+      turnCount,
+    });
 
-    if (answerLength < 15) {
-      rating = 4;
-      feedback = 'Your response is too brief for an academic defense panel. Ground your answer with specific theoretical frameworks, architectural choices, and empirical data.';
-    } else if (answerLength < 40) {
-      rating = 6;
-      feedback = 'Adequate defense point, but you need to elaborate on the engineering trade-offs and justify why your approach is superior to conventional alternatives.';
-    } else {
-      rating = Math.min(10, 7 + Math.floor(answerLength / 35));
-      feedback = 'Strong, articulate defense! You demonstrated firm command of the subject matter, correct terminology, and clear technical justification.';
-    }
-
-    // Dynamic progressive examiner questions across turns 1 through 4+
-    let nextQuestion = '';
-    if (turnCount === 1) {
-      nextQuestion = `Thank you. Now, let us turn to Chapter 3 (Research Methodology). In your system for "${session.topic}", what sampling technique or dataset did you utilize for empirical validation, and how do you defend its statistical representation?`;
-    } else if (turnCount === 2) {
-      nextQuestion = `Fair point. Moving to Chapter 4 (Implementation & Results): What was the most critical performance bottleneck or security vulnerability you encountered during testing, and how did your codebase resolve it?`;
-    } else if (turnCount === 3) {
-      nextQuestion = `Lastly, as a prospective graduate in ${session.course}, if you were given institutional funding to commercialize this project, what are the top two features you would implement next to achieve production-grade fault tolerance?`;
-    } else {
-      nextQuestion = `The defense panel is satisfied with this line of questioning. You may now request your official Viva Readiness Scorecard evaluation.`;
-    }
+    const rating = aiResult.rating;
+    const feedback = aiResult.feedback;
+    const nextQuestion = aiResult.nextQuestion;
 
     const studentTurn: VivaTurn = {
       id: `turn-student-${turnCount}`,
@@ -83,6 +70,7 @@ export async function POST(req: NextRequest) {
       feedback,
       rating,
       nextQuestion,
+      provider: aiResult.provider,
       totalTurns: session.turns.length,
       isFinished: turnCount >= 3,
       session,

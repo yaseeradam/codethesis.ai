@@ -1607,6 +1607,16 @@
   ],
   "authAuditLogs": [
     {
+      "id": "audit-b07b16b8",
+      "email": "adebayo.tunde@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "metadata": {
+        "reason": "user_not_found"
+      },
+      "timestamp": "2026-11-15T22:18:33.044Z"
+    },
+    {
       "id": "audit-f701d5ec",
       "email": "adebayo@futa.edu.ng",
       "action": "signin_failed",

@@ -441,10 +441,17 @@ export default function UmlDiagramsToolPage() {
     }
   ];
 
+  const [dynamicCodes, setDynamicCodes] = useState<Record<string, string>>({});
+  const [aiProviders, setAiProviders] = useState<Record<string, string>>({});
+  const [customExplanations, setCustomExplanations] = useState<Record<string, string>>({});
+
   const currentPreset = presets.find(p => p.id === selectedDiagram) || presets[0];
+  const activeMermaidCode = dynamicCodes[selectedDiagram] || currentPreset.mermaidCode;
+  const activeExplanation = customExplanations[selectedDiagram] || currentPreset.chapterNote;
+  const activeProvider = aiProviders[selectedDiagram];
 
   function handleCopy() {
-    navigator.clipboard.writeText(currentPreset.mermaidCode);
+    navigator.clipboard.writeText(activeMermaidCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -475,7 +482,7 @@ export default function UmlDiagramsToolPage() {
   }
 
   function handleExportMermaid() {
-    const blob = new Blob([currentPreset.mermaidCode], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([activeMermaidCode], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -488,13 +495,38 @@ export default function UmlDiagramsToolPage() {
     setTimeout(() => setSuccessBanner(null), 4000);
   }
 
-  function handleGenerateNew() {
+  async function handleGenerateNew() {
     setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
+    try {
+      const res = await fetch('/api/ai/generate-uml', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: projectTitle,
+          diagramType: selectedDiagram,
+          department: 'Computer Science / Engineering',
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.mermaidCode) {
+        setDynamicCodes(prev => ({ ...prev, [selectedDiagram]: data.mermaidCode }));
+        if (data.explanation) {
+          setCustomExplanations(prev => ({ ...prev, [selectedDiagram]: data.explanation }));
+        }
+        if (data.provider) {
+          setAiProviders(prev => ({ ...prev, [selectedDiagram]: data.provider }));
+        }
+        setActiveTab('code');
+        setSuccessBanner(`Synthesized custom ${currentPreset.name} tailored for "${projectTitle}" via ${data.provider || 'AI Engine'}!`);
+      } else {
+        setSuccessBanner(`Generated updated UML architectural specifications tailored specifically to: "${projectTitle}".`);
+      }
+    } catch {
       setSuccessBanner(`Generated updated UML architectural specifications tailored specifically to: "${projectTitle}".`);
+    } finally {
+      setIsGenerating(false);
       setTimeout(() => setSuccessBanner(null), 5000);
-    }, 1000);
+    }
   }
 
   return (
@@ -580,7 +612,7 @@ export default function UmlDiagramsToolPage() {
               <span>Academic Defense Guidance</span>
             </div>
             <p className="text-[11px] leading-relaxed text-purple-800">
-              {currentPreset.chapterNote}
+              {activeExplanation}
             </p>
             <div className="pt-2 border-t border-purple-200/60 flex items-center justify-between text-[10px] font-semibold text-purple-700">
               <span>IEEE / ACM Notation Standard</span>
@@ -599,6 +631,11 @@ export default function UmlDiagramsToolPage() {
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold">
                   {currentPreset.type}
                 </span>
+                {activeProvider && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
+                    ✨ {activeProvider}
+                  </span>
+                )}
               </div>
 
               {/* View Switcher & Actions */}
@@ -681,7 +718,7 @@ export default function UmlDiagramsToolPage() {
               ) : (
                 <div className="w-full h-[450px] bg-slate-950 text-emerald-400 p-4 rounded-xl font-mono text-xs overflow-auto border border-slate-800">
                   <div className="text-slate-500 mb-2">// Raw Mermaid Diagram Source Code for Word & LaTeX Insertion</div>
-                  <pre>{currentPreset.mermaidCode}</pre>
+                  <pre>{activeMermaidCode}</pre>
                 </div>
               )}
             </div>

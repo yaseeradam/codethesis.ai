@@ -538,7 +538,7 @@ Double-click \`run_project.bat\` on Windows. The launcher will automatically ver
               </span>
             </div>
 
-            <div className="h-44 overflow-y-auto space-y-2 mb-3 pr-1 text-xs">
+            <div className="h-44 overflow-y-auto space-y-2 mb-2 pr-1 text-xs">
               {copilotMessages.map((m, idx) => (
                 <div
                   key={idx}
@@ -550,6 +550,30 @@ Double-click \`run_project.bat\` on Windows. The launcher will automatically ver
                 >
                   {m.text}
                 </div>
+              ))}
+              {isCopilotThinking && (
+                <div className="p-2.5 rounded-xl bg-slate-100 text-slate-500 text-[11px] flex items-center gap-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                  <span>Synthesizing academic response...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Prompt Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2">
+              {[
+                'Refine Chapter 3 Methodology',
+                'Verify 3NF Relational Schema',
+                'Draft Literature Gap for Chapter 2',
+                'Format References in APA 7th',
+              ].map(chip => (
+                <button
+                  key={chip}
+                  onClick={() => setCopilotInput(chip)}
+                  className="whitespace-nowrap px-2 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 text-[10px] font-medium border border-slate-200 transition-colors"
+                >
+                  {chip}
+                </button>
               ))}
             </div>
 
@@ -564,7 +588,8 @@ Double-click \`run_project.bat\` on Windows. The launcher will automatically ver
               />
               <button
                 onClick={handleSendCopilot}
-                className="p-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                disabled={isCopilotThinking}
+                className="p-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>
