@@ -35,6 +35,7 @@ export default function UmlDiagramsToolPage() {
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [copied, setCopied] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   const presets: DiagramPreset[] = [
     {
@@ -468,7 +469,8 @@ export default function UmlDiagramsToolPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (err: any) {
-      alert(`SVG Export error: ${err.message}`);
+      setSuccessBanner(`SVG Export notice: ${err.message}`);
+      setTimeout(() => setSuccessBanner(null), 4000);
     }
   }
 
@@ -482,13 +484,16 @@ export default function UmlDiagramsToolPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    setSuccessBanner(`Exported Mermaid diagram file: ${currentPreset.id}_diagram.mmd`);
+    setTimeout(() => setSuccessBanner(null), 4000);
   }
 
   function handleGenerateNew() {
     setIsGenerating(true);
     setTimeout(() => {
       setIsGenerating(false);
-      alert(`Generated updated UML diagrams tailored specifically to: "${projectTitle}".`);
+      setSuccessBanner(`Generated updated UML architectural specifications tailored specifically to: "${projectTitle}".`);
+      setTimeout(() => setSuccessBanner(null), 5000);
     }, 1000);
   }
 
@@ -498,6 +503,22 @@ export default function UmlDiagramsToolPage() {
       title="UML Diagram Studio"
       subtitle="Generates vector SVG, ERD, Use Case, Sequence Diagrams with Row-Level Locks and editable Mermaid syntax"
     >
+      {/* Dynamic Success Banner */}
+      {successBanner && (
+        <div className="mb-4 bg-purple-50 border border-purple-200 text-purple-950 px-4 py-3 rounded-2xl text-xs flex items-center justify-between shadow-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-purple-600 flex-shrink-0" />
+            <span className="font-semibold">{successBanner}</span>
+          </div>
+          <button
+            onClick={() => setSuccessBanner(null)}
+            className="text-purple-500 hover:text-purple-700 font-bold ml-2 text-xs"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Control Sidebar (4 Cols) */}
         <div className="lg:col-span-4 space-y-4">

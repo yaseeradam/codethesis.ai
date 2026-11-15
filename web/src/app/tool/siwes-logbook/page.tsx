@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 import CourseSelect from '@/components/ui/CourseSelect';
+import InstitutionSelect from '@/components/ui/InstitutionSelect';
+import { useAuth } from '@/context/AuthContext';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   BookOpen,
@@ -42,6 +44,7 @@ interface WeekLog {
 }
 
 export default function SiwesLogbookPage() {
+  const { user } = useAuth();
   const [durationWeeks, setDurationWeeks] = useState<'12' | '24'>('24');
   const [companyName, setCompanyName] = useState('MainOne Cable Company / Equinix Tier III Data Centre');
   const [companyDepartment, setCompanyDepartment] = useState('Network Operations Centre (NOC) & Systems Infrastructure');
@@ -50,6 +53,15 @@ export default function SiwesLogbookPage() {
   const [course, setCourse] = useState('Computer Engineering / Computer Science');
   const [currentWeek, setCurrentWeek] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  // Auto-populate from logged-in user profile
+  useEffect(() => {
+    if (user) {
+      if (user.institution) setInstitution(user.institution);
+      if (user.department) setCourse(user.department);
+    }
+  }, [user]);
 
   const sampleWeeks: WeekLog[] = [
     {
@@ -175,8 +187,9 @@ Pin 7: White/Brown   Pin 8: Brown
     setIsGenerating(true);
     setTimeout(() => {
       setIsGenerating(false);
-      alert(`Generated complete ${durationWeeks}-Week SIWES logbook entries for ${companyName}!`);
-    }, 1200);
+      setSuccessBanner(`Generated complete ${durationWeeks}-Week SIWES logbook entries for ${companyName}!`);
+      setTimeout(() => setSuccessBanner(null), 5000);
+    }, 1000);
   }
 
   return (
@@ -202,6 +215,13 @@ Pin 7: White/Brown   Pin 8: Brown
           <span>Final 5-Chapter Technical Defense Report</span>
         </Link>
       </div>
+
+      {successBanner && (
+        <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center gap-2.5 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <span>{successBanner}</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Inputs Pane (4 Cols) */}
@@ -239,6 +259,13 @@ Pin 7: White/Brown   Pin 8: Brown
                 </button>
               </div>
             </div>
+
+            <InstitutionSelect
+              value={institution}
+              onChange={setInstitution}
+              label="Tertiary Institution"
+              placeholder="Search or enter institution..."
+            />
 
             <CourseSelect
               value={course}

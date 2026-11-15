@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
+import { useAuth } from '@/context/AuthContext';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   FolderGit2,
@@ -39,6 +40,7 @@ interface ProjectItem {
 }
 
 export default function ProjectsPage() {
+  const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -170,11 +172,17 @@ export default function ProjectsPage() {
   async function handleDownloadBundle(project: ProjectItem) {
     try {
       setDownloadingId(project.id);
+      const studentName = user?.fullName || 'Candidate';
+      const matricNumber = user?.matricNumber || 'FUTA/CSC/20/4182';
+      const institution = project.institution || user?.institution || 'Federal University of Technology, Akure';
+
       let endpoint = '/api/generate-thesis-docx';
       let payload: Record<string, any> = {
         topic: project.title,
-        institution: project.institution,
+        institution,
         course: project.course,
+        studentName,
+        matricNumber,
       };
       let fallback = `${project.title.replace(/[^a-zA-Z0-9]/g, '_')}.docx`;
 
@@ -184,25 +192,29 @@ export default function ProjectsPage() {
           projectName: project.title,
           language: 'Python',
           framework: 'Tkinter + SQLite',
+          author: studentName,
+          institution,
         };
         fallback = `${project.title.replace(/[^a-zA-Z0-9]/g, '_')}_software.zip`;
       } else if (project.category === 'siwes') {
         endpoint = '/api/generate-siwes-docx';
         payload = {
-          studentName: 'Student Candidate',
+          studentName,
+          matricNumber,
           companyName: 'MainOne Equinix Datacenter',
           department: project.course,
           durationWeeks: 24,
-          institution: project.institution,
+          institution,
         };
         fallback = `${project.title.replace(/[^a-zA-Z0-9]/g, '_')}_siwes.docx`;
       } else if (project.category === 'presentation') {
         endpoint = '/api/generate-viva-pptx';
         payload = {
           projectTitle: project.title,
-          studentName: 'Candidate',
+          studentName,
+          matricNumber,
           department: project.course,
-          institution: project.institution,
+          institution,
           numSlides: 15,
         };
         fallback = `${project.title.replace(/[^a-zA-Z0-9]/g, '_')}_viva.pptx`;

@@ -32,19 +32,8 @@ import {
 } from 'lucide-react';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import CourseSelect from '@/components/ui/CourseSelect';
-
-const INSTITUTIONS = [
-  'Federal University of Technology, Akure (FUTA)',
-  'University of Lagos (UNILAG)',
-  'University of Nigeria, Nsukka (UNN)',
-  'Ahmadu Bello University, Zaria (ABU)',
-  'University of Ibadan (UI)',
-  'Covenant University',
-  'Lagos State University (LASU)',
-  'Obafemi Awolowo University (OAU)',
-  'University of Benin (UNIBEN)',
-  'Federal University of Technology, Minna (FUTMINNA)'
-];
+import InstitutionSelect from '@/components/ui/InstitutionSelect';
+import { useAuth } from '@/context/AuthContext';
 
 const CHAPTERS = [
   { id: 'preliminary', title: 'Preliminary Pages', subtitle: 'Title, Declaration, Abstract' },
@@ -59,6 +48,7 @@ const CHAPTERS = [
 function StudioMain() {
   const searchParams = useSearchParams();
   const initializedFromParams = useRef(false);
+  const { user } = useAuth();
 
   // Canvas Tab: thesis | code | uml | viva
   const [activeCanvasTab, setActiveCanvasTab] = useState<'thesis' | 'code' | 'uml' | 'viva'>('thesis');
@@ -67,21 +57,31 @@ function StudioMain() {
   // Project Setup State
   const [topic, setTopic] = useState('Design and Implementation of an Automated Hostel Allocation and Facility Management System');
   const [course, setCourse] = useState('Computer Science');
-  const [isCustomCourse, setIsCustomCourse] = useState(false);
-  const [customCourseText, setCustomCourseText] = useState('');
   const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
-  const [isCustomInstitution, setIsCustomInstitution] = useState(false);
-  const [customInstitutionText, setCustomInstitutionText] = useState('');
   const [caseStudy, setCaseStudy] = useState('University Student Affairs Division');
   const [session, setSession] = useState('2025/2026');
   const [studentName, setStudentName] = useState('ADEBAYO TUNDE');
   const [matricNumber, setMatricNumber] = useState('FUTA/CSC/20/4182');
   const [supervisor, setSupervisor] = useState('Prof. O. A. Babatunde');
 
+  // Auto-populate from authenticated user profile
+  useEffect(() => {
+    if (user) {
+      if (user.fullName) setStudentName(user.fullName.toUpperCase());
+      if (user.matricNumber) setMatricNumber(user.matricNumber);
+      if (user.department) setCourse(user.department);
+      if (user.institution) setInstitution(user.institution);
+      const firstName = user.fullName ? user.fullName.split(' ')[0] : 'Scholar';
+      setCopilotMessages([
+        { sender: 'ai', text: `Hello ${firstName}! I am your Academic Co-Pilot. I can help refine your methodology, verify Crossref citations, or expand chapter paragraphs.` }
+      ]);
+    }
+  }, [user]);
+
   // Copilot State
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [copilotMessages, setCopilotMessages] = useState([
-    { sender: 'ai', text: 'Hello Adebayo! I am your Academic Co-Pilot. I can help refine your methodology, verify Crossref citations, or expand chapter paragraphs.' }
+    { sender: 'ai', text: 'Hello Scholar! I am your Academic Co-Pilot. I can help refine your methodology, verify Crossref citations, or expand chapter paragraphs.' }
   ]);
   const [copilotInput, setCopilotInput] = useState('');
 
@@ -107,6 +107,37 @@ function StudioMain() {
     }
   }, [searchParams]);
 
+  function handleDownloadMermaidStudio() {
+    const mmdContent = `sequenceDiagram
+  autonumber
+  actor Client as Undergraduate Student
+  participant Controller as Web / API Controller
+  participant Coordinator as Transaction Lock Manager
+  participant DB as Database Engine (SQLite / PostgreSQL)
+
+  Client->>Controller: POST /api/v1/hostel/allocate-bed
+  Controller->>Coordinator: Request Exclusive Row-Level Lock
+  Coordinator->>DB: SELECT * FROM rooms WHERE id = 101 FOR UPDATE
+  Note over DB,Coordinator: ACID Serializable Isolation Lock Acquired
+  alt Room Bedspace Available (occupied < capacity)
+    Coordinator->>DB: UPDATE rooms SET occupied = occupied + 1 WHERE id = 101
+    DB-->>Coordinator: Rows affected: 1 (Committed)
+    Controller-->>Client: HTTP 201 Created (Bedspace Allotted)
+  else Room Bedspace Full
+    Coordinator->>DB: ROLLBACK Transaction
+    Controller-->>Client: HTTP 409 Conflict (Zero Over-allocation)
+  end`;
+    const blob = new Blob([mmdContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Architecture_Models_${topic.replace(/\s+/g, '_')}.mmd`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   async function handleSendCopilot() {
     if (!copilotInput.trim() || isCopilotThinking) return;
     const userMsg = copilotInput.trim();
@@ -120,8 +151,8 @@ function StudioMain() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           toolId: 'thesis',
-          prompt: `User academic query regarding dissertation: "${userMsg}". Research topic: "${topic}". Course: "${isCustomCourse ? customCourseText : course}". Institution: "${isCustomInstitution ? customInstitutionText : institution}". Provide a rigorous, highly academic, Nigerian tertiary compliant solution.`,
-          context: { topic, course: isCustomCourse ? customCourseText : course, institution: isCustomInstitution ? customInstitutionText : institution }
+          prompt: `User academic query regarding dissertation: "${userMsg}". Research topic: "${topic}". Course: "${course}". Institution: "${institution}". Provide a rigorous, highly academic, Nigerian tertiary compliant solution.`,
+          context: { topic, course, institution }
         })
       });
       const data = await res.json();
@@ -152,14 +183,12 @@ function StudioMain() {
   async function handleExportThesis() {
     try {
       setExportingType('thesis');
-      const effCourse = isCustomCourse ? customCourseText : course;
-      const effInst = isCustomInstitution ? customInstitutionText : institution;
       await downloadAcademicFile(
         '/api/generate-thesis-docx',
         {
           topic,
-          institution: effInst,
-          course: effCourse,
+          institution,
+          course,
           studentName,
           matricNumber,
           supervisor,
@@ -175,16 +204,14 @@ function StudioMain() {
   async function handleExportViva() {
     try {
       setExportingType('viva');
-      const effCourse = isCustomCourse ? customCourseText : course;
-      const effInst = isCustomInstitution ? customInstitutionText : institution;
       await downloadAcademicFile(
         '/api/generate-viva-pptx',
         {
           projectTitle: topic,
           studentName,
           matricNumber,
-          department: effCourse,
-          institution: effInst,
+          department: course,
+          institution,
           supervisor,
           numSlides: 15
         },
@@ -437,19 +464,13 @@ Double-click \`run_project.bat\` on Windows. The launcher will automatically ver
                 label="Course of Study"
               />
 
-              {/* Institution */}
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Tertiary Institution</label>
-                <select
-                  value={institution}
-                  onChange={e => setInstitution(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                >
-                  {INSTITUTIONS.map(inst => (
-                    <option key={inst} value={inst}>{inst}</option>
-                  ))}
-                </select>
-              </div>
+              {/* Institution Selection */}
+              <InstitutionSelect
+                value={institution}
+                onChange={setInstitution}
+                label="Tertiary Institution"
+                placeholder="Search or enter institution..."
+              />
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -820,8 +841,8 @@ Double-click \`run_project.bat\` on Windows. The launcher will automatically ver
                   <p className="text-xs text-slate-500">Decoupled 3-Tier Architecture & Database Row-Level Locking Sequence Handshake</p>
                 </div>
                 <button
-                  onClick={() => alert('Downloading Mermaid UML models (.mmd)...')}
-                  className="px-3.5 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold shadow-xs hover:bg-purple-700"
+                  onClick={handleDownloadMermaidStudio}
+                  className="px-3.5 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold shadow-xs hover:bg-purple-700 transition-colors"
                 >
                   Download .MMD Models
                 </button>

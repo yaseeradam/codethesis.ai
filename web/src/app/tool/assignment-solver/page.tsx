@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import CourseSelect from '@/components/ui/CourseSelect';
+import InstitutionSelect from '@/components/ui/InstitutionSelect';
+import { useAuth } from '@/context/AuthContext';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   Calculator,
@@ -144,8 +146,24 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
     }
   ];
 
+  const { user } = useAuth();
   const [isDownloading, setIsDownloading] = useState(false);
   const [department, setDepartment] = useState('Computer Science');
+  const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
+  const [studentName, setStudentName] = useState('ADEBAYO TUNDE');
+  const [matricNo, setMatricNo] = useState('FUTA/CSC/20/4182');
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  // Auto-populate from authenticated user profile
+  useEffect(() => {
+    if (user) {
+      if (user.fullName) setStudentName(user.fullName.toUpperCase());
+      if (user.matricNumber) setMatricNo(user.matricNumber);
+      if (user.department) setDepartment(user.department);
+      if (user.institution) setInstitution(user.institution);
+    }
+  }, [user]);
+
   const currentPreset = presets.find(p => p.id === activePresetId) || presets[0];
 
   async function handleDownloadDocx() {
@@ -155,10 +173,10 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
       {
         courseCode: 'CSC 411',
         courseTitle: 'Advanced Algorithms and Complexity',
-        lecturer: 'Prof. M. B. Sanusi',
-        studentName: 'Adebayo Tunde',
-        matricNo: 'FUTA/CSC/20/4182',
-        institution: 'Federal University of Technology, Akure',
+        lecturer: 'Course Examiner',
+        studentName,
+        matricNo,
+        institution,
         department,
         assignmentTitle: currentPreset.title,
         problemStatement: currentPreset.question,
@@ -167,13 +185,16 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
       `Assignment_Solution_${currentPreset.id}.docx`
     );
     setIsDownloading(false);
+    setSuccessBanner('Complete assignment submission .docx compiled and downloaded successfully!');
+    setTimeout(() => setSuccessBanner(null), 5000);
   }
 
   function handleSolve() {
     setIsSolving(true);
     setTimeout(() => {
       setIsSolving(false);
-      alert('Mathematical derivation synthesized with LaTeX formatting and step-by-step proofs!');
+      setSuccessBanner('Mathematical derivation synthesized with LaTeX formatting and step-by-step proofs!');
+      setTimeout(() => setSuccessBanner(null), 5000);
     }, 1000);
   }
 
@@ -183,7 +204,11 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
       `\nFinal Result: ${currentPreset.finalAnswer}`;
     navigator.clipboard.writeText(fullSolution);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setSuccessBanner('Solution and step-by-step proof copied to clipboard!');
+    setTimeout(() => {
+      setCopied(false);
+      setSuccessBanner(null);
+    }, 3000);
   }
 
   return (
@@ -192,6 +217,22 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
       title="Assignment & Proof Solver"
       subtitle="Step-by-step derivations for Database Normalization (1NF–3NF), Big-O Master Theorem, and Circuit Analysis"
     >
+      {/* Dynamic Success Banner */}
+      {successBanner && (
+        <div className="mb-4 bg-sky-50 border border-sky-200 text-sky-950 px-4 py-3 rounded-2xl text-xs flex items-center justify-between shadow-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-sky-600 flex-shrink-0" />
+            <span className="font-semibold">{successBanner}</span>
+          </div>
+          <button
+            onClick={() => setSuccessBanner(null)}
+            className="text-sky-500 hover:text-sky-700 font-bold ml-2 text-xs"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Inputs Pane (4 Cols) */}
         <div className="lg:col-span-4 space-y-4">
@@ -242,6 +283,34 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
               onChange={setDepartment}
               label="Course / Department"
             />
+
+            <InstitutionSelect
+              value={institution}
+              onChange={setInstitution}
+              label="Tertiary Institution"
+              placeholder="Search or enter institution..."
+            />
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Student Name</label>
+                <input
+                  type="text"
+                  value={studentName}
+                  onChange={e => setStudentName(e.target.value.toUpperCase())}
+                  className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-bold uppercase outline-none transition-all shadow-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Matric No</label>
+                <input
+                  type="text"
+                  value={matricNo}
+                  onChange={e => setMatricNo(e.target.value)}
+                  className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-mono outline-none transition-all shadow-xs"
+                />
+              </div>
+            </div>
 
             <button
               onClick={handleSolve}

@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 import CourseSelect from '@/components/ui/CourseSelect';
+import InstitutionSelect from '@/components/ui/InstitutionSelect';
+import { useAuth } from '@/context/AuthContext';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   FileCheck,
@@ -16,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
+  Check,
   Printer,
   Layers,
   Loader2
@@ -33,6 +36,7 @@ interface Chapter {
 }
 
 export default function ItfReportPage() {
+  const { user } = useAuth();
   const [activeChapterIndex, setActiveChapterIndex] = useState(0);
   const [companyName, setCompanyName] = useState('MainOne Cable Company (An Equinix Company)');
   const [studentName, setStudentName] = useState('ADEBAYO TUNDE');
@@ -41,6 +45,18 @@ export default function ItfReportPage() {
   const [department, setDepartment] = useState('Computer Science');
   const [duration, setDuration] = useState('6 Months (24 Weeks)');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  // Auto-populate from logged-in user profile
+  useEffect(() => {
+    if (user) {
+      if (user.fullName) setStudentName(user.fullName.toUpperCase());
+      if (user.matricNumber) setMatricNumber(user.matricNumber);
+      if (user.institution) setInstitution(user.institution);
+      if (user.department) setDepartment(user.department);
+    }
+  }, [user]);
 
   const chapters: Chapter[] = [
     {
@@ -161,12 +177,21 @@ export default function ItfReportPage() {
     setIsDownloading(false);
   }
 
+  function handleCopyChapter() {
+    const text = `CHAPTER ${activeChapter.number}: ${activeChapter.title}\n\n` +
+      activeChapter.subsections.map(s => `${s.heading}\n${s.content}\n`).join('\n');
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   function handleRegenerate() {
     setIsGenerating(true);
     setTimeout(() => {
       setIsGenerating(false);
-      alert(`Regenerated 5-Chapter ITF Technical Report tailored to ${companyName}!`);
-    }, 1200);
+      setSuccessBanner(`Successfully generated and customized 5-Chapter SIWES Technical Report for ${companyName}!`);
+      setTimeout(() => setSuccessBanner(null), 5000);
+    }, 1000);
   }
 
   return (
@@ -192,6 +217,13 @@ export default function ItfReportPage() {
           <span>Final 5-Chapter Technical Defense Report</span>
         </Link>
       </div>
+
+      {successBanner && (
+        <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center gap-2.5 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <span>{successBanner}</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Control Sidebar (4 Cols) */}
@@ -221,6 +253,13 @@ export default function ItfReportPage() {
                 className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-fuchsia-500 focus:ring-4 focus:ring-fuchsia-500/10 rounded-xl p-2.5 text-xs text-slate-800 outline-none transition-all shadow-xs"
               />
             </div>
+
+            <InstitutionSelect
+              value={institution}
+              onChange={setInstitution}
+              label="Tertiary Institution"
+              placeholder="Search or enter institution..."
+            />
 
             <CourseSelect
               value={department}
@@ -302,9 +341,28 @@ export default function ItfReportPage() {
 
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
+                  onClick={handleCopyChapter}
+                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-white text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                  title="Copy Chapter Text"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-emerald-700">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Copy Chapter</span>
+                    </>
+                  )}
+                </button>
+
+                <button
                   onClick={handleExportWord}
                   disabled={isDownloading}
-                  className="px-3 py-1.5 bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50"
+                  className="px-3 py-1.5 bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isDownloading ? (
                     <>

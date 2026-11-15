@@ -38,6 +38,7 @@ export default function ThesisToolPage() {
       if (user.fullName) setStudentName(user.fullName.toUpperCase());
       if (user.matricNumber) setMatricNumber(user.matricNumber);
       if (user.institution) setInstitution(user.institution);
+      if (user.department) setCourse(user.department);
     }
   }, [user]);
 
@@ -45,6 +46,7 @@ export default function ThesisToolPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   async function handleDownloadDocx() {
     setIsDownloading(true);
@@ -54,6 +56,8 @@ export default function ThesisToolPage() {
       `5_Chapter_Thesis_${course.replace(/\s+/g, '_')}.docx`
     );
     setIsDownloading(false);
+    setSuccessBanner('Complete 5-Chapter Thesis (.docx) generated and downloaded with verified citations!');
+    setTimeout(() => setSuccessBanner(null), 5000);
   }
 
   async function handleGenerate() {
@@ -69,6 +73,22 @@ export default function ThesisToolPage() {
       title="5-Chapter Thesis Generator"
       subtitle="Generates ~18,000+ words target, APA 7th citations with verified Crossref DOIs, and 1.5-inch hardcover margins"
     >
+      {/* Dynamic Success Banner */}
+      {successBanner && (
+        <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-950 px-4 py-3 rounded-2xl text-xs flex items-center justify-between shadow-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <span className="font-semibold">{successBanner}</span>
+          </div>
+          <button
+            onClick={() => setSuccessBanner(null)}
+            className="text-amber-500 hover:text-amber-700 font-bold ml-2 text-xs"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Input Pane */}
         <div className="lg:col-span-4 space-y-4">

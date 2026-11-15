@@ -1,24 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
-import { Mail, Phone, MapPin, Send, MessageSquare, Clock, Building } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { Mail, Phone, MapPin, Send, MessageSquare, Clock, Building, CheckCircle2 } from 'lucide-react';
 
 export default function ContactPage() {
+  const { user } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [university, setUniversity] = useState('Federal University of Technology, Akure');
   const [message, setMessage] = useState('');
-  const [sent, setSent] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      if (user.fullName) setName(user.fullName);
+      if (user.email) setEmail(user.email);
+      if (user.institution) setUniversity(user.institution);
+    }
+  }, [user]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSent(true);
+    setIsSubmitting(true);
     setTimeout(() => {
-      setSent(false);
+      setIsSubmitting(false);
       setMessage('');
-      alert('Thank you! Your inquiry has been dispatched to the CodeThesis Academic Advisory Team.');
-    }, 1000);
+      setSuccessBanner('Thank you! Your inquiry has been dispatched to the CodeThesis Academic Advisory Team.');
+      setTimeout(() => setSuccessBanner(null), 6000);
+    }, 800);
   }
 
   return (
@@ -89,6 +101,21 @@ export default function ContactPage() {
                 <p className="text-xs text-slate-500 mt-0.5">We respond to student and departmental inquiries within hours.</p>
               </div>
 
+              {successBanner && (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-3.5 rounded-xl text-xs flex items-center justify-between shadow-xs animate-in fade-in duration-200">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span className="font-semibold">{successBanner}</span>
+                  </div>
+                  <button
+                    onClick={() => setSuccessBanner(null)}
+                    className="text-emerald-500 hover:text-emerald-700 font-bold ml-2 text-xs"
+                  >
+                    &times;
+                  </button>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4 text-xs">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -140,11 +167,11 @@ export default function ContactPage() {
 
                 <button
                   type="submit"
-                  disabled={sent}
+                  disabled={isSubmitting}
                   className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold shadow-xs hover:opacity-95 active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>{sent ? 'Sending...' : 'Send Message'}</span>
+                  <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
                 </button>
               </form>
             </div>

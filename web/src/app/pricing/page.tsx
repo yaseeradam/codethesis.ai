@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { useAuth } from '@/context/AuthContext';
 import {
   CreditCard,
   Check,
@@ -11,15 +12,18 @@ import {
   Building,
   HelpCircle,
   ArrowRight,
-  Plus
+  Plus,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 
 export default function PricingPage() {
+  const { user } = useAuth();
   const [currency, setCurrency] = useState<'NGN' | 'USD'>('NGN');
   const [selectedPlan, setSelectedPlan] = useState<string>('scholar');
   const [customCredits, setCustomCredits] = useState<number>(50);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [purchaseSuccess, setPurchaseSuccess] = useState<boolean>(false);
+  const [banner, setBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const tiers = [
     {
@@ -80,11 +84,12 @@ export default function PricingPage() {
   async function handlePay(planName: string, amountNGN: number, credits: number) {
     try {
       setIsProcessing(true);
+      const userEmail = user?.email || 'student@futa.edu.ng';
       const res = await fetch('/api/payments/paystack/initialize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: 'student@futa.edu.ng',
+          email: userEmail,
           amount: amountNGN,
           planId: planName.toLowerCase().includes('scholar') ? 'complete' : planName.toLowerCase().includes('postgrad') ? 'faculty' : 'standard',
         }),
@@ -105,15 +110,21 @@ export default function PricingPage() {
       const verifyData = await verifyRes.json();
 
       setIsProcessing(false);
-      setPurchaseSuccess(true);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('credits-updated'));
       }
-      setTimeout(() => setPurchaseSuccess(false), 5000);
-      alert(`🎉 Payment Successful!\nReference: ${data.reference}\n₦${amountNGN.toLocaleString()} received via Paystack.\n${credits} Academic Credits added to your account!`);
+      setBanner({
+        type: 'success',
+        message: `🎉 Payment Successful! Reference: ${data.reference}. ₦${amountNGN.toLocaleString()} received via Paystack. ${credits} Academic Credits added to your account!`
+      });
+      setTimeout(() => setBanner(null), 6000);
     } catch (err: any) {
       setIsProcessing(false);
-      alert(`❌ Payment error: ${err.message}`);
+      setBanner({
+        type: 'error',
+        message: `Payment error: ${err.message}`
+      });
+      setTimeout(() => setBanner(null), 6000);
     }
   }
 
@@ -163,6 +174,32 @@ export default function PricingPage() {
             </button>
           </div>
         </div>
+
+        {/* Dynamic Payment Alert Banner */}
+        {banner && (
+          <div
+            className={`p-4 rounded-2xl text-xs flex items-center justify-between shadow-xs animate-in fade-in duration-200 ${
+              banner.type === 'success'
+                ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+                : 'bg-rose-50 border border-rose-200 text-rose-900'
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              {banner.type === 'success' ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+              )}
+              <span className="font-semibold">{banner.message}</span>
+            </div>
+            <button
+              onClick={() => setBanner(null)}
+              className="text-slate-400 hover:text-slate-700 font-bold ml-2 text-xs"
+            >
+              &times;
+            </button>
+          </div>
+        )}
 
         {/* Pricing Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
@@ -287,13 +324,13 @@ export default function PricingPage() {
             </p>
           </div>
 
-          <button
-            onClick={() => alert('Contacting CodeThesis University Partnerships Team (partnerships@codethesis.com)!')}
+          <a
+            href="mailto:partnerships@codethesis.com?subject=CodeThesis%20Institutional%20License%20Inquiry"
             className="px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black rounded-xl text-xs transition-all flex items-center gap-2 flex-shrink-0"
           >
             <Building className="w-4 h-4" />
             <span>Request Institutional Quote</span>
-          </button>
+          </a>
         </div>
       </div>
     </AppLayout>

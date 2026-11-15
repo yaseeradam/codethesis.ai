@@ -28,6 +28,7 @@ export default function SupportPage() {
   const [subject, setSubject] = useState('Defense Preparation Assistance');
   const [message, setMessage] = useState('');
   const [ticketSubmitted, setTicketSubmitted] = useState(false);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   const faqs: FaqItem[] = [
     {
@@ -63,8 +64,9 @@ export default function SupportPage() {
     setTimeout(() => {
       setTicketSubmitted(false);
       setMessage('');
-      alert('Support ticket dispatched to CodeThesis Academic Desk! An academic advisor will reply via WhatsApp/email within 15 minutes.');
-    }, 1200);
+      setSuccessBanner('Support ticket dispatched to CodeThesis Academic Desk! An advisor will reply via WhatsApp or email within 15 minutes.');
+      setTimeout(() => setSuccessBanner(null), 6000);
+    }, 800);
   }
 
   return (
@@ -172,6 +174,21 @@ export default function SupportPage() {
                 <MessageSquare className="w-4 h-4 text-blue-600" />
                 <span>Open Priority Ticket</span>
               </div>
+
+              {successBanner && (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-3 rounded-xl text-xs flex items-center justify-between shadow-xs animate-in fade-in duration-200">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span className="font-semibold">{successBanner}</span>
+                  </div>
+                  <button
+                    onClick={() => setSuccessBanner(null)}
+                    className="text-emerald-500 hover:text-emerald-700 font-bold ml-2 text-xs"
+                  >
+                    &times;
+                  </button>
+                </div>
+              )}
 
               <form onSubmit={handleSubmitTicket} className="space-y-3 text-xs">
                 <div>

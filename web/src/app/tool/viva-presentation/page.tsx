@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 import CourseSelect from '@/components/ui/CourseSelect';
+import InstitutionSelect from '@/components/ui/InstitutionSelect';
+import { useAuth } from '@/context/AuthContext';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   Presentation,
@@ -34,6 +36,7 @@ interface Slide {
 }
 
 export default function VivaPresentationPage() {
+  const { user } = useAuth();
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [topic, setTopic] = useState('Design and Implementation of an Automated Hostel Allocation System with Concurrency Control');
@@ -43,6 +46,18 @@ export default function VivaPresentationPage() {
   const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
   const [course, setCourse] = useState('Computer Science');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  // Auto-populate from logged-in user profile
+  useEffect(() => {
+    if (user) {
+      if (user.fullName) setStudentName(user.fullName.toUpperCase());
+      if (user.matricNumber) setMatricNumber(user.matricNumber);
+      if (user.institution) setInstitution(user.institution);
+      if (user.department) setCourse(user.department);
+    }
+  }, [user]);
 
   const slides: Slide[] = [
     {
@@ -226,7 +241,6 @@ export default function VivaPresentationPage() {
     }
   ];
 
-  const [isDownloading, setIsDownloading] = useState(false);
   const activeSlide = slides[currentSlideIndex];
 
   async function handleExportPPTX() {
@@ -250,7 +264,8 @@ export default function VivaPresentationPage() {
     setIsGenerating(true);
     setTimeout(() => {
       setIsGenerating(false);
-      alert('Slide deck recompiled with updated topic and student parameters!');
+      setSuccessBanner(`Slide deck recompiled with updated topic and parameters for ${studentName}!`);
+      setTimeout(() => setSuccessBanner(null), 5000);
     }, 1000);
   }
 
@@ -278,6 +293,13 @@ export default function VivaPresentationPage() {
         </Link>
       </div>
 
+      {successBanner && (
+        <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center gap-2.5 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <span>{successBanner}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Slide List & Controls (4 Cols) */}
         <div className="lg:col-span-4 space-y-4">
@@ -298,7 +320,7 @@ export default function VivaPresentationPage() {
                 rows={2}
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all shadow-xs"
               />
             </div>
 
@@ -309,7 +331,7 @@ export default function VivaPresentationPage() {
                   type="text"
                   value={studentName}
                   onChange={e => setStudentName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs text-slate-800"
+                  className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-lg p-2 text-xs text-slate-800 outline-none transition-all shadow-xs"
                 />
               </div>
               <div>
@@ -318,10 +340,17 @@ export default function VivaPresentationPage() {
                   type="text"
                   value={matricNumber}
                   onChange={e => setMatricNumber(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs text-slate-800"
+                  className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-lg p-2 text-xs text-slate-800 outline-none transition-all shadow-xs"
                 />
               </div>
             </div>
+
+            <InstitutionSelect
+              value={institution}
+              onChange={setInstitution}
+              label="Tertiary Institution"
+              placeholder="Search or enter institution..."
+            />
 
             <CourseSelect
               value={course}

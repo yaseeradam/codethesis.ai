@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import CourseSelect from '@/components/ui/CourseSelect';
+import InstitutionSelect from '@/components/ui/InstitutionSelect';
+import { useAuth } from '@/context/AuthContext';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import {
   Code2,
@@ -125,16 +127,31 @@ pause
 };
 
 export default function SoftwareBuilderPage() {
+  const { user } = useAuth();
   const [selectedFile, setSelectedFile] = useState('app.py');
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [topic, setTopic] = useState('Automated Hostel Allocation System');
   const [course, setCourse] = useState('Computer Science');
+  const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  // Auto-populate from authenticated user profile
+  useEffect(() => {
+    if (user) {
+      if (user.department) setCourse(user.department);
+      if (user.institution) setInstitution(user.institution);
+    }
+  }, [user]);
 
   function handleCopy() {
     navigator.clipboard.writeText(FILES[selectedFile]);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setSuccessBanner(`Copied ${selectedFile} source code to clipboard!`);
+    setTimeout(() => {
+      setCopied(false);
+      setSuccessBanner(null);
+    }, 3000);
   }
 
   async function handleDownloadZip() {
@@ -144,11 +161,15 @@ export default function SoftwareBuilderPage() {
       {
         topic,
         course,
-        institution: 'Federal University of Technology, Akure',
+        institution,
+        author: user?.fullName || 'Candidate',
+        matricNo: user?.matricNumber || 'FUTA/CSC/20/4182',
       },
       `CodeThesis_Software_${topic.replace(/\s+/g, '_')}.zip`
     );
     setIsDownloading(false);
+    setSuccessBanner('Complete turnkey Python + SQLite .ZIP repository packaged and downloaded successfully!');
+    setTimeout(() => setSuccessBanner(null), 5000);
   }
 
   return (
@@ -157,6 +178,22 @@ export default function SoftwareBuilderPage() {
       title="Turnkey Software & Database Builder"
       subtitle="Zero-configuration Python + SQLite web application with 1-click offline launcher (run_project.bat)"
     >
+      {/* Dynamic Success / Action Banner */}
+      {successBanner && (
+        <div className="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-900 px-4 py-3 rounded-2xl text-xs flex items-center justify-between shadow-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span className="font-semibold">{successBanner}</span>
+          </div>
+          <button
+            onClick={() => setSuccessBanner(null)}
+            className="text-emerald-500 hover:text-emerald-700 font-bold ml-2 text-xs"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Specification Column */}
         <div className="lg:col-span-4 space-y-4">
@@ -180,6 +217,13 @@ export default function SoftwareBuilderPage() {
               value={course}
               onChange={setCourse}
               label="Target Academic Department"
+            />
+
+            <InstitutionSelect
+              value={institution}
+              onChange={setInstitution}
+              label="Affiliated Tertiary Institution"
+              placeholder="Search or enter institution..."
             />
 
             <div>
