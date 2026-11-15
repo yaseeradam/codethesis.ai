@@ -236,11 +236,15 @@ function DashboardMain() {
     };
   }, [currentCredits]);
 
+  const authError = searchParams.get('error');
+
   useEffect(() => {
-    if (paymentRef && (paymentStatus === 'success' || paymentStatus === 'simulation')) {
+    if (authError === 'unauthorized') {
+      setDemoBanner('Access Denied: Administrative privileges required to access the admin portal.');
+    } else if (paymentRef && (paymentStatus === 'success' || paymentStatus === 'simulation')) {
       setDemoBanner('Payment verified! 15 new generation credits have been added to your account.');
     }
-  }, [paymentRef, paymentStatus]);
+  }, [authError, paymentRef, paymentStatus]);
 
   return (
     <div className="h-screen bg-[#F1F5F9] text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-cyan-500 selection:text-white overflow-hidden">

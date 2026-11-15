@@ -95,7 +95,7 @@ function LoginContent() {
     }
   }
 
-  async function handleQuickDemo(role: 'adebayo' | 'ibrahim' | 'chioma') {
+  async function handleQuickDemo(role: 'adebayo' | 'ibrahim' | 'chioma' | 'admin') {
     setActiveDemo(role);
     setErrorMessage('');
 
@@ -245,7 +245,7 @@ function LoginContent() {
               <span>Instant Demo Profiles</span>
               <span className="text-sky-600">No Password Required</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <button
                 type="button"
                 onClick={() => handleQuickDemo('adebayo')}
@@ -257,11 +257,11 @@ function LoginContent() {
                 }`}
               >
                 <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
-                  <UserCheck className="w-3.5 h-3.5 text-sky-600" />
+                  <UserCheck className="w-3.5 h-3.5 text-sky-600 flex-shrink-0" />
                   <span className="truncate">Adebayo</span>
                 </div>
                 <div className="text-[10px] text-slate-500 mt-1 font-medium">
-                  <span>FUTA • 15 Credits</span>
+                  <span>FUTA • 15 Cr</span>
                 </div>
               </button>
 
@@ -276,11 +276,11 @@ function LoginContent() {
                 }`}
               >
                 <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
-                  <UserCheck className="w-3.5 h-3.5 text-amber-600" />
+                  <UserCheck className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
                   <span className="truncate">Ibrahim</span>
                 </div>
                 <div className="text-[10px] text-slate-500 mt-1 font-medium">
-                  <span>FUTA • 40 Credits</span>
+                  <span>FUTA • 40 Cr</span>
                 </div>
               </button>
 
@@ -295,11 +295,30 @@ function LoginContent() {
                 }`}
               >
                 <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                   <span className="truncate">Chioma</span>
                 </div>
                 <div className="text-[10px] text-slate-500 mt-1 font-medium">
-                  <span>UNILAG • 8 Credits</span>
+                  <span>UNILAG • 8 Cr</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickDemo('admin')}
+                disabled={Boolean(activeDemo) || isSubmitting || isGoogleSubmitting}
+                className={`p-2.5 rounded-xl border-2 text-left transition-all active:scale-95 flex flex-col justify-between cursor-pointer ${
+                  activeDemo === 'admin'
+                    ? 'border-purple-500 bg-purple-50 text-purple-950 font-bold'
+                    : 'border-slate-200 bg-slate-50/80 hover:bg-purple-50/50 hover:border-purple-300 text-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
+                  <ShieldCheck className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" />
+                  <span className="truncate">Admin</span>
+                </div>
+                <div className="text-[10px] text-purple-700 mt-1 font-bold">
+                  <span>System Admin</span>
                 </div>
               </button>
             </div>
@@ -332,13 +351,12 @@ function LoginContent() {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="font-bold text-slate-700">Password</label>
-                <button
-                  type="button"
-                  onClick={() => alert('Demo password for pre-seeded student accounts is: password123')}
+                <Link
+                  href="/auth/forgot-password"
                   className="text-sky-600 hover:underline text-[11px] font-semibold"
                 >
                   Forgot password?
-                </button>
+                </Link>
               </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />

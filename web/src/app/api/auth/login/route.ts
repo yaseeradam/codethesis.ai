@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByEmail, getUserById, hashPassword } from '@/lib/db';
+import { getUserByEmail, getUserById, hashPassword, logAuthEvent } from '@/lib/db';
 import { createSessionToken, COOKIE_NAME } from '@/lib/auth';
 
 const DEMO_EMAILS: Record<string, string> = {
   adebayo: 'student@futa.edu.ng',
   ibrahim: 'imusa@futa.edu.ng',
   chioma: 'cokeke@unilag.edu.ng',
+  admin: 'admin@codethesis.ai',
 };
 
 export async function POST(req: NextRequest) {
@@ -18,6 +19,8 @@ export async function POST(req: NextRequest) {
     }
 
     const { email, password, demo } = body;
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || undefined;
+    const userAgent = req.headers.get('user-agent') || undefined;
 
     // Handle 1-Click Fast Demo Login
     if (demo && typeof demo === 'string') {
@@ -25,11 +28,28 @@ export async function POST(req: NextRequest) {
       const user = await getUserByEmail(demoEmail);
 
       if (!user) {
+        await logAuthEvent({
+          email: demoEmail,
+          action: 'signin_failed',
+          ip,
+          userAgent,
+          metadata: { demoRole: demo, reason: 'demo_user_not_found' },
+        });
+
         return NextResponse.json(
           { success: false, error: 'Demo user account not found in database' },
           { status: 404 }
         );
       }
+
+      await logAuthEvent({
+        userId: user.id,
+        email: user.email,
+        action: 'signin_success',
+        ip,
+        userAgent,
+        metadata: { demoRole: demo, loginType: 'demo' },
+      });
 
       const token = createSessionToken(user);
       const { passwordHash, ...safeUser } = user;
@@ -61,8 +81,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await getUserByEmail(email.trim().toLowerCase());
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await getUserByEmail(cleanEmail);
     if (!user) {
+      await logAuthEvent({
+        email: cleanEmail,
+        action: 'signin_failed',
+        ip,
+        userAgent,
+        metadata: { reason: 'user_not_found' },
+      });
+
       return NextResponse.json(
         { success: false, error: 'Invalid email address or password' },
         { status: 401 }
@@ -71,11 +100,29 @@ export async function POST(req: NextRequest) {
 
     const expectedHash = hashPassword(password);
     if (user.passwordHash !== expectedHash) {
+      await logAuthEvent({
+        userId: user.id,
+        email: user.email,
+        action: 'signin_failed',
+        ip,
+        userAgent,
+        metadata: { reason: 'invalid_password' },
+      });
+
       return NextResponse.json(
         { success: false, error: 'Invalid email address or password' },
         { status: 401 }
       );
     }
+
+    await logAuthEvent({
+      userId: user.id,
+      email: user.email,
+      action: 'signin_success',
+      ip,
+      userAgent,
+      metadata: { loginType: 'credentials' },
+    });
 
     const token = createSessionToken(user);
     const { passwordHash, ...safeUser } = user;

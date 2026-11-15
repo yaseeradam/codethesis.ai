@@ -11,6 +11,7 @@ export interface SafeUser {
   plan: 'free' | 'starter' | 'standard' | 'complete' | 'faculty';
   credits: number;
   status?: 'active' | 'flagged' | 'suspended';
+  role?: 'student' | 'admin';
 }
 
 export interface RegisterData {
@@ -32,6 +33,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateProfile: (data: Partial<SafeUser> & { currentPassword?: string; newPassword?: string }) => Promise<{ success: boolean; error?: string }>;
+  requestPasswordReset: (email: string) => Promise<{ success: boolean; resetToken?: string; resetUrl?: string; error?: string }>;
+  confirmPasswordReset: (token: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -44,6 +47,8 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   refreshUser: async () => {},
   updateProfile: async () => ({ success: false }),
+  requestPasswordReset: async () => ({ success: false }),
+  confirmPasswordReset: async () => ({ success: false }),
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -216,6 +221,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const requestPasswordReset = async (email: string) => {
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || 'Failed to generate reset link' };
+      }
+      return {
+        success: true,
+        resetToken: data.token,
+        resetUrl: data.resetUrl,
+      };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Password reset request failed' };
+    }
+  };
+
+  const confirmPasswordReset = async (token: string, newPassword: string) => {
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token.trim(), newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || 'Failed to update password' };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Password update request failed' };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -228,6 +271,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         refreshUser,
         updateProfile,
+        requestPasswordReset,
+        confirmPasswordReset,
       }}
     >
       {children}

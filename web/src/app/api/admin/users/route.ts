@@ -13,6 +13,7 @@ export async function GET() {
       institution: u.institution || 'Nigerian University',
       plan: u.plan,
       credits: u.credits,
+      role: u.role || 'student',
       status: u.status || 'active',
       createdAt: u.createdAt,
     }));

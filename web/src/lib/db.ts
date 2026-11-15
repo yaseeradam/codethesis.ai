@@ -12,7 +12,20 @@ export interface User {
   plan: 'free' | 'starter' | 'standard' | 'complete' | 'faculty';
   credits: number;
   status?: 'active' | 'flagged' | 'suspended';
+  role?: 'student' | 'admin';
+  resetToken?: { token: string; expiresAt: string };
   createdAt: string;
+}
+
+export interface AuthAuditLog {
+  id: string;
+  userId?: string;
+  email: string;
+  action: 'signin_success' | 'signin_failed' | 'password_reset_requested' | 'password_reset_success' | 'role_access_denied';
+  ip?: string;
+  userAgent?: string;
+  metadata?: Record<string, any>;
+  timestamp: string;
 }
 
 export interface Project {
@@ -122,6 +135,7 @@ interface DatabaseSchema {
   transactions: Transaction[];
   creditLogs?: CreditLog[];
   vivaSessions?: VivaSession[];
+  authAuditLogs?: AuthAuditLog[];
   settings: AdminSettings;
 }
 
@@ -172,6 +186,7 @@ function ensureDb() {
           institution: 'Federal University of Technology, Akure',
           plan: 'standard',
           credits: 15,
+          role: 'student',
           status: 'active',
           createdAt: new Date().toISOString(),
         },
@@ -184,6 +199,7 @@ function ensureDb() {
           institution: 'Federal University of Technology, Akure',
           plan: 'complete',
           credits: 40,
+          role: 'student',
           status: 'active',
           createdAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString(),
         },
@@ -196,10 +212,23 @@ function ensureDb() {
           institution: 'University of Lagos',
           plan: 'starter',
           credits: 8,
+          role: 'student',
           status: 'active',
           createdAt: new Date(Date.now() - 3600000 * 24 * 7).toISOString(),
+        },
+        {
+          id: 'demo-admin-001',
+          email: 'admin@codethesis.ai',
+          passwordHash: hashPassword('admin123'),
+          fullName: 'System Administrator',
+          plan: 'faculty',
+          credits: 9999,
+          role: 'admin',
+          status: 'active',
+          createdAt: new Date().toISOString(),
         }
       ],
+      authAuditLogs: [],
       projects: [
         {
           id: 'proj-001',
@@ -292,13 +321,60 @@ function readDb(): DatabaseSchema {
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
     const parsed = JSON.parse(raw);
+    let needsSave = false;
+
     if (!parsed.settings) {
       parsed.settings = DEFAULT_SETTINGS;
+      needsSave = true;
     }
+    if (!parsed.authAuditLogs) {
+      parsed.authAuditLogs = [];
+      needsSave = true;
+    }
+    if (!parsed.users) {
+      parsed.users = [];
+      needsSave = true;
+    }
+
+    // Ensure demo admin exists
+    const adminExists = parsed.users.some(
+      (u: User) => u.email.toLowerCase() === 'admin@codethesis.ai' || u.role === 'admin'
+    );
+    if (!adminExists) {
+      parsed.users.push({
+        id: 'demo-admin-001',
+        email: 'admin@codethesis.ai',
+        passwordHash: hashPassword('admin123'),
+        fullName: 'System Administrator',
+        plan: 'faculty',
+        credits: 9999,
+        role: 'admin',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+      });
+      needsSave = true;
+    }
+
+    // Ensure all demo users or users have explicit role set
+    for (const u of parsed.users) {
+      if (!u.role) {
+        if (u.id === 'demo-admin-001' || u.email.toLowerCase() === 'admin@codethesis.ai') {
+          u.role = 'admin';
+        } else {
+          u.role = 'student';
+        }
+        needsSave = true;
+      }
+    }
+
+    if (needsSave) {
+      writeDb(parsed);
+    }
+
     return parsed;
   } catch (err) {
     console.error('Error reading DB, resetting to defaults:', err);
-    return { users: [], projects: [], transactions: [], settings: DEFAULT_SETTINGS };
+    return { users: [], projects: [], transactions: [], authAuditLogs: [], settings: DEFAULT_SETTINGS };
   }
 }
 
@@ -361,6 +437,7 @@ export async function createUser(userData: {
   fullName: string;
   matricNumber?: string;
   institution?: string;
+  role?: 'student' | 'admin';
 }): Promise<User> {
   const db = readDb();
   const existing = db.users.find(u => u.email.toLowerCase() === userData.email.toLowerCase());
@@ -380,6 +457,7 @@ export async function createUser(userData: {
     institution: userData.institution?.trim() || 'Federal University of Technology, Akure',
     plan: 'free',
     credits: freeCredits,
+    role: userData.role || 'student',
     status: 'active',
     createdAt: new Date().toISOString(),
   };
@@ -652,4 +730,96 @@ export async function updateAdminApiKeys(payload: {
 
   writeDb(db);
   return db.settings;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Auth Audit & Password Reset Operations
+// ─────────────────────────────────────────────────────────────
+export async function logAuthEvent(event: Omit<AuthAuditLog, 'id' | 'timestamp'>): Promise<void> {
+  const db = readDb();
+  if (!db.authAuditLogs) {
+    db.authAuditLogs = [];
+  }
+  const log: AuthAuditLog = {
+    ...event,
+    id: `audit-${crypto.randomUUID().slice(0, 8)}`,
+    timestamp: new Date().toISOString(),
+  };
+  db.authAuditLogs.unshift(log);
+  // Keep last 1000 logs
+  if (db.authAuditLogs.length > 1000) {
+    db.authAuditLogs = db.authAuditLogs.slice(0, 1000);
+  }
+  writeDb(db);
+}
+
+export async function getAuthAuditLogs(limit = 100): Promise<AuthAuditLog[]> {
+  const db = readDb();
+  return (db.authAuditLogs || []).slice(0, limit);
+}
+
+export async function createPasswordResetToken(email: string): Promise<{ token: string; expiresAt: string; user: User }> {
+  const db = readDb();
+  const cleanEmail = email.toLowerCase().trim();
+  const user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+  if (!user) {
+    throw new Error('No account found with this email address.');
+  }
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour from now
+
+  user.resetToken = {
+    token,
+    expiresAt,
+  };
+
+  writeDb(db);
+
+  await logAuthEvent({
+    userId: user.id,
+    email: user.email,
+    action: 'password_reset_requested',
+    metadata: {
+      expiresAt,
+    },
+  });
+
+  return { token, expiresAt, user };
+}
+
+export async function verifyAndConsumeResetToken(
+  token: string,
+  newPassword: string
+): Promise<{ success: boolean; user?: User; error?: string }> {
+  if (!token || typeof token !== 'string') {
+    return { success: false, error: 'Reset token is required.' };
+  }
+
+  const cleanToken = token.trim();
+  const db = readDb();
+  const user = db.users.find(u => u.resetToken && u.resetToken.token === cleanToken);
+
+  if (!user || !user.resetToken) {
+    return { success: false, error: 'Invalid or expired password reset token.' };
+  }
+
+  const expiresAtTime = new Date(user.resetToken.expiresAt).getTime();
+  if (isNaN(expiresAtTime) || expiresAtTime <= Date.now()) {
+    delete user.resetToken;
+    writeDb(db);
+    return { success: false, error: 'Password reset token has expired. Please request a new one.' };
+  }
+
+  user.passwordHash = hashPassword(newPassword);
+  delete user.resetToken;
+  writeDb(db);
+
+  await logAuthEvent({
+    userId: user.id,
+    email: user.email,
+    action: 'password_reset_success',
+  });
+
+  return { success: true, user };
 }
