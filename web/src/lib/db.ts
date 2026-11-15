@@ -1094,6 +1094,7 @@ export async function updateAdminSettings(settings: Partial<AdminSettings>): Pro
 }
 
 export async function updateAdminApiKeys(keys: {
+  activeProvider?: any;
   gemini?: string;
   openai?: string;
   groq?: string;
@@ -1102,11 +1103,13 @@ export async function updateAdminApiKeys(keys: {
   deepseek?: string;
 }): Promise<AdminSettings> {
   const current = await getAdminSettings();
+  const { activeProvider, ...cleanKeys } = keys;
   const updatedEngine = {
     ...current.aiEngine,
+    ...(activeProvider ? { activeProvider } : {}),
     apiKeys: {
       ...(current.aiEngine.apiKeys || {}),
-      ...keys,
+      ...cleanKeys,
     },
   };
   return await updateAdminSettings({ aiEngine: updatedEngine });

@@ -39,7 +39,8 @@ import {
   PanelLeftClose,
   PanelLeft,
   Menu,
-  ShieldAlert
+  ShieldAlert,
+  Download
 } from 'lucide-react';
 
 interface Project {
@@ -193,7 +194,7 @@ const TESTIMONIALS = [
 ];
 
 function DashboardMain() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const searchParams = useSearchParams();
   const paymentRef = searchParams.get('ref');
   const paymentStatus = searchParams.get('payment');
@@ -205,6 +206,106 @@ function DashboardMain() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [demoBanner, setDemoBanner] = useState<string | null>(null);
+
+  // Live Neon DB projects state
+  const [recentProjects, setRecentProjects] = useState<Project[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState<boolean>(true);
+
+  // Fetch live projects from Neon PostgreSQL and sync user credits
+  useEffect(() => {
+    let isMounted = true;
+
+    if (refreshUser) {
+      refreshUser().catch(() => {});
+    }
+
+    async function loadNeonProjects() {
+      setIsLoadingProjects(true);
+      try {
+        const res = await fetch('/api/projects');
+        const data = await res.json();
+        if (isMounted && data.success && Array.isArray(data.projects)) {
+          if (data.projects.length > 0) {
+            const mapped: Project[] = data.projects.slice(0, 5).map((p: any) => {
+              let tag = 'DOCX';
+              let tagColor = 'bg-blue-600 text-white';
+              let href = '/studio';
+              let size = p.metadata?.size || '2.4 MB';
+
+              if (p.toolId === 'software-builder' || p.toolId === 'softwareBuilder' || p.fileType === 'zip') {
+                tag = 'ZIP';
+                tagColor = 'bg-emerald-600 text-white';
+                href = '/tool/software-builder';
+                size = p.metadata?.size || '4.2 MB';
+              } else if (p.toolId === 'viva-presentation' || p.toolId === 'vivaPresentation' || p.fileType === 'pptx') {
+                tag = 'PPT';
+                tagColor = 'bg-purple-600 text-white';
+                href = '/tool/viva-presentation';
+                size = p.metadata?.size || '1.8 MB';
+              } else if (p.toolId === 'siwes-logbook' || p.toolId === 'siwesLogbook') {
+                tag = 'SIWES';
+                tagColor = 'bg-amber-600 text-white';
+                href = '/tool/siwes-logbook';
+                size = p.metadata?.size || '1.5 MB';
+              } else if (p.toolId === 'itf-report' || p.toolId === 'itfReport') {
+                tag = 'ITF';
+                tagColor = 'bg-amber-700 text-white';
+                href = '/tool/itf-report';
+                size = p.metadata?.size || '1.3 MB';
+              } else if (p.toolId === 'viva-simulator' || p.toolId === 'vivaSimulator') {
+                tag = 'VIVA';
+                tagColor = 'bg-rose-600 text-white';
+                href = '/tool/viva-simulator';
+                size = 'Session';
+              } else if (p.toolId === 'assignment-solver') {
+                tag = 'SOLVER';
+                tagColor = 'bg-cyan-600 text-white';
+                href = '/tool/assignment-solver';
+                size = p.metadata?.size || '1.1 MB';
+              } else {
+                tag = 'FYP';
+                tagColor = 'bg-blue-600 text-white';
+                href = '/studio';
+              }
+
+              const date = p.createdAt
+                ? new Date(p.createdAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })
+                : 'Recently';
+
+              return {
+                id: p.id,
+                toolId: p.toolId || 'thesis',
+                title: p.title,
+                fileType: (p.fileType as any) || 'docx',
+                date,
+                size,
+                tag,
+                tagColor,
+                href,
+              };
+            });
+            setRecentProjects(mapped);
+          } else {
+            setRecentProjects([]);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load live Neon projects:', err);
+      } finally {
+        if (isMounted) setIsLoadingProjects(false);
+      }
+    }
+
+    loadNeonProjects();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, refreshUser]);
 
   // Animate credits counter on mount or user credit change
   useEffect(() => {
@@ -753,7 +854,14 @@ function DashboardMain() {
 
               {/* 3x3 Tool Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
-                {ACADEMIC_TOOLS.map((tool) => {
+                {(searchQuery.trim()
+                  ? ACADEMIC_TOOLS.filter(
+                      (tool) =>
+                        tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        tool.description.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                  : ACADEMIC_TOOLS
+                ).map((tool) => {
                   const IconComp = tool.icon;
                   return (
                     <Link
@@ -837,6 +945,9 @@ function DashboardMain() {
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-slate-500" />
                     <h3 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">Recent Projects</h3>
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                      Neon DB
+                    </span>
                   </div>
                   <Link
                     href="/projects"
@@ -848,34 +959,81 @@ function DashboardMain() {
                 </div>
 
                 <div className="space-y-3">
-                  {RECENT_PROJECTS.map((proj) => (
-                    <div
-                      key={proj.id}
-                      className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                        <span
-                          className={`text-[9px] font-black px-2 py-1 rounded-md flex-shrink-0 ${proj.tagColor}`}
-                        >
-                          {proj.tag}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-slate-900 truncate">{proj.title}</p>
-                          <p className="text-[10px] text-slate-400">
-                            {proj.date} &bull; {proj.size}
-                          </p>
+                  {isLoadingProjects ? (
+                    <div className="space-y-2.5 py-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="animate-pulse flex items-center justify-between p-2 rounded-xl bg-slate-50">
+                          <div className="flex items-center gap-2.5 flex-1 pr-2">
+                            <div className="w-8 h-5 rounded bg-slate-200" />
+                            <div className="flex-1 space-y-1.5">
+                              <div className="h-3 bg-slate-200 rounded w-3/4" />
+                              <div className="h-2 bg-slate-100 rounded w-1/2" />
+                            </div>
+                          </div>
+                          <div className="w-12 h-6 rounded-full bg-slate-200" />
                         </div>
+                      ))}
+                    </div>
+                  ) : recentProjects.length === 0 ? (
+                    <div className="py-6 px-4 text-center rounded-2xl bg-slate-50 border border-dashed border-slate-200">
+                      <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-2">
+                        <Sparkles className="w-4 h-4" />
                       </div>
-
+                      <p className="text-xs font-bold text-slate-800">No projects yet</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5 mb-2.5">Generate your thesis, SIWES, or defense deck</p>
                       <Link
-                        href={proj.href}
+                        href="/studio"
                         prefetch={false}
-                        className="text-[11px] font-semibold text-blue-600 hover:bg-blue-100 bg-blue-50 px-3 py-1 rounded-full border border-blue-100/80 transition-colors flex-shrink-0"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600 text-white text-[11px] font-semibold hover:bg-blue-700 transition"
                       >
-                        Open
+                        <span>Start Project</span>
+                        <ArrowRight className="w-3 h-3" />
                       </Link>
                     </div>
-                  ))}
+                  ) : (
+                    recentProjects.map((proj) => (
+                      <div
+                        key={proj.id}
+                        className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                          <span
+                            className={`text-[9px] font-black px-2 py-1 rounded-md flex-shrink-0 ${proj.tagColor}`}
+                          >
+                            {proj.tag}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors" title={proj.title}>
+                              {proj.title}
+                            </p>
+                            <p className="text-[10px] text-slate-400">
+                              {proj.date} &bull; {proj.size}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          {proj.id && !proj.id.startsWith('proj-1') && !proj.id.startsWith('proj-2') && !proj.id.startsWith('proj-3') && (
+                            <a
+                              href={`/api/projects/${proj.id}/download`}
+                              download
+                              title="Direct Download"
+                              className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                          <Link
+                            href={proj.href}
+                            prefetch={false}
+                            className="text-[11px] font-semibold text-blue-600 hover:bg-blue-100 bg-blue-50 px-3 py-1 rounded-full border border-blue-100/80 transition-colors"
+                          >
+                            Open
+                          </Link>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
