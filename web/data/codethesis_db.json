@@ -89,6 +89,19 @@
       "role": "admin",
       "status": "active",
       "createdAt": "2026-11-15T07:45:17.284Z"
+    },
+    {
+      "id": "usr-f93ca694",
+      "email": "scholar.google@futa.edu.ng",
+      "passwordHash": "dd117e062a317d28f2ebbd1a22a5b3d3345eec980b04e2e9945aa32af5a6ce7a",
+      "fullName": "Dr. Google Scholar",
+      "matricNumber": "GOOG/CSC/26/2234",
+      "institution": "Institutional Scholar",
+      "plan": "free",
+      "credits": 15,
+      "role": "student",
+      "status": "active",
+      "createdAt": "2026-11-15T12:52:09.814Z"
     }
   ],
   "projects": [
@@ -627,6 +640,15 @@
     }
   },
   "creditLogs": [
+    {
+      "userId": "usr-1b75b716",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "id": "log-1065239f",
+      "createdAt": "2026-11-15T12:55:04.783Z"
+    },
     {
       "userId": "usr-7ee01359",
       "amount": 15,
@@ -1361,6 +1383,97 @@
     }
   ],
   "authAuditLogs": [
+    {
+      "userId": "usr-1b75b716",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "id": "audit-6d22afd0",
+      "timestamp": "2026-11-15T12:55:17.779Z"
+    },
+    {
+      "userId": "usr-1b75b716",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "id": "audit-a56c2595",
+      "timestamp": "2026-11-15T12:55:17.730Z"
+    },
+    {
+      "userId": "usr-1b75b716",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_success",
+      "id": "audit-fe8c70b2",
+      "timestamp": "2026-11-15T12:55:17.595Z"
+    },
+    {
+      "userId": "usr-1b75b716",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_requested",
+      "metadata": {
+        "expiresAt": "2026-11-15T13:55:07.680Z"
+      },
+      "id": "audit-26953746",
+      "timestamp": "2026-11-15T12:55:07.744Z"
+    },
+    {
+      "userId": "demo-admin-001",
+      "email": "admin@codethesis.ai",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "admin",
+        "loginType": "demo"
+      },
+      "id": "audit-954b442a",
+      "timestamp": "2026-11-15T12:55:06.367Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "email": "student@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "adebayo",
+        "loginType": "demo"
+      },
+      "id": "audit-9e40ff41",
+      "timestamp": "2026-11-15T12:55:06.060Z"
+    },
+    {
+      "userId": "usr-1b75b716",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "id": "audit-26ac5387",
+      "timestamp": "2026-11-15T12:55:05.672Z"
+    },
+    {
+      "userId": "usr-1b75b716",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "id": "audit-43c3a7b0",
+      "timestamp": "2026-11-15T12:55:05.282Z"
+    },
     {
       "userId": "usr-7ee01359",
       "email": "qa.student.automated@futa.edu.ng",
