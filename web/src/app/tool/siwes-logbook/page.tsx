@@ -233,7 +233,7 @@ Pin 7: White/Brown   Pin 8: Brown
                 type="text"
                 value={companyName}
                 onChange={e => setCompanyName(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-medium"
+                className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all shadow-xs"
               />
             </div>
 
@@ -243,7 +243,7 @@ Pin 7: White/Brown   Pin 8: Brown
                 type="text"
                 value={companyDepartment}
                 onChange={e => setCompanyDepartment(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800"
+                className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl p-2.5 text-xs text-slate-800 outline-none transition-all shadow-xs"
               />
             </div>
 
@@ -253,7 +253,7 @@ Pin 7: White/Brown   Pin 8: Brown
                 type="text"
                 value={industrySupervisor}
                 onChange={e => setIndustrySupervisor(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800"
+                className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl p-2.5 text-xs text-slate-800 outline-none transition-all shadow-xs"
               />
             </div>
 

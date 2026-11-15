@@ -102,9 +102,94 @@
       "role": "student",
       "status": "active",
       "createdAt": "2026-11-15T12:52:09.814Z"
+    },
+    {
+      "id": "usr-8f2fa149",
+      "email": "ibrahim_test_1794769582325@abu.edu.ng",
+      "passwordHash": "$2b$10$/3OrYtmpB7mjyG3PyMBmCOfLUSe1QibMhKoidJN2PZLOkOqMYhWRW",
+      "fullName": "Ibrahim Test",
+      "matricNumber": "FUTA/CSC/20/4182",
+      "institution": "Federal University of Technology, Akure (FUTA)",
+      "plan": "free",
+      "credits": 15,
+      "role": "student",
+      "status": "active",
+      "createdAt": "2026-11-15T20:52:33.390Z"
     }
   ],
   "projects": [
+    {
+      "userId": "demo-student-001",
+      "toolId": "software-builder",
+      "title": "Design of Cloud Forensic Framework",
+      "course": "Cybersecurity",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "Zero-pip Python & SQLite web application with 1-click run_project.bat offline launcher.",
+      "fileType": "zip",
+      "id": "proj-dd7de556",
+      "createdAt": "2026-11-15T14:16:23.582Z",
+      "updatedAt": "2026-11-15T14:16:23.582Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "toolId": "viva-presentation",
+      "title": "Viva Defense Presentation Deck: Design of Cloud Forensic Framework",
+      "course": "Cybersecurity",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "15-Slide Widescreen (16:9) defense presentation deck in Midnight Navy and Gold.",
+      "fileType": "pptx",
+      "id": "proj-e5e00519",
+      "createdAt": "2026-11-15T14:16:23.331Z",
+      "updatedAt": "2026-11-15T14:16:23.331Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "toolId": "thesis",
+      "title": "Design of Cloud Forensic Framework",
+      "course": "Cybersecurity",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "5-Chapter Undergraduate Thesis (~18,000+ words target) in Cybersecurity for Federal University of Technology, Akure. APA 7th format.",
+      "fileType": "docx",
+      "id": "proj-53b58ca2",
+      "createdAt": "2026-11-15T14:16:23.013Z",
+      "updatedAt": "2026-11-15T14:16:23.013Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "toolId": "software-builder",
+      "title": "Design of Cloud Forensic Framework",
+      "course": "Cybersecurity",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "Zero-pip Python & SQLite web application with 1-click run_project.bat offline launcher.",
+      "fileType": "zip",
+      "id": "proj-9b8a4051",
+      "createdAt": "2026-11-15T14:15:06.957Z",
+      "updatedAt": "2026-11-15T14:15:06.957Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "toolId": "viva-presentation",
+      "title": "Viva Defense Presentation Deck: Design of Cloud Forensic Framework",
+      "course": "Cybersecurity",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "15-Slide Widescreen (16:9) defense presentation deck in Midnight Navy and Gold.",
+      "fileType": "pptx",
+      "id": "proj-ecd3549d",
+      "createdAt": "2026-11-15T14:15:06.263Z",
+      "updatedAt": "2026-11-15T14:15:06.263Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "toolId": "thesis",
+      "title": "Design of Cloud Forensic Framework",
+      "course": "Cybersecurity",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "5-Chapter Undergraduate Thesis (~18,000+ words target) in Cybersecurity for Federal University of Technology, Akure. APA 7th format.",
+      "fileType": "docx",
+      "id": "proj-beca17fd",
+      "createdAt": "2026-11-15T14:15:04.523Z",
+      "updatedAt": "2026-11-15T14:15:04.523Z"
+    },
     {
       "userId": "demo-student-001",
       "toolId": "assignment-solver",
@@ -541,6 +626,26 @@
   "transactions": [
     {
       "userId": "demo-student-001",
+      "reference": "CT-1794752184169-41AF160A",
+      "amount": 8500,
+      "currency": "NGN",
+      "status": "pending",
+      "planId": "standard",
+      "id": "tx-1f6f0f54",
+      "createdAt": "2026-11-15T14:16:24.175Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "reference": "CT-1794752108379-161FDFF8",
+      "amount": 8500,
+      "currency": "NGN",
+      "status": "pending",
+      "planId": "standard",
+      "id": "tx-ac92e97d",
+      "createdAt": "2026-11-15T14:15:08.385Z"
+    },
+    {
+      "userId": "demo-student-001",
       "reference": "CT-1794726498312-652BB86F",
       "amount": 8500,
       "currency": "NGN",
@@ -640,6 +745,88 @@
     }
   },
   "creditLogs": [
+    {
+      "id": "log-58b1bd0d",
+      "userId": "usr-8f2fa149",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "createdAt": "2026-11-15T20:52:43.196Z"
+    },
+    {
+      "id": "log-c766129b",
+      "userId": "usr-4f0c049b",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "createdAt": "2026-11-15T19:28:01.592Z"
+    },
+    {
+      "id": "log-12f22b71",
+      "userId": "usr-60f0ed22",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "createdAt": "2026-11-15T19:06:32.550Z"
+    },
+    {
+      "id": "log-1f2d68b5",
+      "userId": "usr-2646bad8",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "createdAt": "2026-11-15T18:57:05.652Z"
+    },
+    {
+      "id": "log-89cfdb6f",
+      "userId": "usr-eaf90a14",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "createdAt": "2026-11-15T18:27:12.834Z"
+    },
+    {
+      "id": "log-3858d556",
+      "userId": "usr-325e0668",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "createdAt": "2026-11-15T16:16:27.163Z"
+    },
+    {
+      "id": "log-b7ce6360",
+      "userId": "usr-ade369c9",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "createdAt": "2026-11-15T16:13:31.172Z"
+    },
+    {
+      "id": "log-79d359e6",
+      "userId": "demo-student-001",
+      "amount": -1,
+      "type": "tool_usage",
+      "toolId": "vivaSimulator",
+      "balanceAfter": 24,
+      "description": "Used vivaSimulator tool (1 credit)",
+      "createdAt": "2026-11-15T16:11:23.342Z"
+    },
+    {
+      "userId": "usr-bb41ea96",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "id": "log-7746bf1b",
+      "createdAt": "2026-11-15T14:14:15.513Z"
+    },
     {
       "userId": "usr-1b75b716",
       "amount": 15,
@@ -1128,6 +1315,42 @@
   ],
   "vivaSessions": [
     {
+      "id": "viva-2a1ff46b",
+      "userId": "demo-student-001",
+      "topic": "Design of Cloud Forensic Framework",
+      "course": "Cybersecurity",
+      "examinerPersona": "strict",
+      "turns": [
+        {
+          "id": "turn-1",
+          "role": "examiner",
+          "content": "Welcome candidate. We have thoroughly reviewed your dissertation draft titled \"Design of Cloud Forensic Framework\" in Cybersecurity. Let us begin with your problem statement: Why did you decide that existing manual or conventional systems were inadequate, and what is the exact scientific or technical gap your proposed system bridges?",
+          "timestamp": "2026-11-15T14:16:23.871Z"
+        }
+      ],
+      "status": "active",
+      "createdAt": "2026-11-15T14:16:23.871Z",
+      "updatedAt": "2026-11-15T14:16:23.875Z"
+    },
+    {
+      "id": "viva-38894039",
+      "userId": "demo-student-001",
+      "topic": "Design of Cloud Forensic Framework",
+      "course": "Cybersecurity",
+      "examinerPersona": "strict",
+      "turns": [
+        {
+          "id": "turn-1",
+          "role": "examiner",
+          "content": "Welcome candidate. We have thoroughly reviewed your dissertation draft titled \"Design of Cloud Forensic Framework\" in Cybersecurity. Let us begin with your problem statement: Why did you decide that existing manual or conventional systems were inadequate, and what is the exact scientific or technical gap your proposed system bridges?",
+          "timestamp": "2026-11-15T14:15:07.635Z"
+        }
+      ],
+      "status": "active",
+      "createdAt": "2026-11-15T14:15:07.635Z",
+      "updatedAt": "2026-11-15T14:15:07.638Z"
+    },
+    {
       "id": "viva-e5f549d8",
       "userId": "demo-student-001",
       "topic": "Design of Distributed Campus Microgrid Monitoring Architecture",
@@ -1383,6 +1606,493 @@
     }
   ],
   "authAuditLogs": [
+    {
+      "id": "audit-5369b429",
+      "userId": "usr-60f0ed22",
+      "email": "ibrahim_test_1794769582325@abu.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.167 Safari/537.36 Antigravity/2.32.0",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "timestamp": "2026-11-15T21:08:08.190Z"
+    },
+    {
+      "id": "audit-0d6a30de",
+      "email": "wrong@abu.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.167 Safari/537.36 Antigravity/2.32.0",
+      "metadata": {
+        "reason": "user_not_found"
+      },
+      "timestamp": "2026-11-15T21:07:51.659Z"
+    },
+    {
+      "id": "audit-b9f039a5",
+      "email": "ibrahim_test_1794769582325@abu.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.167 Safari/537.36 Antigravity/2.32.0",
+      "metadata": {
+        "reason": "user_not_found"
+      },
+      "timestamp": "2026-11-15T20:51:55.514Z"
+    },
+    {
+      "id": "audit-5de9d594",
+      "email": "student@codethesis.ai",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.167 Safari/537.36 Antigravity/2.32.0",
+      "metadata": {
+        "reason": "user_not_found"
+      },
+      "timestamp": "2026-11-15T20:43:20.483Z"
+    },
+    {
+      "id": "audit-13c4e15f",
+      "email": "wrong_scholar@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.167 Safari/537.36 Antigravity/2.32.1",
+      "metadata": {
+        "reason": "user_not_found"
+      },
+      "timestamp": "2026-11-15T19:13:40.778Z"
+    },
+    {
+      "id": "audit-65a56d52",
+      "email": "test@invalid.com",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "user_not_found"
+      },
+      "timestamp": "2026-11-15T19:10:03.498Z"
+    },
+    {
+      "id": "audit-22c3ea38",
+      "email": "nonexistent@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "user_not_found"
+      },
+      "timestamp": "2026-11-15T19:09:18.559Z"
+    },
+    {
+      "id": "audit-2f86e539",
+      "userId": "usr-eaf90a14",
+      "email": "realstudent_1794767226256@gmail.com",
+      "action": "signin_success",
+      "ip": "::1",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "timestamp": "2026-11-15T18:27:14.851Z"
+    },
+    {
+      "id": "audit-d2e5aa94",
+      "userId": "demo-student-001",
+      "email": "student@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.167 Safari/537.36 Antigravity/2.32.1",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-15T18:20:43.499Z"
+    },
+    {
+      "id": "audit-1b5b8633",
+      "userId": "demo-student-001",
+      "email": "student@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "metadata": {
+        "demoRole": "adebayo",
+        "loginType": "demo"
+      },
+      "timestamp": "2026-11-15T18:17:10.104Z"
+    },
+    {
+      "id": "audit-a241ef99",
+      "userId": "demo-student-001",
+      "email": "student@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-15T18:16:44.579Z"
+    },
+    {
+      "id": "audit-5fb4af55",
+      "userId": "usr-325e0668",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "timestamp": "2026-11-15T16:16:44.283Z"
+    },
+    {
+      "id": "audit-7e45a0ef",
+      "userId": "usr-325e0668",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-15T16:16:42.821Z"
+    },
+    {
+      "id": "audit-592d5b69",
+      "userId": "usr-325e0668",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_success",
+      "timestamp": "2026-11-15T16:16:40.923Z"
+    },
+    {
+      "id": "audit-7ce517cf",
+      "userId": "usr-325e0668",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_requested",
+      "metadata": {
+        "expiresAt": "2026-11-15T17:16:36.291Z"
+      },
+      "timestamp": "2026-11-15T16:16:37.390Z"
+    },
+    {
+      "id": "audit-69777b48",
+      "userId": "demo-admin-001",
+      "email": "admin@codethesis.ai",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "admin",
+        "loginType": "demo"
+      },
+      "timestamp": "2026-11-15T16:16:33.540Z"
+    },
+    {
+      "id": "audit-e4a75653",
+      "userId": "demo-student-001",
+      "email": "student@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "adebayo",
+        "loginType": "demo"
+      },
+      "timestamp": "2026-11-15T16:16:32.224Z"
+    },
+    {
+      "id": "audit-53a56ae8",
+      "userId": "usr-325e0668",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-15T16:16:30.791Z"
+    },
+    {
+      "id": "audit-1021ca7c",
+      "userId": "usr-325e0668",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "timestamp": "2026-11-15T16:16:28.744Z"
+    },
+    {
+      "id": "audit-0c67bf13",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "timestamp": "2026-11-15T16:14:46.118Z"
+    },
+    {
+      "id": "audit-48d9bce9",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-15T16:14:41.918Z"
+    },
+    {
+      "id": "audit-56b0a4e2",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_success",
+      "timestamp": "2026-11-15T16:14:40.594Z"
+    },
+    {
+      "id": "audit-8076f454",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_requested",
+      "metadata": {
+        "expiresAt": "2026-11-15T17:14:36.600Z"
+      },
+      "timestamp": "2026-11-15T16:14:37.200Z"
+    },
+    {
+      "id": "audit-beaa96e2",
+      "userId": "demo-admin-001",
+      "email": "admin@codethesis.ai",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "admin",
+        "loginType": "demo"
+      },
+      "timestamp": "2026-11-15T16:14:34.654Z"
+    },
+    {
+      "id": "audit-0b5ca925",
+      "userId": "demo-student-001",
+      "email": "student@codethesis.ai",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "adebayo",
+        "loginType": "demo"
+      },
+      "timestamp": "2026-11-15T16:14:33.255Z"
+    },
+    {
+      "id": "audit-d44c17bb",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-15T16:14:31.531Z"
+    },
+    {
+      "id": "audit-617db7dd",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-15T16:14:28.183Z"
+    },
+    {
+      "id": "audit-6e4c386e",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-15T16:13:49.524Z"
+    },
+    {
+      "id": "audit-f8bb4854",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-15T16:13:48.224Z"
+    },
+    {
+      "id": "audit-daa10d81",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_success",
+      "timestamp": "2026-11-15T16:13:46.209Z"
+    },
+    {
+      "id": "audit-3f6a0ef3",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_requested",
+      "metadata": {
+        "expiresAt": "2026-11-15T17:13:41.512Z"
+      },
+      "timestamp": "2026-11-15T16:13:42.231Z"
+    },
+    {
+      "id": "audit-077dd57b",
+      "userId": "demo-admin-001",
+      "email": "admin@codethesis.ai",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "admin",
+        "loginType": "demo"
+      },
+      "timestamp": "2026-11-15T16:13:37.618Z"
+    },
+    {
+      "id": "audit-f1d285b0",
+      "email": "student@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "adebayo",
+        "reason": "demo_user_not_found"
+      },
+      "timestamp": "2026-11-15T16:13:36.353Z"
+    },
+    {
+      "id": "audit-162955da",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-15T16:13:35.236Z"
+    },
+    {
+      "id": "audit-8f2575f6",
+      "userId": "usr-ade369c9",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-15T16:13:33.881Z"
+    },
+    {
+      "userId": "usr-bb41ea96",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "id": "audit-d10d6380",
+      "timestamp": "2026-11-15T14:14:20.897Z"
+    },
+    {
+      "userId": "usr-bb41ea96",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "id": "audit-d0edf926",
+      "timestamp": "2026-11-15T14:14:20.644Z"
+    },
+    {
+      "userId": "usr-bb41ea96",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_success",
+      "id": "audit-763f7b19",
+      "timestamp": "2026-11-15T14:14:20.365Z"
+    },
+    {
+      "userId": "usr-bb41ea96",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_requested",
+      "metadata": {
+        "expiresAt": "2026-11-15T15:14:17.670Z"
+      },
+      "id": "audit-f88470c4",
+      "timestamp": "2026-11-15T14:14:17.701Z"
+    },
+    {
+      "userId": "demo-admin-001",
+      "email": "admin@codethesis.ai",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "admin",
+        "loginType": "demo"
+      },
+      "id": "audit-6c22a30e",
+      "timestamp": "2026-11-15T14:14:16.897Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "email": "student@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "adebayo",
+        "loginType": "demo"
+      },
+      "id": "audit-e8c3bade",
+      "timestamp": "2026-11-15T14:14:16.705Z"
+    },
+    {
+      "userId": "usr-bb41ea96",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "id": "audit-dc947ded",
+      "timestamp": "2026-11-15T14:14:16.180Z"
+    },
+    {
+      "userId": "usr-bb41ea96",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "id": "audit-a728c40f",
+      "timestamp": "2026-11-15T14:14:15.984Z"
+    },
     {
       "userId": "usr-1b75b716",
       "email": "qa.student.automated@futa.edu.ng",

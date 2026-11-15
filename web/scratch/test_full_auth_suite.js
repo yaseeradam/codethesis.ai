@@ -45,8 +45,19 @@ function extractSessionCookie(res) {
   return match ? match[1] : null;
 }
 
+const { neon } = require('@neondatabase/serverless');
+const NEON_CONN_URL = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_FwMARV67PnQh@ep-morning-grass-bbw4zu2z-pooler.c-15.us-east-1.aws.neon.tech/neondb?sslmode=require";
+
 // Clean up test accounts from database before running suite
-function cleanupTestUsers(emails) {
+async function cleanupTestUsers(emails) {
+  try {
+    const sql = neon(NEON_CONN_URL);
+    for (const email of emails) {
+      await sql`DELETE FROM users WHERE LOWER(email) = ${email.toLowerCase().trim()};`;
+    }
+  } catch (err) {
+    // console.warn(err);
+  }
   try {
     if (fs.existsSync(DB_FILE)) {
       const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
@@ -108,7 +119,7 @@ async function main() {
   const googleSyncEmail = 'tester.google@futa.edu.ng';
 
   // Pre-test DB hygiene
-  cleanupTestUsers([testStudentEmail, googleSyncEmail]);
+  await cleanupTestUsers([testStudentEmail, googleSyncEmail]);
 
   // Variables to carry state across tests
   let registeredUserSessionCookie = null;
@@ -453,7 +464,7 @@ async function main() {
   });
 
   // Post-test cleanup of created QA user
-  cleanupTestUsers([testStudentEmail, googleSyncEmail]);
+  await cleanupTestUsers([testStudentEmail, googleSyncEmail]);
 
   // ==========================================
   // Summary & Scorecard

@@ -43,7 +43,7 @@ function GoogleIcon({ className }: { className?: string }) {
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnTo = searchParams.get('returnTo') || '/dashboard';
+  const returnTo = searchParams.get('returnTo') || searchParams.get('from') || '/dashboard';
 
   const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');

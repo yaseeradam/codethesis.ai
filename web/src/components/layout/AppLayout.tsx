@@ -27,7 +27,9 @@ import {
   PanelLeft,
   ShieldAlert,
   Coins,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -47,6 +49,8 @@ export default function AppLayout({
 }: AppLayoutProps) {
   const { user, logout } = useAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const userCredits = user?.credits ?? 15;
   const studentName = user?.fullName || 'Student Scholar';
@@ -75,11 +79,11 @@ export default function AppLayout({
   return (
     <div className="h-screen bg-[#F1F5F9] text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-cyan-500 selection:text-white overflow-hidden">
       {/* ─────────────────────────────────────────────────────────────
-          1. LEFT FIXED SIDEBAR (Midnight Navy #070F2B)
+          1. LEFT FIXED SIDEBAR (Midnight Navy #070F2B) - Desktop
       ─────────────────────────────────────────────────────────────── */}
       <aside
-        className={`bg-[#070F2B] text-slate-300 flex-shrink-0 flex flex-col justify-between p-3.5 h-full border-r border-slate-800/80 relative overflow-hidden z-20 transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? 'w-full lg:w-[76px]' : 'w-full lg:w-[270px]'
+        className={`bg-[#070F2B] text-slate-300 flex-shrink-0 hidden lg:flex flex-col justify-between p-3.5 h-full border-r border-slate-800/80 relative overflow-hidden z-20 transition-all duration-300 ease-in-out ${
+          isSidebarCollapsed ? 'lg:w-[76px]' : 'lg:w-[270px]'
         }`}
       >
         {/* Subtle Ambient Cyan Glow Orb at Bottom Left */}
@@ -298,13 +302,136 @@ export default function AppLayout({
       </aside>
 
       {/* ─────────────────────────────────────────────────────────────
+          MOBILE SLIDE-OVER DRAWER (Midnight Navy #070F2B)
+      ─────────────────────────────────────────────────────────────── */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 w-[280px] bg-[#070F2B] text-slate-300 flex flex-col justify-between p-4 shadow-2xl z-10 overflow-y-auto animate-fadeIn">
+            <div>
+              {/* Header with Brand & Close Button */}
+              <div className="flex items-center justify-between px-1 py-2 mb-4 border-b border-slate-800/80 pb-3">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5"
+                >
+                  <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-cyan-400/30 flex-shrink-0">
+                    <Image
+                      src="/assets/logo_codethesis_3d.jpg"
+                      alt="CodeThesis AI 3D Logo"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-white text-sm">CodeThesis</span>
+                      <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-xs">AI</span>
+                    </div>
+                  </div>
+                </Link>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+                  aria-label="Close menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Mobile Primary Nav */}
+              <nav className="space-y-1">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeItem === item.id;
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                        isActive
+                          ? 'bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] text-white shadow-md'
+                          : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : item.color}`} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <div className="border-t border-slate-800/80 my-3 mx-1" />
+
+              {/* Mobile Secondary Nav */}
+              <div className="space-y-1">
+                {secondaryItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeItem === item.id;
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                        isActive
+                          ? 'bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] text-white'
+                          : item.highlight
+                          ? 'text-amber-300 hover:text-white hover:bg-white/5 font-semibold'
+                          : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${item.highlight ? 'text-amber-400' : 'text-slate-400'}`} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Mobile User Profile Footer */}
+            <div className="mt-4 pt-3 border-t border-slate-800/80">
+              <div className="flex items-center justify-between px-2 mb-2">
+                <span className="text-[11px] text-slate-400 font-medium truncate max-w-[160px]">{studentName}</span>
+                <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
+                  {userCredits} Credits
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  logout();
+                }}
+                className="w-full text-[11px] text-slate-400 hover:text-rose-300 flex items-center justify-center gap-1.5 py-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5 text-slate-400" />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
           2. MAIN CONTENT AREA (Academic Slate #F1F5F9)
       ─────────────────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
         {!hideHeader && (
           <header className="sticky top-0 z-30 bg-[#F1F5F9]/90 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/80 gap-3 transition-colors duration-200">
-            {/* Left Search Cluster (Toggle icon removed from body per user request) */}
+            {/* Left Search Cluster & Mobile Hamburger */}
             <div className="flex items-center gap-3 w-full max-w-lg">
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="lg:hidden p-2 rounded-xl bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900 shadow-xs flex items-center justify-center flex-shrink-0 cursor-pointer"
+                aria-label="Open Navigation Menu"
+              >
+                <Menu className="w-4 h-4" />
+              </button>
               <div className="relative w-full">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
@@ -318,19 +445,60 @@ export default function AppLayout({
             </div>
 
             {/* Right Controls */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() =>
-                  alert('3 Notifications: 1) E-commerce thesis docx compiled, 2) Viva simulator ready, 3) +15 Credits loaded.')
-                }
-                className="relative p-2 rounded-full bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-xs transition-transform active:scale-95"
-                aria-label="Notifications"
-              >
-                <Bell className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
-                  3
-                </span>
-              </button>
+            <div className="flex items-center gap-3 relative">
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-2 rounded-full bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-xs transition-transform active:scale-95 cursor-pointer"
+                  aria-label="Notifications"
+                >
+                  <Bell className="w-4 h-4" />
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                    3
+                  </span>
+                </button>
+
+                {/* Notification Dropdown Popover */}
+                {showNotifications && (
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50 p-4 space-y-3 animate-fadeIn">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <span className="text-xs font-bold text-slate-900">Notifications</span>
+                      <span className="text-[10px] font-semibold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
+                        3 New
+                      </span>
+                    </div>
+                    <div className="space-y-2.5">
+                      <div className="flex items-start gap-2.5 text-xs">
+                        <div className="w-2 h-2 rounded-full bg-sky-500 mt-1.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-slate-800 text-[11px]">Welcome Bonus Credited</p>
+                          <p className="text-slate-500 text-[10px] leading-relaxed">15 starter credits are loaded and ready in your account.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2.5 text-xs">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-slate-800 text-[11px]">5-Chapter Thesis Ready</p>
+                          <p className="text-slate-500 text-[10px] leading-relaxed">NUC standard templates calibrated for 2025/2026 academic session.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2.5 text-xs">
+                        <div className="w-2 h-2 rounded-full bg-purple-500 mt-1.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-slate-800 text-[11px]">Viva Defense Simulator Active</p>
+                          <p className="text-slate-500 text-[10px] leading-relaxed">Practice your oral examination with AI external examiners.</p>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowNotifications(false)}
+                      className="w-full pt-1 text-center text-[11px] font-semibold text-sky-600 hover:text-sky-700 cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {/* Live Academic Credit Badge */}
               <Link

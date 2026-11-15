@@ -189,7 +189,7 @@ export default function ItfReportPage() {
                 type="text"
                 value={companyName}
                 onChange={e => setCompanyName(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-medium"
+                className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-fuchsia-500 focus:ring-4 focus:ring-fuchsia-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all shadow-xs"
               />
             </div>
 
@@ -199,7 +199,7 @@ export default function ItfReportPage() {
                 type="text"
                 value={studentName}
                 onChange={e => setStudentName(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800"
+                className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-fuchsia-500 focus:ring-4 focus:ring-fuchsia-500/10 rounded-xl p-2.5 text-xs text-slate-800 outline-none transition-all shadow-xs"
               />
             </div>
 
@@ -216,7 +216,7 @@ export default function ItfReportPage() {
                   type="text"
                   value={matricNumber}
                   onChange={e => setMatricNumber(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-800"
+                  className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-fuchsia-500 focus:ring-4 focus:ring-fuchsia-500/10 rounded-xl p-2 text-xs text-slate-800 outline-none transition-all shadow-xs"
                 />
               </div>
               <div>
@@ -225,7 +225,7 @@ export default function ItfReportPage() {
                   type="text"
                   value={duration}
                   onChange={e => setDuration(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-800"
+                  className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-fuchsia-500 focus:ring-4 focus:ring-fuchsia-500/10 rounded-xl p-2 text-xs text-slate-800 outline-none transition-all shadow-xs"
                 />
               </div>
             </div>

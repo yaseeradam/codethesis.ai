@@ -40,7 +40,8 @@ import {
   PanelLeft,
   Menu,
   ShieldAlert,
-  Download
+  Download,
+  X
 } from 'lucide-react';
 
 interface Project {
@@ -200,12 +201,15 @@ function DashboardMain() {
   const paymentStatus = searchParams.get('payment');
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const currentCredits = user?.credits ?? 15;
   const [animatedCredits, setAnimatedCredits] = useState(currentCredits);
   const [progressWidth, setProgressWidth] = useState(0);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [demoBanner, setDemoBanner] = useState<string | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
 
   // Live Neon DB projects state
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
@@ -353,8 +357,8 @@ function DashboardMain() {
           1. LEFT FIXED SIDEBAR (Midnight Navy #070F2B)
       ─────────────────────────────────────────────────────────────── */}
       <aside
-        className={`bg-[#070F2B] text-slate-300 flex-shrink-0 flex flex-col justify-between p-3.5 h-full border-r border-slate-800/80 relative overflow-hidden z-20 transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? 'w-full lg:w-[76px]' : 'w-full lg:w-[270px]'
+        className={`bg-[#070F2B] text-slate-300 flex-shrink-0 hidden lg:flex flex-col justify-between p-3.5 h-full border-r border-slate-800/80 relative overflow-hidden z-20 transition-all duration-300 ease-in-out ${
+          isSidebarCollapsed ? 'lg:w-[76px]' : 'lg:w-[270px]'
         }`}
       >
         {/* Subtle Ambient Cyan Glow Orb at Bottom Left */}
@@ -687,13 +691,216 @@ function DashboardMain() {
       </aside>
 
       {/* ─────────────────────────────────────────────────────────────
+          MOBILE SLIDE-OVER DRAWER (Midnight Navy #070F2B)
+      ─────────────────────────────────────────────────────────────── */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 w-[280px] bg-[#070F2B] text-slate-300 flex flex-col justify-between p-4 shadow-2xl z-10 overflow-y-auto animate-fadeIn">
+            <div>
+              {/* Header with Brand & Close Button */}
+              <div className="flex items-center justify-between px-1 py-2 mb-4 border-b border-slate-800/80 pb-3">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5"
+                >
+                  <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-cyan-400/30 flex-shrink-0">
+                    <Image
+                      src="/assets/logo_codethesis_3d.jpg"
+                      alt="CodeThesis AI 3D Logo"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-white text-sm">CodeThesis</span>
+                      <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-xs">AI</span>
+                    </div>
+                  </div>
+                </Link>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+                  aria-label="Close menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Mobile Primary Nav */}
+              <nav className="space-y-1">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] text-white shadow-md"
+                >
+                  <Home className="w-4 h-4 text-white" />
+                  <span>Dashboard</span>
+                </Link>
+                <Link
+                  href="/studio"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <GraduationCap className="w-4 h-4 text-cyan-400" />
+                  <span>Academic Studio</span>
+                </Link>
+                <Link
+                  href="/tool/thesis"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <FileText className="w-4 h-4 text-amber-400" />
+                  <span>Thesis Generator</span>
+                </Link>
+                <Link
+                  href="/tool/software-builder"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <Code2 className="w-4 h-4 text-emerald-400" />
+                  <span>Software Builder</span>
+                </Link>
+                <Link
+                  href="/tool/uml-diagrams"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <GitFork className="w-4 h-4 text-purple-400" />
+                  <span>UML Diagrams</span>
+                </Link>
+                <Link
+                  href="/tool/viva-presentation"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <Presentation className="w-4 h-4 text-blue-400" />
+                  <span>Viva Presentation</span>
+                </Link>
+                <Link
+                  href="/tool/viva-simulator"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <Mic className="w-4 h-4 text-yellow-400" />
+                  <span>Viva Simulator</span>
+                </Link>
+                <Link
+                  href="/tool/siwes-logbook"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <BookOpen className="w-4 h-4 text-teal-400" />
+                  <span>SIWES Logbook</span>
+                </Link>
+                <Link
+                  href="/tool/itf-report"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <FileCheck className="w-4 h-4 text-fuchsia-400" />
+                  <span>ITF Report</span>
+                </Link>
+                <Link
+                  href="/tool/assignment-solver"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <Calculator className="w-4 h-4 text-sky-400" />
+                  <span>Assignment Solver</span>
+                </Link>
+              </nav>
+
+              <div className="border-t border-slate-800/80 my-3 mx-1" />
+
+              {/* Mobile Secondary Nav */}
+              <div className="space-y-1">
+                <Link
+                  href="/projects"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <FolderGit2 className="w-4 h-4 text-slate-400" />
+                  <span>My Projects</span>
+                </Link>
+                <Link
+                  href="/pricing"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <CreditCard className="w-4 h-4 text-slate-400" />
+                  <span>Billing & Credits</span>
+                </Link>
+                <Link
+                  href="/settings"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <Settings className="w-4 h-4 text-slate-400" />
+                  <span>Settings</span>
+                </Link>
+                <Link
+                  href="/support"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <Headphones className="w-4 h-4 text-slate-400" />
+                  <span>Help & Support</span>
+                </Link>
+                <Link
+                  href="/admin"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-amber-300 hover:text-white hover:bg-white/5"
+                >
+                  <ShieldAlert className="w-4 h-4 text-amber-400" />
+                  <span>Admin Controls</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Mobile User Profile Footer */}
+            <div className="mt-4 pt-3 border-t border-slate-800/80">
+              <div className="flex items-center justify-between px-2 mb-2">
+                <span className="text-[11px] text-slate-400 font-medium truncate max-w-[160px]">{user?.fullName || 'Scholar'}</span>
+                <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
+                  {currentCredits} Credits
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  logout();
+                }}
+                className="w-full text-[11px] text-slate-400 hover:text-rose-300 flex items-center justify-center gap-1.5 py-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5 text-slate-400" />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
           2. MAIN CONTENT AREA (Clean Academic Slate #F1F5F9)
       ─────────────────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
         {/* Top Header Bar */}
         <header className="sticky top-0 z-30 bg-[#F1F5F9]/90 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/80 gap-3">
-          {/* Left Search Cluster (Toggle icon removed from body per user request) */}
+          {/* Left Search Cluster & Mobile Menu Toggle */}
           <div className="flex items-center gap-3 w-full max-w-lg">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden p-2 rounded-xl bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900 shadow-xs flex items-center justify-center flex-shrink-0 cursor-pointer"
+              aria-label="Open Navigation Menu"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
             {/* Search Pill */}
             <div className="relative w-full">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -708,18 +915,61 @@ function DashboardMain() {
           </div>
 
           {/* Right Header Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 relative">
             {/* Notification Bell with Badge 3 */}
-            <button
-              onClick={() => alert('3 Notifications: 1) E-commerce thesis docx compiled, 2) Viva simulator ready, 3) +15 Credits loaded.')}
-              className="relative p-2 rounded-full bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-xs transition-transform active:scale-95"
-              aria-label="Notifications"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-xs">
-                3
-              </span>
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 rounded-full bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-xs transition-transform active:scale-95 cursor-pointer"
+                aria-label="Notifications"
+              >
+                <Bell className="w-4 h-4" />
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-xs">
+                  3
+                </span>
+              </button>
+
+              {/* Notification Popover */}
+              {showNotifications && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50 p-4 space-y-3 animate-fadeIn">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <span className="text-xs font-bold text-slate-900">Notifications</span>
+                    <span className="text-[10px] font-semibold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
+                      3 New
+                    </span>
+                  </div>
+                  <div className="space-y-2.5">
+                    <div className="flex items-start gap-2.5 text-xs">
+                      <div className="w-2 h-2 rounded-full bg-sky-500 mt-1.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-slate-800 text-[11px]">Welcome Bonus Credited</p>
+                        <p className="text-slate-500 text-[10px] leading-relaxed">15 starter credits are loaded and ready in your account.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2.5 text-xs">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-slate-800 text-[11px]">5-Chapter Thesis Ready</p>
+                        <p className="text-slate-500 text-[10px] leading-relaxed">NUC standard templates calibrated for 2025/2026 academic session.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2.5 text-xs">
+                      <div className="w-2 h-2 rounded-full bg-purple-500 mt-1.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-slate-800 text-[11px]">Viva Defense Simulator Active</p>
+                        <p className="text-slate-500 text-[10px] leading-relaxed">Practice your oral examination with AI external examiners.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowNotifications(false)}
+                    className="w-full pt-1 text-center text-[11px] font-semibold text-sky-600 hover:text-sky-700 cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Upgrade Plan Button */}
             <Link
@@ -772,7 +1022,7 @@ function DashboardMain() {
               {/* Left Copy & Buttons */}
               <div className="lg:col-span-7 z-10">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white">
-                  Welcome back, <span className="text-[#38BDF8]">{user?.fullName ? user.fullName.split(' ')[0] : 'Scholar'}!</span> 👋
+                  Welcome back, <span className="text-[#38BDF8]">{user?.fullName ? user.fullName.trim().split(/\s+/)[0] : 'Scholar'}</span>! 👋
                 </h1>
                 <p className="text-xs sm:text-sm font-medium text-slate-200 mt-1.5">
                   Your all-in-one academic engineering workspace.
@@ -792,8 +1042,8 @@ function DashboardMain() {
                   </Link>
 
                   <button
-                    onClick={() => alert('CodeThesis AI Demo: Watch 2-minute walkthrough of the 5-Chapter Thesis generator, Live Viva Oral simulator, and Turnkey Python app launcher.')}
-                    className="border border-white/40 hover:bg-white/10 text-white font-semibold px-4 py-2 rounded-full text-xs flex items-center gap-1.5 transition-transform active:scale-95"
+                    onClick={() => setShowDemoModal(true)}
+                    className="border border-white/40 hover:bg-white/10 text-white font-semibold px-4 py-2 rounded-full text-xs flex items-center gap-1.5 transition-transform active:scale-95 cursor-pointer"
                   >
                     <div className="w-3.5 h-3.5 rounded-full bg-white/20 flex items-center justify-center">
                       <Play className="w-2 h-2 fill-white text-white ml-0.5" />
@@ -1237,6 +1487,79 @@ function DashboardMain() {
             </p>
           </footer>
         </div>
+
+        {/* Interactive Walkthrough Demo Modal */}
+        {showDemoModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fadeIn">
+            <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-5 animate-scaleUp">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold">
+                    <Play className="w-4 h-4 fill-sky-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">CodeThesis AI Walkthrough</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Quick 2-minute architectural overview</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDemoModal(false)}
+                  className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs text-slate-700">
+                <div className="p-3 rounded-xl bg-sky-50/70 border border-sky-100 space-y-1">
+                  <h4 className="font-bold text-sky-900 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-sky-600" />
+                    <span>1. 5-Chapter Thesis Generator</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Compiles ~18,000-word NUC standard dissertations with APA 7th citations, empirical literature reviews, and 1.5-inch hardcover margins.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 space-y-1">
+                  <h4 className="font-bold text-emerald-900 flex items-center gap-1.5">
+                    <Code2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>2. Software Builder</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Builds zero-pip turnkey Python + SQLite desktop & web applications with instant code ZIP downloads.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-purple-50/70 border border-purple-100 space-y-1">
+                  <h4 className="font-bold text-purple-900 flex items-center gap-1.5">
+                    <Presentation className="w-3.5 h-3.5 text-purple-600" />
+                    <span>3. Viva Defense Oral Simulator</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Practice defending your project against simulated strict external examiners with scoring and feedback.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2.5">
+                <button
+                  onClick={() => setShowDemoModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  Close
+                </button>
+                <Link
+                  href="/studio"
+                  onClick={() => setShowDemoModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-sky-600 hover:bg-sky-700 text-white shadow-xs"
+                >
+                  Launch Workspace &rarr;
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
