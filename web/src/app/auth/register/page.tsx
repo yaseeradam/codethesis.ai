@@ -194,11 +194,25 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex items-center justify-center p-4 sm:p-6 relative font-sans">
+    <div className="min-h-screen relative text-slate-900 flex items-center justify-center p-4 sm:p-6 font-sans overflow-hidden">
+      {/* Background Image with Cinematic Ambient Tint */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src="/assets/auth_bg.png"
+          alt="CodeThesis Academic Workspace"
+          fill
+          priority
+          className="object-cover object-center scale-105"
+        />
+        {/* Soft dark vignette & frosted glass atmosphere */}
+        <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/25 to-slate-950/60" />
+      </div>
+
       {/* Centered Modal Loader at the Middle of the Page */}
       {(isSubmitting || isGoogleSubmitting) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fadeIn">
-          <div className="bg-white rounded-3xl p-8 sm:p-10 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4 animate-scaleUp">
+          <div className="bg-white/95 backdrop-blur-2xl rounded-3xl p-8 sm:p-10 max-w-sm w-full shadow-2xl border border-white/80 flex flex-col items-center text-center space-y-4 animate-scaleUp">
             {/* Animated Glowing Ring & Icon */}
             <div className="relative w-16 h-16 flex items-center justify-center">
               <div className="absolute inset-0 rounded-full border-4 border-sky-100 animate-pulse" />
@@ -238,8 +252,8 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* Main Register Card - Clean, Focused, Minimal */}
-      <div className="w-full max-w-[500px] bg-white border border-slate-200/90 shadow-xl shadow-slate-200/50 rounded-2xl p-6 sm:p-8 relative z-10 space-y-5">
+      {/* Main Register Card - Glassmorphism */}
+      <div className="w-full max-w-[500px] bg-white/85 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-slate-950/50 rounded-3xl p-6 sm:p-8 relative z-10 space-y-5 ring-1 ring-white/40">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
@@ -267,7 +281,7 @@ export default function RegisterPage() {
 
         {/* High-Visibility Error Alert Banner */}
         {globalErrorMsg && (
-          <div className="p-3.5 rounded-xl bg-red-50 border-2 border-red-200 text-red-800 text-xs flex items-start gap-2.5 font-medium animate-fadeIn">
+          <div className="p-3.5 rounded-xl bg-red-50/95 border-2 border-red-200 text-red-800 text-xs flex items-start gap-2.5 font-medium animate-fadeIn backdrop-blur-xs">
             <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600 mt-0.5" />
             <div className="space-y-0.5 flex-1">
               <p className="font-semibold text-red-900">Registration Notice</p>
@@ -282,7 +296,7 @@ export default function RegisterPage() {
             type="button"
             onClick={handleGoogleSignUp}
             disabled={isGoogleSubmitting || isSubmitting}
-            className="w-full h-11 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-medium text-xs sm:text-sm rounded-xl shadow-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-60"
+            className="w-full h-11 bg-white/90 hover:bg-white border border-slate-200/90 hover:border-slate-300 text-slate-700 font-medium text-xs sm:text-sm rounded-xl shadow-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-60"
           >
             <GoogleIcon className="w-4 h-4 flex-shrink-0" />
             <span>Sign up with Google</span>
@@ -292,9 +306,9 @@ export default function RegisterPage() {
         {/* Minimal Divider */}
         <div className="relative flex items-center justify-center">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200" />
+            <div className="w-full border-t border-slate-300/60" />
           </div>
-          <div className="relative bg-white px-3 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+          <div className="relative bg-white/80 backdrop-blur-xs px-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider rounded-full">
             or
           </div>
         </div>
@@ -432,9 +446,9 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isSubmitting || isGoogleSubmitting}
-            className="w-full mt-2 h-11 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white font-medium text-xs sm:text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
+            className="w-full mt-2 h-11 bg-slate-950 hover:bg-slate-900 active:bg-black text-white font-medium text-xs sm:text-sm rounded-xl shadow-lg shadow-slate-950/25 transition-all flex items-center justify-center cursor-pointer disabled:opacity-50"
           >
-            <span>Create account</span>
+            <span>Create account &rarr;</span>
           </button>
         </form>
 

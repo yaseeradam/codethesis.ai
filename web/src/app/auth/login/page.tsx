@@ -151,11 +151,25 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex items-center justify-center p-4 sm:p-6 relative font-sans">
+    <div className="min-h-screen relative text-slate-900 flex items-center justify-center p-4 sm:p-6 font-sans overflow-hidden">
+      {/* Background Image with Cinematic Ambient Tint */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src="/assets/auth_bg.png"
+          alt="CodeThesis Academic Workspace"
+          fill
+          priority
+          className="object-cover object-center scale-105"
+        />
+        {/* Soft dark vignette & frosted glass atmosphere */}
+        <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/25 to-slate-950/60" />
+      </div>
+
       {/* Centered Modal Loader at the Middle of the Page */}
       {(isSubmitting || isGoogleSubmitting) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fadeIn">
-          <div className="bg-white rounded-3xl p-8 sm:p-10 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4 animate-scaleUp">
+          <div className="bg-white/95 backdrop-blur-2xl rounded-3xl p-8 sm:p-10 max-w-sm w-full shadow-2xl border border-white/80 flex flex-col items-center text-center space-y-4 animate-scaleUp">
             {/* Animated Glowing Ring & Icon */}
             <div className="relative w-16 h-16 flex items-center justify-center">
               <div className="absolute inset-0 rounded-full border-4 border-sky-100 animate-pulse" />
@@ -195,8 +209,8 @@ function LoginContent() {
         </div>
       )}
 
-      {/* Main Login Card - Clean, Focused, Minimal */}
-      <div className="w-full max-w-[420px] bg-white border border-slate-200/90 shadow-xl shadow-slate-200/50 rounded-2xl p-6 sm:p-8 relative z-10 space-y-6">
+      {/* Main Login Card - Glassmorphism */}
+      <div className="w-full max-w-[420px] bg-white/85 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-slate-950/50 rounded-3xl p-6 sm:p-8 relative z-10 space-y-6 ring-1 ring-white/40">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
@@ -224,7 +238,7 @@ function LoginContent() {
 
         {/* High-Visibility Error Alert Banner */}
         {errorMessage && (
-          <div className="p-3.5 rounded-xl bg-red-50 border-2 border-red-200 text-red-800 text-xs flex items-start gap-2.5 font-medium animate-fadeIn">
+          <div className="p-3.5 rounded-xl bg-red-50/95 border-2 border-red-200 text-red-800 text-xs flex items-start gap-2.5 font-medium animate-fadeIn backdrop-blur-xs">
             <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600 mt-0.5" />
             <div className="space-y-0.5 flex-1">
               <p className="font-semibold text-red-900">Sign-in Failed</p>
@@ -239,7 +253,7 @@ function LoginContent() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={isGoogleSubmitting || isSubmitting}
-            className="w-full h-11 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-medium text-xs sm:text-sm rounded-xl shadow-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-60"
+            className="w-full h-11 bg-white/90 hover:bg-white border border-slate-200/90 hover:border-slate-300 text-slate-700 font-medium text-xs sm:text-sm rounded-xl shadow-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-60"
           >
             <GoogleIcon className="w-4 h-4 flex-shrink-0" />
             <span>Continue with Google</span>
@@ -249,9 +263,9 @@ function LoginContent() {
         {/* Minimal Divider */}
         <div className="relative flex items-center justify-center">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200" />
+            <div className="w-full border-t border-slate-300/60" />
           </div>
-          <div className="relative bg-white px-3 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+          <div className="relative bg-white/80 backdrop-blur-xs px-3 text-[11px] font-medium text-slate-500 uppercase tracking-wider rounded-full">
             or
           </div>
         </div>
@@ -269,7 +283,7 @@ function LoginContent() {
                 if (errorMessage) setErrorMessage('');
               }}
               placeholder="name@university.edu.ng"
-              className={`w-full h-11 bg-white border ${
+              className={`w-full h-11 bg-white/95 focus:bg-white border ${
                 emailError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
               } rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
             />
@@ -301,7 +315,7 @@ function LoginContent() {
                   if (errorMessage) setErrorMessage('');
                 }}
                 placeholder="••••••••"
-                className={`w-full h-11 bg-white border ${
+                className={`w-full h-11 bg-white/95 focus:bg-white border ${
                   passwordError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
                 } rounded-xl pl-3.5 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
               />
@@ -325,9 +339,9 @@ function LoginContent() {
           <button
             type="submit"
             disabled={isSubmitting || isGoogleSubmitting}
-            className="w-full h-11 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white font-medium text-xs sm:text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
+            className="w-full h-11 bg-slate-950 hover:bg-slate-900 active:bg-black text-white font-medium text-xs sm:text-sm rounded-xl shadow-lg shadow-slate-950/25 transition-all flex items-center justify-center cursor-pointer disabled:opacity-50"
           >
-            <span>Sign in</span>
+            <span>Sign in &rarr;</span>
           </button>
         </form>
 

@@ -71,8 +71,22 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex items-center justify-center p-4 sm:p-6 relative font-sans">
-      <div className="w-full max-w-[440px] bg-white border border-slate-200/90 shadow-xl shadow-slate-200/50 rounded-2xl p-6 sm:p-8 relative z-10 space-y-6">
+    <div className="min-h-screen relative text-slate-900 flex items-center justify-center p-4 sm:p-6 font-sans overflow-hidden">
+      {/* Background Image with Cinematic Ambient Tint */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src="/assets/auth_bg.png"
+          alt="CodeThesis Academic Workspace"
+          fill
+          priority
+          className="object-cover object-center scale-105"
+        />
+        {/* Soft dark vignette & frosted glass atmosphere */}
+        <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/25 to-slate-950/60" />
+      </div>
+
+      <div className="w-full max-w-[440px] bg-white/85 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-slate-950/50 rounded-3xl p-6 sm:p-8 relative z-10 space-y-6 ring-1 ring-white/40">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
