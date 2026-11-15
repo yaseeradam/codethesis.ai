@@ -18,7 +18,9 @@ import {
   CheckCircle2,
   Gift,
   AlertCircle,
-  Loader2
+  Loader2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 function GoogleIcon({ className = "w-5 h-5" }: { className?: string }) {
@@ -50,6 +52,7 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [matricNumber, setMatricNumber] = useState('');
   const [institution, setInstitution] = useState('Federal University of Technology, Akure');
   const [course, setCourse] = useState('Computer Science');
@@ -113,14 +116,14 @@ export default function RegisterPage() {
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main Container Card with Bold 2px Border */}
-      <div className="w-full max-w-4xl bg-white border-2 border-slate-300/90 shadow-2xl rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10">
+      {/* Main Container Card with Refined 1px Border and Soft Shadow */}
+      <div className="w-full max-w-4xl bg-white border border-slate-200/90 shadow-2xl shadow-slate-200/60 rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10">
         
         {/* Left Side: Brand & Benefits (5 Cols) */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-slate-50 via-sky-50/50 to-blue-50/40 p-8 flex flex-col justify-between border-b-2 lg:border-b-0 lg:border-r-2 border-slate-200 relative">
+        <div className="lg:col-span-5 bg-gradient-to-br from-slate-50 via-sky-50/40 to-blue-50/30 p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200/80 relative">
           <div className="space-y-6">
             <Link href="/" className="flex items-center gap-3">
-              <div className="relative w-11 h-11 rounded-2xl overflow-hidden border-2 border-sky-300 shadow-sm flex-shrink-0">
+              <div className="relative w-11 h-11 rounded-2xl overflow-hidden border border-sky-300 shadow-sm flex-shrink-0">
                 <Image
                   src="/assets/logo_codethesis_3d.jpg"
                   alt="CodeThesis 3D Logo"
@@ -148,7 +151,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Free Starter Credits Callout */}
-            <div className="p-4 rounded-2xl bg-sky-50/80 border-2 border-sky-200 space-y-1.5 shadow-xs">
+            <div className="p-4 rounded-2xl bg-sky-50/80 border border-sky-200 space-y-1.5 shadow-xs">
               <div className="flex items-center gap-2 text-sky-800 font-black text-xs">
                 <Gift className="w-4 h-4 text-sky-600 flex-shrink-0" />
                 <span>15 Free Starter Credits Granted</span>
@@ -175,7 +178,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="pt-6 border-t-2 border-slate-200 mt-6 text-xs text-slate-600">
+          <div className="pt-6 border-t border-slate-200/80 mt-6 text-xs text-slate-600">
             Already have an account?{' '}
             <Link href="/auth/login" className="text-sky-600 font-bold hover:underline">
               Sign In &rarr;
@@ -196,17 +199,17 @@ export default function RegisterPage() {
               type="button"
               onClick={handleGoogleSignUp}
               disabled={isGoogleSubmitting || isSubmitting}
-              className="w-full py-3 px-4 bg-white hover:bg-slate-50 border-2 border-slate-300 hover:border-slate-400 text-slate-800 font-bold rounded-xl shadow-xs flex items-center justify-center gap-3 transition-all active:scale-98 cursor-pointer disabled:opacity-60"
+              className="w-full py-2.5 px-4 bg-white hover:bg-slate-50/80 border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 font-semibold rounded-xl shadow-xs hover:shadow-sm flex items-center justify-center gap-3 transition-all active:scale-[0.99] cursor-pointer disabled:opacity-60"
             >
               {isGoogleSubmitting ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin text-sky-600" />
-                  <span className="text-xs">Setting up account with Google...</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-sky-600" />
+                  <span className="text-xs font-medium">Setting up account with Google...</span>
                 </>
               ) : (
                 <>
                   <GoogleIcon className="w-5 h-5 flex-shrink-0" />
-                  <span className="text-xs">Sign up with Google (1-Click)</span>
+                  <span className="text-xs font-semibold">Sign up with Google</span>
                 </>
               )}
             </button>
@@ -214,90 +217,109 @@ export default function RegisterPage() {
 
           {/* Divider */}
           <div className="flex items-center gap-3 text-slate-400 text-xs font-semibold">
-            <div className="flex-1 h-[2px] bg-slate-200" />
-            <span className="uppercase text-[10px] tracking-wider text-slate-500">or register with email</span>
-            <div className="flex-1 h-[2px] bg-slate-200" />
+            <div className="flex-1 h-px bg-slate-200" />
+            <span className="uppercase text-[10px] tracking-wider text-slate-400 font-medium">or register with email</span>
+            <div className="flex-1 h-px bg-slate-200" />
           </div>
 
-          <form onSubmit={handleRegister} className="space-y-3">
+          <form onSubmit={handleRegister} className="space-y-3.5">
             {errorMsg && (
-              <div className="p-3 rounded-xl bg-red-50 border-2 border-red-200 text-red-700 text-xs flex items-center gap-2 font-medium">
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 font-medium animate-fadeIn">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Full Name</label>
+                <div className="relative group">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
+                    <User className="w-4 h-4" />
+                  </div>
                   <input
                     type="text"
                     required
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
                     placeholder="e.g. Adebayo Tunde"
-                    className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs"
+                    className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Matric / Reg Number</label>
-                <div className="relative">
-                  <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Matric / Reg Number</label>
+                <div className="relative group">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
+                    <Hash className="w-4 h-4" />
+                  </div>
                   <input
                     type="text"
                     value={matricNumber}
                     onChange={e => setMatricNumber(e.target.value)}
                     placeholder="e.g. FUTA/CSC/20/4182"
-                    className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs"
+                    className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
                   />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Student University Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Student University Email</label>
+              <div className="relative group">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
+                  <Mail className="w-4 h-4" />
+                </div>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="student@futa.edu.ng"
-                  className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs"
+                  className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
+              <div className="relative group">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
+                  <Lock className="w-4 h-4" />
+                </div>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs"
+                  placeholder="At least 6 characters"
+                  className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:text-sky-600 transition-colors cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-0.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-0.5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Tertiary Institution</label>
-                <div className="relative">
-                  <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Tertiary Institution</label>
+                <div className="relative group">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
+                    <Building className="w-4 h-4" />
+                  </div>
                   <input
                     type="text"
                     value={institution}
                     onChange={e => setInstitution(e.target.value)}
-                    className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs"
+                    placeholder="Federal University of Technology, Akure"
+                    className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
                   />
                 </div>
               </div>
@@ -315,7 +337,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full mt-3 py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 transition-transform active:scale-95 disabled:opacity-50 cursor-pointer"
+              className="w-full mt-2 py-3 bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-md shadow-sky-500/25 hover:shadow-lg hover:shadow-sky-500/30 flex items-center justify-center gap-2 transition-transform active:scale-[0.99] disabled:opacity-50 cursor-pointer"
             >
               <span>{isSubmitting ? 'Creating Account & Loading Credits...' : 'Create Account & Claim 15 Free Credits'}</span>
               <ArrowRight className="w-4 h-4" />

@@ -84,8 +84,8 @@ export default function ForgotPasswordPage() {
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main Container Card with Bold 2px Border */}
-      <div className="w-full max-w-xl bg-white border-2 border-slate-300/90 shadow-2xl rounded-3xl overflow-hidden relative z-10 p-6 sm:p-10">
+      {/* Main Container Card with Refined 1px Border and Soft Shadow */}
+      <div className="w-full max-w-xl bg-white border border-slate-200/90 shadow-2xl shadow-slate-200/60 rounded-3xl overflow-hidden relative z-10 p-6 sm:p-10">
         
         {/* Header / Brand */}
         <div className="flex items-center justify-between pb-6 border-b-2 border-slate-100">
@@ -232,14 +232,16 @@ export default function ForgotPasswordPage() {
           </div>
         ) : (
           /* Form for Entering Institutional Email */
-          <form onSubmit={handleSubmit} className="space-y-5 text-xs">
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="font-bold text-slate-700">Institutional Email</label>
+                <label className="text-xs font-semibold text-slate-700">Institutional Email</label>
                 <span className="text-[10px] text-slate-400 font-medium">e.g. FUTA, UNILAG, UNN</span>
               </div>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <div className="relative group">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
+                  <Mail className="w-4 h-4" />
+                </div>
                 <input
                   type="email"
                   value={email}
@@ -247,7 +249,7 @@ export default function ForgotPasswordPage() {
                   placeholder="student@futa.edu.ng"
                   required
                   autoFocus
-                  className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-3 text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs text-xs"
+                  className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
                 />
               </div>
             </div>
@@ -256,7 +258,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={isSubmitting || !email.trim()}
-              className="w-full py-3.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-sky-500/20 active:scale-95 cursor-pointer disabled:opacity-60 text-xs"
+              className="w-full py-3 bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-sky-500/25 hover:shadow-lg hover:shadow-sky-500/30 active:scale-[0.99] cursor-pointer disabled:opacity-60 text-xs sm:text-sm"
             >
               {isSubmitting ? (
                 <>

@@ -14,7 +14,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Sparkles
+  Sparkles,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 function GoogleIcon({ className = "w-5 h-5" }: { className?: string }) {
@@ -48,6 +50,7 @@ function LoginContent() {
   const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
@@ -98,15 +101,15 @@ function LoginContent() {
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main Container Card with Bold 2px Border */}
-      <div className="w-full max-w-4xl bg-white border-2 border-slate-300/90 shadow-2xl rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10">
+      {/* Main Container Card with Refined 1px Border and Soft Shadow */}
+      <div className="w-full max-w-4xl bg-white border border-slate-200/90 shadow-2xl shadow-slate-200/60 rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10">
         
         {/* Left Side: Brand Showcase (5 Cols) */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-slate-50 via-sky-50/50 to-blue-50/40 p-8 flex flex-col justify-between border-b-2 lg:border-b-0 lg:border-r-2 border-slate-200 relative">
+        <div className="lg:col-span-5 bg-gradient-to-br from-slate-50 via-sky-50/40 to-blue-50/30 p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200/80 relative">
           <div className="space-y-6">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="relative w-11 h-11 rounded-2xl overflow-hidden border-2 border-sky-300 shadow-sm flex-shrink-0">
+              <div className="relative w-11 h-11 rounded-2xl overflow-hidden border border-sky-300 shadow-sm flex-shrink-0">
                 <Image
                   src="/assets/logo_codethesis_3d.jpg"
                   alt="CodeThesis 3D Logo"
@@ -168,7 +171,7 @@ function LoginContent() {
           </div>
 
           {/* Bottom Trust Badge */}
-          <div className="pt-6 border-t-2 border-slate-200 mt-6 text-[11px] text-slate-600 flex items-center gap-2">
+          <div className="pt-6 border-t border-slate-200/80 mt-6 text-[11px] text-slate-600 flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             <span className="font-semibold">Trusted across FUTA, UNILAG, UNN, ABU, UI & Covenant</span>
           </div>
@@ -187,29 +190,29 @@ function LoginContent() {
 
           {/* Error Banner */}
           {errorMessage && (
-            <div className="p-3.5 bg-red-50 border-2 border-red-200 rounded-xl flex items-center gap-2.5 text-xs text-red-700 font-medium">
+            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2.5 text-xs text-red-700 font-medium animate-fadeIn">
               <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600" />
               <span>{errorMessage}</span>
             </div>
           )}
 
-          {/* 1. FIREBASE GOOGLE SIGN-IN BUTTON (Prominent & Bold) */}
-          <div className="space-y-1.5">
+          {/* 1. FIREBASE GOOGLE SIGN-IN BUTTON */}
+          <div>
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={isGoogleSubmitting || isSubmitting}
-              className="w-full py-3 px-4 bg-white hover:bg-slate-50 border-2 border-slate-300 hover:border-slate-400 text-slate-800 font-bold rounded-xl shadow-xs flex items-center justify-center gap-3 transition-all active:scale-98 cursor-pointer disabled:opacity-60"
+              className="w-full py-2.5 px-4 bg-white hover:bg-slate-50/80 border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 font-semibold rounded-xl shadow-xs hover:shadow-sm flex items-center justify-center gap-3 transition-all active:scale-[0.99] cursor-pointer disabled:opacity-60"
             >
               {isGoogleSubmitting ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin text-sky-600" />
-                  <span className="text-xs">Connecting with Google Firebase...</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-sky-600" />
+                  <span className="text-xs font-medium">Connecting with Google...</span>
                 </>
               ) : (
                 <>
-                  <GoogleIcon className="w-5 h-5 flex-shrink-0" />
-                  <span className="text-xs">Continue with Google (Firebase)</span>
+                  <GoogleIcon className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-xs font-semibold">Continue with Google</span>
                 </>
               )}
             </button>
@@ -217,55 +220,69 @@ function LoginContent() {
 
           {/* Divider */}
           <div className="flex items-center gap-3 text-slate-400 text-xs font-semibold">
-            <div className="flex-1 h-[2px] bg-slate-200" />
-            <span className="uppercase text-[10px] tracking-wider text-slate-500">or sign in with email</span>
-            <div className="flex-1 h-[2px] bg-slate-200" />
+            <div className="flex-1 h-px bg-slate-200" />
+            <span className="uppercase text-[10px] tracking-wider text-slate-400 font-medium">or continue with email</span>
+            <div className="flex-1 h-px bg-slate-200" />
           </div>
 
           {/* 2. STANDARD CREDENTIALS FORM */}
-          <form onSubmit={handleStandardLogin} className="space-y-4 text-xs">
+          <form onSubmit={handleStandardLogin} className="space-y-4">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Institutional Email</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Institutional Email
+              </label>
+              <div className="relative group">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
+                  <Mail className="w-4 h-4" />
+                </div>
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="student@futa.edu.ng"
                   required
-                  className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs"
+                  className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
                 />
               </div>
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="font-bold text-slate-700">Password</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-slate-700">Password</label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sky-600 hover:underline text-[11px] font-semibold"
+                  className="text-sky-600 hover:text-sky-700 hover:underline text-[11px] font-semibold transition-colors"
                 >
                   Forgot password?
                 </Link>
               </div>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <div className="relative group">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
+                  <Lock className="w-4 h-4" />
+                </div>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••••••"
                   required
-                  className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs"
+                  className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:text-sky-600 transition-colors cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-sky-500/20 active:scale-95 cursor-pointer disabled:opacity-60 text-xs"
+              className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-sky-500/25 hover:shadow-lg hover:shadow-sky-500/30 active:scale-[0.99] cursor-pointer disabled:opacity-60 text-xs sm:text-sm"
             >
               <span>{isSubmitting ? 'Verifying Credentials...' : 'Sign In with Password'}</span>
               <ArrowRight className="w-4 h-4" />

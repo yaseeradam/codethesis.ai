@@ -104,8 +104,8 @@ function ResetPasswordContent() {
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main Container Card with Bold 2px Border */}
-      <div className="w-full max-w-xl bg-white border-2 border-slate-300/90 shadow-2xl rounded-3xl overflow-hidden relative z-10 p-6 sm:p-10">
+      {/* Main Container Card with Refined 1px Border and Soft Shadow */}
+      <div className="w-full max-w-xl bg-white border border-slate-200/90 shadow-2xl shadow-slate-200/60 rounded-3xl overflow-hidden relative z-10 p-6 sm:p-10">
         
         {/* Header / Brand */}
         <div className="flex items-center justify-between pb-6 border-b-2 border-slate-100">
@@ -211,36 +211,41 @@ function ResetPasswordContent() {
                   </span>
                 )}
               </div>
-              <div className="relative">
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <div className="relative group">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
+                  <KeyRound className="w-4 h-4" />
+                </div>
                 <input
                   type="text"
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
                   placeholder="Paste or enter reset token"
                   required
-                  className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 font-mono text-xs outline-none transition-all shadow-xs"
+                  className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 font-mono text-xs outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
                 />
               </div>
             </div>
 
             {/* New Password Input */}
             <div>
-              <label className="block font-bold text-slate-700 mb-1.5">New Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">New Password</label>
+              <div className="relative group">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
+                  <Lock className="w-4 h-4" />
+                </div>
                 <input
                   type={showNewPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Minimum 6 characters"
                   required
-                  className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-10 py-2.5 text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs text-xs"
+                  className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword((prev) => !prev)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  aria-label={showNewPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:text-sky-600 transition-colors cursor-pointer"
                 >
                   {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -249,21 +254,24 @@ function ResetPasswordContent() {
 
             {/* Confirm Password Input */}
             <div>
-              <label className="block font-bold text-slate-700 mb-1.5">Confirm New Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Confirm New Password</label>
+              <div className="relative group">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
+                  <Lock className="w-4 h-4" />
+                </div>
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter new password"
                   required
-                  className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-10 py-2.5 text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs text-xs"
+                  className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:text-sky-600 transition-colors cursor-pointer"
                 >
                   {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -271,7 +279,7 @@ function ResetPasswordContent() {
             </div>
 
             {/* Live Password Validation Indicators */}
-            <div className="p-3 bg-slate-50 border-2 border-slate-200 rounded-xl space-y-1.5">
+            <div className="p-3 bg-slate-50/80 border border-slate-200/90 rounded-xl space-y-1.5">
               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                 Password Requirements
               </div>
