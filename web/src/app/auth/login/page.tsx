@@ -54,49 +54,108 @@ function LoginContent() {
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [loaderStatus, setLoaderStatus] = useState('Verifying credentials...');
 
   async function handleStandardLogin(e: React.FormEvent) {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage('');
+    setLoginSuccess(false);
+    setLoaderStatus('Verifying credentials with Neon database...');
 
-    const res = await login(email, password);
+    const res = await login(email.trim().toLowerCase(), password);
     if (!res.success) {
       setErrorMessage(res.error || 'Invalid credentials. Please try again.');
       setIsSubmitting(false);
       return;
     }
 
-    router.push(returnTo);
+    setLoginSuccess(true);
+    setLoaderStatus('Authentication successful! Launching workspace...');
+    setTimeout(() => {
+      window.location.href = returnTo;
+    }, 600);
   }
 
   async function handleGoogleLogin() {
     setIsGoogleSubmitting(true);
     setErrorMessage('');
+    setLoginSuccess(false);
+    setLoaderStatus('Connecting with Google authentication...');
 
     try {
       const googleRes = await signInWithGoogle();
       if (!googleRes.success || !googleRes.user) {
         setErrorMessage(googleRes.error || 'Google sign-in was cancelled.');
+        setIsGoogleSubmitting(false);
         return;
       }
 
+      setLoaderStatus('Initializing session in Neon database...');
       const syncRes = await loginWithGoogle(googleRes.user);
       if (!syncRes.success) {
         setErrorMessage(syncRes.error || 'Failed to initialize session with Google.');
+        setIsGoogleSubmitting(false);
         return;
       }
 
-      router.push(returnTo);
+      setLoginSuccess(true);
+      setLoaderStatus('Welcome back! Redirecting to workspace...');
+      setTimeout(() => {
+        window.location.href = returnTo;
+      }, 600);
     } catch (err: any) {
       setErrorMessage(err.message || 'An error occurred during Google sign in.');
-    } finally {
       setIsGoogleSubmitting(false);
     }
   }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden font-sans">
+      {/* Centered Modal Loader at the Middle of the Page */}
+      {(isSubmitting || isGoogleSubmitting) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white rounded-3xl p-8 sm:p-10 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4 animate-scaleUp">
+            {/* Animated Glowing Ring & Icon */}
+            <div className="relative w-16 h-16 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full border-4 border-sky-100 animate-pulse" />
+              <div className="absolute inset-0 rounded-full border-4 border-sky-500 border-t-transparent animate-spin" />
+              <div className="relative w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-sky-500/30">
+                {loginSuccess ? (
+                  <CheckCircle2 className="w-5 h-5 stroke-[2.5] animate-scaleUp" />
+                ) : (
+                  <Sparkles className="w-5 h-5 animate-pulse" />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
+                {loginSuccess ? 'Authentication Successful!' : 'Signing In...'}
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                {loaderStatus}
+              </p>
+            </div>
+
+            {/* Progress Bar Animation */}
+            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+              <div
+                className={`h-full bg-gradient-to-r from-sky-500 to-blue-600 rounded-full transition-all duration-500 ${
+                  loginSuccess ? 'w-full' : 'w-3/4 animate-pulse'
+                }`}
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium pt-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Secure Session Authorization</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Subtle Academic Ambient Accents */}
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
