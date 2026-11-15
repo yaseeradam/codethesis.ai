@@ -5,29 +5,53 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { signInWithGoogle } from '@/lib/firebase';
 import {
-  GraduationCap,
-  Sparkles,
   Lock,
   Mail,
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  Zap,
   AlertCircle,
-  UserCheck
+  UserCheck,
+  Loader2,
+  Sparkles
 } from 'lucide-react';
+
+function GoogleIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24">
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+      />
+    </svg>
+  );
+}
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('from') || '/dashboard';
 
-  const { login, loginDemo, isLoading } = useAuth();
+  const { login, loginDemo, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [activeDemo, setActiveDemo] = useState<string | null>(null);
 
   async function handleStandardLogin(e: React.FormEvent) {
@@ -45,6 +69,32 @@ function LoginContent() {
     router.push(returnTo);
   }
 
+  async function handleGoogleLogin() {
+    setIsGoogleSubmitting(true);
+    setErrorMessage('');
+
+    try {
+      const googleRes = await signInWithGoogle();
+      if (!googleRes.success || !googleRes.user) {
+        setErrorMessage(googleRes.error || 'Google sign-in was cancelled.');
+        setIsGoogleSubmitting(false);
+        return;
+      }
+
+      const syncRes = await loginWithGoogle(googleRes.user);
+      if (!syncRes.success) {
+        setErrorMessage(syncRes.error || 'Failed to initialize session with Google.');
+        setIsGoogleSubmitting(false);
+        return;
+      }
+
+      router.push(returnTo);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'An error occurred during Google sign in.');
+      setIsGoogleSubmitting(false);
+    }
+  }
+
   async function handleQuickDemo(role: 'adebayo' | 'ibrahim' | 'chioma') {
     setActiveDemo(role);
     setErrorMessage('');
@@ -60,213 +110,264 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070F2B] text-slate-100 flex items-center justify-center p-4 relative overflow-hidden font-sans">
-      {/* Background Ambient Glow Orbs */}
-      <div className="absolute top-1/4 -left-20 w-80 h-80 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
-      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden font-sans">
+      {/* Subtle Academic Ambient Accents */}
+      <div className="absolute top-1/4 -left-20 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-4xl bg-slate-900/90 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 backdrop-blur-xl relative z-10">
-        {/* Left Side: Brand & Visuals (5 Cols) */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-[#0c1844] to-[#070F2B] p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800 relative">
+      {/* Main Container Card with Bold 2px Border */}
+      <div className="w-full max-w-4xl bg-white border-2 border-slate-300/90 shadow-2xl rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10">
+        
+        {/* Left Side: Brand Showcase (5 Cols) */}
+        <div className="lg:col-span-5 bg-gradient-to-br from-slate-50 via-sky-50/50 to-blue-50/40 p-8 flex flex-col justify-between border-b-2 lg:border-b-0 lg:border-r-2 border-slate-200 relative">
           <div className="space-y-6">
             {/* Logo */}
-            <div className="flex items-center gap-2.5">
-              <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-cyan-400/40 shadow-md">
+            <div className="flex items-center gap-3">
+              <div className="relative w-11 h-11 rounded-2xl overflow-hidden border-2 border-sky-300 shadow-sm flex-shrink-0">
                 <Image
                   src="/assets/logo_codethesis_3d.jpg"
                   alt="CodeThesis 3D Logo"
                   fill
                   className="object-cover"
+                  priority
                 />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-white text-lg tracking-tight">CodeThesis</span>
-                  <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md">
+                  <span className="font-extrabold text-slate-950 text-xl tracking-tight">CodeThesis</span>
+                  <span className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-xs">
                     AI
                   </span>
                 </div>
-                <p className="text-[10px] text-cyan-300/80 uppercase font-semibold">
+                <p className="text-[10px] text-sky-700 font-bold uppercase tracking-wider">
                   Build • Document • Defend
                 </p>
               </div>
             </div>
 
-            {/* Value Points */}
-            <div className="space-y-3 pt-4">
-              <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
-                <span>Target ~18,000+ words 5-Chapter dissertation drafts</span>
+            {/* Tagline */}
+            <div>
+              <h1 className="text-base font-extrabold text-slate-900 leading-snug">
+                The All-in-One Academic AI Engineering Platform
+              </h1>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                Engineered for Nigerian university academic standards, final year thesis research, and defense readiness.
+              </p>
+            </div>
+
+            {/* Academic Value Points */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
+                <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 border border-emerald-300">
+                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                </div>
+                <span>~18,000+ words 5-Chapter APA 7th thesis drafts</span>
               </div>
-              <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
-                <span>Zero-pip Python & SQLite software repo generation</span>
+              <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
+                <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 border border-emerald-300">
+                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                </div>
+                <span>Zero-pip Turnkey Python/SQLite software repositories</span>
               </div>
-              <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
-                <span>Vector UML Diagrams & 15-Slide defense presentations</span>
+              <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
+                <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 border border-emerald-300">
+                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                </div>
+                <span>Vector UML Architecture & 15-Slide defense decks</span>
               </div>
-              <div className="flex items-start gap-2.5 text-xs text-slate-300">
-                <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
-                <span>Speech-to-Text Mock External Examiner Viva Simulator</span>
+              <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
+                <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 border border-emerald-300">
+                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                </div>
+                <span>Mock External Examiner Viva Voice Simulator with grading</span>
               </div>
             </div>
           </div>
 
-          {/* Bottom Trust Tag */}
-          <div className="pt-6 border-t border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Trusted across FUTA, UNILAG, UNN, ABU, UI & Covenant</span>
+          {/* Bottom Trust Badge */}
+          <div className="pt-6 border-t-2 border-slate-200 mt-6 text-[11px] text-slate-600 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span className="font-semibold">Trusted across FUTA, UNILAG, UNN, ABU, UI & Covenant</span>
           </div>
         </div>
 
-        {/* Right Side: Login Form & Instant Demo Bypass (7 Cols) */}
-        <div className="lg:col-span-7 p-8 flex flex-col justify-center space-y-6">
+        {/* Right Side: Authentication Panel (7 Cols) */}
+        <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center space-y-5 bg-white">
           <div>
-            <h2 className="text-xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
               Sign in to CodeThesis AI
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
-              Authenticate with your institutional account or select a student demo profile.
+            <p className="text-xs text-slate-500 mt-1">
+              Authenticate via Google, institutional email, or select a student demo profile.
             </p>
           </div>
 
           {/* Error Banner */}
           {errorMessage && (
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-2.5 text-xs text-red-400">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <div className="p-3.5 bg-red-50 border-2 border-red-200 rounded-xl flex items-center gap-2.5 text-xs text-red-700 font-medium">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600" />
               <span>{errorMessage}</span>
             </div>
           )}
 
-          {/* 1-CLICK INSTANT DEMO STUDENT PROFILES */}
+          {/* 1. FIREBASE GOOGLE SIGN-IN BUTTON (Prominent & Bold) */}
+          <div>
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={isGoogleSubmitting || isSubmitting || Boolean(activeDemo)}
+              className="w-full py-3 px-4 bg-white hover:bg-slate-50 border-2 border-slate-300 hover:border-slate-400 text-slate-800 font-bold rounded-xl shadow-xs flex items-center justify-center gap-3 transition-all active:scale-98 cursor-pointer disabled:opacity-60"
+            >
+              {isGoogleSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin text-sky-600" />
+                  <span className="text-xs">Connecting with Google Firebase...</span>
+                </>
+              ) : (
+                <>
+                  <GoogleIcon className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-xs">Continue with Google (Firebase)</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 text-slate-400 text-xs font-semibold">
+            <div className="flex-1 h-[2px] bg-slate-200" />
+            <span className="uppercase text-[10px] tracking-wider text-slate-500">or 1-click student demo</span>
+            <div className="flex-1 h-[2px] bg-slate-200" />
+          </div>
+
+          {/* 2. INSTANT DEMO STUDENT PROFILES (1-CLICK) */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
-              <span>Instant Demo Profiles (1-Click)</span>
-              <span className="text-cyan-400 font-bold">No Password Needed</span>
+            <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <span>Instant Demo Profiles</span>
+              <span className="text-sky-600">No Password Required</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               <button
                 type="button"
                 onClick={() => handleQuickDemo('adebayo')}
-                disabled={Boolean(activeDemo) || isSubmitting}
-                className={`p-2.5 rounded-xl border text-left transition-all active:scale-95 flex flex-col justify-between ${
+                disabled={Boolean(activeDemo) || isSubmitting || isGoogleSubmitting}
+                className={`p-2.5 rounded-xl border-2 text-left transition-all active:scale-95 flex flex-col justify-between cursor-pointer ${
                   activeDemo === 'adebayo'
-                    ? 'border-cyan-400 bg-cyan-500/20 text-white'
-                    : 'border-slate-800 bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:border-slate-700'
+                    ? 'border-sky-500 bg-sky-50 text-sky-950 font-bold'
+                    : 'border-slate-200 bg-slate-50/80 hover:bg-sky-50/50 hover:border-sky-300 text-slate-800'
                 }`}
               >
-                <div className="flex items-center gap-1.5 font-bold text-xs text-white">
-                  <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
+                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
+                  <UserCheck className="w-3.5 h-3.5 text-sky-600" />
                   <span className="truncate">Adebayo</span>
                 </div>
-                <div className="text-[10px] text-slate-400 mt-1">
-                  <span>FUTA • 15cr</span>
+                <div className="text-[10px] text-slate-500 mt-1 font-medium">
+                  <span>FUTA • 15 Credits</span>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleQuickDemo('ibrahim')}
-                disabled={Boolean(activeDemo) || isSubmitting}
-                className={`p-2.5 rounded-xl border text-left transition-all active:scale-95 flex flex-col justify-between ${
+                disabled={Boolean(activeDemo) || isSubmitting || isGoogleSubmitting}
+                className={`p-2.5 rounded-xl border-2 text-left transition-all active:scale-95 flex flex-col justify-between cursor-pointer ${
                   activeDemo === 'ibrahim'
-                    ? 'border-amber-400 bg-amber-500/20 text-white'
-                    : 'border-slate-800 bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:border-slate-700'
+                    ? 'border-amber-500 bg-amber-50 text-amber-950 font-bold'
+                    : 'border-slate-200 bg-slate-50/80 hover:bg-amber-50/50 hover:border-amber-300 text-slate-800'
                 }`}
               >
-                <div className="flex items-center gap-1.5 font-bold text-xs text-white">
-                  <UserCheck className="w-3.5 h-3.5 text-amber-400" />
+                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
+                  <UserCheck className="w-3.5 h-3.5 text-amber-600" />
                   <span className="truncate">Ibrahim</span>
                 </div>
-                <div className="text-[10px] text-slate-400 mt-1">
-                  <span>FUTA • 40cr</span>
+                <div className="text-[10px] text-slate-500 mt-1 font-medium">
+                  <span>FUTA • 40 Credits</span>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleQuickDemo('chioma')}
-                disabled={Boolean(activeDemo) || isSubmitting}
-                className={`p-2.5 rounded-xl border text-left transition-all active:scale-95 flex flex-col justify-between ${
+                disabled={Boolean(activeDemo) || isSubmitting || isGoogleSubmitting}
+                className={`p-2.5 rounded-xl border-2 text-left transition-all active:scale-95 flex flex-col justify-between cursor-pointer ${
                   activeDemo === 'chioma'
-                    ? 'border-emerald-400 bg-emerald-500/20 text-white'
-                    : 'border-slate-800 bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:border-slate-700'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-950 font-bold'
+                    : 'border-slate-200 bg-slate-50/80 hover:bg-emerald-50/50 hover:border-emerald-300 text-slate-800'
                 }`}
               >
-                <div className="flex items-center gap-1.5 font-bold text-xs text-white">
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
                   <span className="truncate">Chioma</span>
                 </div>
-                <div className="text-[10px] text-slate-400 mt-1">
-                  <span>UNILAG • 8cr</span>
+                <div className="text-[10px] text-slate-500 mt-1 font-medium">
+                  <span>UNILAG • 8 Credits</span>
                 </div>
               </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-slate-600 text-xs">
-            <div className="flex-1 h-px bg-slate-800" />
-            <span>or sign in with password</span>
-            <div className="flex-1 h-px bg-slate-800" />
+          {/* Divider */}
+          <div className="flex items-center gap-3 text-slate-400 text-xs font-semibold">
+            <div className="flex-1 h-[2px] bg-slate-200" />
+            <span className="uppercase text-[10px] tracking-wider text-slate-500">or sign in with password</span>
+            <div className="flex-1 h-[2px] bg-slate-200" />
           </div>
 
-          {/* Standard Form */}
+          {/* 3. STANDARD CREDENTIALS FORM */}
           <form onSubmit={handleStandardLogin} className="space-y-4 text-xs">
             <div>
-              <label className="block font-bold text-slate-300 mb-1">Institutional Email</label>
+              <label className="block font-bold text-slate-700 mb-1">Institutional Email</label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="student@futa.edu.ng"
                   required
-                  className="w-full bg-slate-800/80 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+                  className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="font-bold text-slate-300">Password</label>
+                <label className="font-bold text-slate-700">Password</label>
                 <button
                   type="button"
-                  onClick={() => alert('Demo password for pre-seeded accounts is: password123')}
-                  className="text-cyan-400 hover:underline text-[11px]"
+                  onClick={() => alert('Demo password for pre-seeded student accounts is: password123')}
+                  className="text-sky-600 hover:underline text-[11px] font-semibold"
                 >
                   Forgot password?
                 </button>
               </div>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••••••"
                   required
-                  className="w-full bg-slate-800/80 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+                  className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={isSubmitting || Boolean(activeDemo)}
-              className="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-cyan-500/20 active:scale-95"
+              disabled={isSubmitting || isGoogleSubmitting || Boolean(activeDemo)}
+              className="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-sky-500/20 active:scale-95 cursor-pointer disabled:opacity-60 text-xs"
             >
               <span>{isSubmitting ? 'Verifying Credentials...' : 'Sign In with Password'}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
           {/* Footer note */}
-          <div className="text-center text-[11px] text-slate-500">
+          <div className="text-center text-xs text-slate-500 pt-1">
             Don't have an account yet?{' '}
-            <Link href="/auth/register" className="text-cyan-400 font-bold hover:underline">
-              Register with 15 Free Credits
+            <Link href="/auth/register" className="text-sky-600 font-bold hover:underline">
+              Register with 15 Free Credits &rarr;
             </Link>
           </div>
         </div>
@@ -279,8 +380,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#070F2B] flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

@@ -27,6 +27,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginDemo: (role?: 'adebayo' | 'ibrahim' | 'chioma' | 'admin') => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: (firebaseUser: { email: string; fullName: string; photoURL?: string; uid?: string }) => Promise<{ success: boolean; error?: string }>;
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -38,6 +39,7 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => ({ success: false }),
   loginDemo: async () => ({ success: false }),
+  loginWithGoogle: async () => ({ success: false }),
   register: async () => ({ success: false }),
   logout: async () => {},
   refreshUser: async () => {},
@@ -130,6 +132,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async (firebaseUser: { email: string; fullName: string; photoURL?: string; uid?: string }) => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/auth/firebase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(firebaseUser),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setIsLoading(false);
+        return { success: false, error: data.error || 'Google authentication failed' };
+      }
+      setUser(data.user);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('credits-updated', { detail: { credits: data.user.credits } }));
+      }
+      setIsLoading(false);
+      return { success: true };
+    } catch (err: any) {
+      setIsLoading(false);
+      return { success: false, error: err.message || 'Google authentication request failed' };
+    }
+  };
+
   const register = async (data: RegisterData) => {
     try {
       setIsLoading(true);
@@ -196,6 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         loginDemo,
+        loginWithGoogle,
         register,
         logout,
         refreshUser,

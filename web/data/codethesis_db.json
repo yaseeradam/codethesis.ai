@@ -6,7 +6,7 @@
       "passwordHash": "600423594fea874650e1782f244ee021dd4c4484fd9aae1be3baffe06f5dcf70",
       "fullName": "Adebayo Tunde",
       "plan": "standard",
-      "credits": 9,
+      "credits": 3,
       "createdAt": "2026-11-14T17:39:00.543Z",
       "matricNumber": "FUTA/CSC/20/4182",
       "institution": "Federal University of Technology, Akure",
@@ -29,7 +29,7 @@
       "matricNumber": "FUTA/CSC/20/5091",
       "institution": "Federal University of Technology, Akure",
       "plan": "complete",
-      "credits": 24,
+      "credits": 13,
       "status": "active",
       "createdAt": "2026-11-14T17:39:00.545Z"
     },
@@ -56,9 +56,105 @@
       "credits": 15,
       "status": "active",
       "createdAt": "2026-11-14T17:48:04.852Z"
+    },
+    {
+      "id": "usr-d4550099",
+      "email": "firebase.student@futa.edu.ng",
+      "passwordHash": "d5b14228a0ce22f3377ab8ddbb42a3ebc63b2127a172ab3d05fa1fd4619a9b66",
+      "fullName": "Dr. Firebase Student",
+      "matricNumber": "GOOG/CSC/26/4266",
+      "institution": "Institutional Scholar",
+      "plan": "free",
+      "credits": 15,
+      "status": "active",
+      "createdAt": "2026-11-15T07:08:00.574Z"
     }
   ],
   "projects": [
+    {
+      "userId": "demo-student-001",
+      "toolId": "assignment-solver",
+      "title": "CSC 411: Assignment 1: Database Normalization & Algorithmic Complexity Analysis",
+      "course": "Advanced Algorithms and Complexity",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "Rigorous academic computational and mathematical solution formatted in APA 7th.",
+      "fileType": "docx",
+      "id": "proj-9d750106",
+      "createdAt": "2026-11-15T07:08:20.020Z",
+      "updatedAt": "2026-11-15T07:08:20.021Z"
+    },
+    {
+      "userId": "demo-student-002",
+      "toolId": "assignment-solver",
+      "title": "CSC 401: Assignment 1: Database Normalization & Algorithmic Complexity Analysis",
+      "course": "Advanced Algorithms and Complexity",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "Rigorous academic computational and mathematical solution formatted in APA 7th.",
+      "fileType": "docx",
+      "id": "proj-c3e349d5",
+      "createdAt": "2026-11-15T07:08:18.201Z",
+      "updatedAt": "2026-11-15T07:08:18.201Z"
+    },
+    {
+      "userId": "demo-student-002",
+      "toolId": "itf-report",
+      "title": "ITF SIWES Technical Defense Report: Adebayo Tunde",
+      "course": "Computer Science",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "Comprehensive 5-Chapter SIWES technical defense report for industrial attachment at MainOne Cable Company (An Equinix Company).",
+      "fileType": "docx",
+      "id": "proj-6a4594ed",
+      "createdAt": "2026-11-15T07:08:18.085Z",
+      "updatedAt": "2026-11-15T07:08:18.085Z"
+    },
+    {
+      "userId": "demo-student-002",
+      "toolId": "siwes-logbook",
+      "title": "24-Week SIWES Industrial Training Logbook",
+      "course": "Computer Science / Engineering",
+      "institution": "Nigerian Tertiary Institution",
+      "summary": "Complete 24-Week day-by-day industrial attachment logbook for MainOne / Equinix Tier III Data Center.",
+      "fileType": "docx",
+      "id": "proj-85cdcdb1",
+      "createdAt": "2026-11-15T07:08:17.924Z",
+      "updatedAt": "2026-11-15T07:08:17.924Z"
+    },
+    {
+      "userId": "demo-student-002",
+      "toolId": "viva-presentation",
+      "title": "Viva Defense Presentation Deck: Design of Low-Latency Edge Computing Architecture",
+      "course": "Computer Science",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "15-Slide Widescreen (16:9) defense presentation deck in Midnight Navy and Gold.",
+      "fileType": "pptx",
+      "id": "proj-c14b5c58",
+      "createdAt": "2026-11-15T07:08:17.739Z",
+      "updatedAt": "2026-11-15T07:08:17.739Z"
+    },
+    {
+      "userId": "demo-student-002",
+      "toolId": "software-builder",
+      "title": "AI Student Attendance Recognition System",
+      "course": "Computer Science",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "Zero-pip Python & SQLite web application with 1-click run_project.bat offline launcher.",
+      "fileType": "zip",
+      "id": "proj-0425c6a8",
+      "createdAt": "2026-11-15T07:08:17.574Z",
+      "updatedAt": "2026-11-15T07:08:17.574Z"
+    },
+    {
+      "userId": "demo-student-002",
+      "toolId": "thesis",
+      "title": "Deep Learning for Crop Disease Classification in Cassava Plantations",
+      "course": "Computer Science",
+      "institution": "Federal University of Technology, Akure",
+      "summary": "5-Chapter Undergraduate Thesis (~18,000+ words target) in Computer Science for Federal University of Technology, Akure. APA 7th format.",
+      "fileType": "docx",
+      "id": "proj-1f4c8568",
+      "createdAt": "2026-11-15T07:08:17.433Z",
+      "updatedAt": "2026-11-15T07:08:17.433Z"
+    },
     {
       "userId": "demo-student-001",
       "toolId": "assignment-solver",
@@ -411,6 +507,16 @@
   "transactions": [
     {
       "userId": "demo-student-001",
+      "reference": "CT-1794726498312-652BB86F",
+      "amount": 8500,
+      "currency": "NGN",
+      "status": "pending",
+      "planId": "standard",
+      "id": "tx-c2968412",
+      "createdAt": "2026-11-15T07:08:18.312Z"
+    },
+    {
+      "userId": "demo-student-001",
       "reference": "CT-1794725778210-B09C8F54",
       "amount": 8500,
       "currency": "NGN",
@@ -499,6 +605,86 @@
     }
   },
   "creditLogs": [
+    {
+      "id": "log-91517abc",
+      "userId": "demo-student-002",
+      "amount": -1,
+      "type": "tool_usage",
+      "toolId": "assignmentSolver",
+      "balanceAfter": 13,
+      "description": "Used assignmentSolver tool (1 credit)",
+      "createdAt": "2026-11-15T07:08:18.187Z"
+    },
+    {
+      "id": "log-4619a452",
+      "userId": "demo-student-002",
+      "amount": -2,
+      "type": "tool_usage",
+      "toolId": "itfReport",
+      "balanceAfter": 14,
+      "description": "Used itfReport tool (2 credits)",
+      "createdAt": "2026-11-15T07:08:18.046Z"
+    },
+    {
+      "id": "log-9fac1388",
+      "userId": "demo-student-002",
+      "amount": -2,
+      "type": "tool_usage",
+      "toolId": "siwesLogbook",
+      "balanceAfter": 16,
+      "description": "Used siwesLogbook tool (2 credits)",
+      "createdAt": "2026-11-15T07:08:17.845Z"
+    },
+    {
+      "id": "log-d3732986",
+      "userId": "demo-student-002",
+      "amount": -1,
+      "type": "tool_usage",
+      "toolId": "vivaPresentation",
+      "balanceAfter": 18,
+      "description": "Used vivaPresentation tool (1 credit)",
+      "createdAt": "2026-11-15T07:08:17.706Z"
+    },
+    {
+      "id": "log-7c67e03e",
+      "userId": "demo-student-002",
+      "amount": -2,
+      "type": "tool_usage",
+      "toolId": "softwareBuilder",
+      "balanceAfter": 19,
+      "description": "Used softwareBuilder tool (2 credits)",
+      "createdAt": "2026-11-15T07:08:17.564Z"
+    },
+    {
+      "id": "log-b5779128",
+      "userId": "demo-student-002",
+      "amount": -3,
+      "type": "tool_usage",
+      "toolId": "thesis",
+      "balanceAfter": 21,
+      "description": "Used thesis tool (3 credits)",
+      "createdAt": "2026-11-15T07:08:17.316Z"
+    },
+    {
+      "id": "log-c70444e2",
+      "userId": "demo-student-001",
+      "amount": -3,
+      "type": "tool_usage",
+      "toolId": "thesis",
+      "balanceAfter": 3,
+      "description": "Used thesis tool (3 credits)",
+      "createdAt": "2026-11-15T07:08:16.664Z"
+    },
+    {
+      "id": "log-f1644b84",
+      "userId": "demo-student-001",
+      "amount": -3,
+      "type": "tool_usage",
+      "toolId": "thesis",
+      "balanceAfter": 6,
+      "description": "Used thesis tool (3 credits)",
+      "createdAt": "2026-11-15T07:08:16.633Z"
+    },
     {
       "id": "log-675b2733",
       "userId": "demo-student-002",
@@ -780,6 +966,46 @@
     }
   ],
   "vivaSessions": [
+    {
+      "id": "viva-e5f549d8",
+      "userId": "demo-student-001",
+      "topic": "Design of Distributed Campus Microgrid Monitoring Architecture",
+      "course": "Electrical & Electronic Engineering",
+      "examinerPersona": "strict",
+      "turns": [
+        {
+          "id": "turn-1",
+          "role": "examiner",
+          "content": "Welcome candidate. We have thoroughly reviewed your dissertation draft titled \"Design of Distributed Campus Microgrid Monitoring Architecture\" in Electrical & Electronic Engineering. Let us begin with your problem statement: Why did you decide that existing manual or conventional systems were inadequate, and what is the exact scientific or technical gap your proposed system bridges?",
+          "timestamp": "2026-11-15T07:08:16.896Z"
+        },
+        {
+          "id": "turn-student-1",
+          "role": "student",
+          "content": "We utilized Modbus TCP/IP protocols interconnected with an edge Raspberry Pi MQTT broker to stream voltage telemetry every 500 milliseconds.",
+          "feedback": "Adequate defense point, but you need to elaborate on the engineering trade-offs and justify why your approach is superior to conventional alternatives.",
+          "rating": 6,
+          "timestamp": "2026-11-15T07:08:17.039Z"
+        },
+        {
+          "id": "turn-examiner-2",
+          "role": "examiner",
+          "content": "Thank you. Now, let us turn to Chapter 3 (Research Methodology). In your system for \"Design of Distributed Campus Microgrid Monitoring Architecture\", what sampling technique or dataset did you utilize for empirical validation, and how do you defend its statistical representation?",
+          "timestamp": "2026-11-15T07:08:17.039Z"
+        }
+      ],
+      "status": "completed",
+      "createdAt": "2026-11-15T07:08:16.896Z",
+      "updatedAt": "2026-11-15T07:08:17.164Z",
+      "scorecard": {
+        "clarity": 65,
+        "technicalDepth": 63,
+        "methodology": 62,
+        "overallScore": 63,
+        "summary": "The candidate struggled to defend empirical sampling methodology and database transaction locking. Significant revisions recommended before final departmental sign-off.",
+        "verdict": "Major Revision Needed"
+      }
+    },
     {
       "id": "viva-6d5e5e30",
       "userId": "demo-student-001",
