@@ -54,8 +54,10 @@ export async function POST(req: NextRequest) {
     const dynamicKeys = adminSettings?.aiEngine?.apiKeys || {};
     const geminiKey = dynamicKeys.gemini || process.env.GEMINI_API_KEY;
     const openaiKey = dynamicKeys.openai || process.env.OPENAI_API_KEY;
+    const groqKey = dynamicKeys.groq || process.env.GROQ_API_KEY;
+    const qwenKey = dynamicKeys.qwen || process.env.QWEN_API_KEY;
 
-    // Helper for Gemini Call
+    // Helper for Gemini Call (Google AI Studio)
     async function tryGemini(): Promise<string | null> {
       if (!geminiKey) return null;
       try {
@@ -78,6 +80,78 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.warn('Gemini request failed:', err);
       }
+      return null;
+    }
+
+    // Helper for Groq Call (Ultra-fast LPU inference: 500-800 tok/s)
+    async function tryGroq(customModel?: string): Promise<string | null> {
+      if (!groqKey) return null;
+      try {
+        const selectedModel = customModel || (modelName && modelName.includes('llama') ? modelName : 'llama-3.3-70b-versatile');
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${groqKey}`,
+          },
+          body: JSON.stringify({
+            model: selectedModel,
+            messages: [
+              { role: 'system', content: systemPromptOverride },
+              { role: 'user', content: prompt || `Generate an exhaustive academic section for Chapter ${chapterNumber || 1} on the topic: ${topic} in the context of ${course} at ${institution}. Adhere strictly to APA 7th format.` },
+            ],
+            max_tokens: Math.min(maxTokens, 4000),
+            temperature,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return data.choices?.[0]?.message?.content || null;
+        }
+      } catch (err) {
+        console.warn('Groq request failed:', err);
+      }
+      return null;
+    }
+
+    // Helper for Qwen Call (Qwen 2.5 Coder / Qwen 2.5 72B via DashScope, OpenRouter, or Groq)
+    async function tryQwen(): Promise<string | null> {
+      // 1. Direct Qwen API (DashScope or OpenRouter compatible)
+      if (qwenKey) {
+        try {
+          const endpoint = process.env.QWEN_API_BASE_URL || 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions';
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${qwenKey}`,
+            },
+            body: JSON.stringify({
+              model: modelName && modelName.toLowerCase().includes('qwen') ? modelName : 'qwen-2.5-coder-32b-instruct',
+              messages: [
+                { role: 'system', content: systemPromptOverride },
+                { role: 'user', content: prompt || `Write an in-depth academic treatise for Chapter ${chapterNumber || 1} on: ${topic} in the context of ${course} at ${institution}. Adhere to academic standards and APA 7th citations.` },
+              ],
+              max_tokens: Math.min(maxTokens, 4000),
+              temperature,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            return data.choices?.[0]?.message?.content || null;
+          }
+        } catch (err) {
+          console.warn('Qwen API call failed:', err);
+        }
+      }
+
+      // 2. Groq-hosted Qwen fallback (if Groq key configured)
+      if (groqKey) {
+        return tryGroq('qwen-2.5-32b');
+      }
+
       return null;
     }
 
@@ -116,19 +190,49 @@ export async function POST(req: NextRequest) {
     let generatedContent: string | null = null;
     let providerUsed = 'academic-heuristic';
 
-    if (activeProvider === 'gemini') {
+    if (activeProvider === 'groq') {
+      generatedContent = await tryGroq();
+      if (generatedContent) providerUsed = 'groq-lpu-engine';
+      else if (fallbackEnabled) {
+        generatedContent = await tryGemini();
+        if (generatedContent) providerUsed = `google-${modelName} (fallback)`;
+        else {
+          generatedContent = await tryOpenAI();
+          if (generatedContent) providerUsed = 'openai-gpt-4o-mini (fallback)';
+        }
+      }
+    } else if (activeProvider === 'qwen') {
+      generatedContent = await tryQwen();
+      if (generatedContent) providerUsed = 'qwen-2.5-coder-engine';
+      else if (fallbackEnabled) {
+        generatedContent = await tryGroq();
+        if (generatedContent) providerUsed = 'groq-lpu (fallback)';
+        else {
+          generatedContent = await tryGemini();
+          if (generatedContent) providerUsed = `google-${modelName} (fallback)`;
+        }
+      }
+    } else if (activeProvider === 'gemini') {
       generatedContent = await tryGemini();
       if (generatedContent) providerUsed = `google-${modelName}`;
       else if (fallbackEnabled) {
-        generatedContent = await tryOpenAI();
-        if (generatedContent) providerUsed = 'openai-gpt-4o-mini (fallback)';
+        generatedContent = await tryGroq();
+        if (generatedContent) providerUsed = 'groq-lpu (fallback)';
+        else {
+          generatedContent = await tryOpenAI();
+          if (generatedContent) providerUsed = 'openai-gpt-4o-mini (fallback)';
+        }
       }
     } else if (activeProvider === 'openai') {
       generatedContent = await tryOpenAI();
       if (generatedContent) providerUsed = 'openai-gpt-4o-mini';
       else if (fallbackEnabled) {
-        generatedContent = await tryGemini();
-        if (generatedContent) providerUsed = `google-${modelName} (fallback)`;
+        generatedContent = await tryGroq();
+        if (generatedContent) providerUsed = 'groq-lpu (fallback)';
+        else {
+          generatedContent = await tryGemini();
+          if (generatedContent) providerUsed = `google-${modelName} (fallback)`;
+        }
       }
     }
 

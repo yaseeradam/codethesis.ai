@@ -629,7 +629,7 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
                   {/* Option 1: Heuristic Fallback */}
                   <div
                     onClick={() =>
@@ -638,20 +638,20 @@ export default function AdminDashboardPage() {
                         aiEngine: { ...prev.aiEngine, activeProvider: 'heuristic' },
                       }))
                     }
-                    className={`border-2 rounded-2xl p-4 cursor-pointer transition-all ${
+                    className={`border-2 rounded-2xl p-3.5 cursor-pointer transition-all ${
                       settings.aiEngine.activeProvider === 'heuristic'
                         ? 'border-blue-600 bg-blue-50/40 shadow-xs'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-1.5">
                       <span className="text-xs font-bold text-slate-900">Academic Heuristic</span>
                       {settings.aiEngine.activeProvider === 'heuristic' && (
                         <Check className="w-4 h-4 text-blue-600 stroke-[3]" />
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
-                      Zero-cost, publication-grade academic heuristic. Generates 18k words, real Crossref DOIs, and zero hallucinated code.
+                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                      Zero-cost, publication-grade academic heuristic. Generates 18k words, real Crossref DOIs.
                     </p>
                   </div>
 
@@ -663,24 +663,74 @@ export default function AdminDashboardPage() {
                         aiEngine: { ...prev.aiEngine, activeProvider: 'gemini', modelName: 'gemini-1.5-flash' },
                       }))
                     }
-                    className={`border-2 rounded-2xl p-4 cursor-pointer transition-all ${
+                    className={`border-2 rounded-2xl p-3.5 cursor-pointer transition-all ${
                       settings.aiEngine.activeProvider === 'gemini'
                         ? 'border-blue-600 bg-blue-50/40 shadow-xs'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-slate-900">Google Gemini 1.5 Flash</span>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-bold text-slate-900">Google Gemini</span>
                       {settings.aiEngine.activeProvider === 'gemini' && (
                         <Check className="w-4 h-4 text-blue-600 stroke-[3]" />
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
-                      High-speed contextual reasoning with 1M context window. Uses GEMINI_API_KEY from environment vault.
+                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                      1M+ token context window. Free tier on AI Studio. Best for full 5-chapter dissertations.
                     </p>
                   </div>
 
-                  {/* Option 3: OpenAI GPT-4o */}
+                  {/* Option 3: Groq LPU (Ultra-Fast) */}
+                  <div
+                    onClick={() =>
+                      setSettings(prev => ({
+                        ...prev,
+                        aiEngine: { ...prev.aiEngine, activeProvider: 'groq', modelName: 'llama-3.3-70b-versatile' },
+                      }))
+                    }
+                    className={`border-2 rounded-2xl p-3.5 cursor-pointer transition-all ${
+                      settings.aiEngine.activeProvider === 'groq'
+                        ? 'border-blue-600 bg-blue-50/40 shadow-xs'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-bold text-slate-900">Groq LPU (Fast)</span>
+                      {settings.aiEngine.activeProvider === 'groq' && (
+                        <Check className="w-4 h-4 text-blue-600 stroke-[3]" />
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                      500-800 tokens/sec. Free dev tier. Instantaneous response for Viva Simulator & Oral defense.
+                    </p>
+                  </div>
+
+                  {/* Option 4: Qwen (Qwen 2.5 Coder) */}
+                  <div
+                    onClick={() =>
+                      setSettings(prev => ({
+                        ...prev,
+                        aiEngine: { ...prev.aiEngine, activeProvider: 'qwen', modelName: 'qwen-2.5-coder-32b-instruct' },
+                      }))
+                    }
+                    className={`border-2 rounded-2xl p-3.5 cursor-pointer transition-all ${
+                      settings.aiEngine.activeProvider === 'qwen'
+                        ? 'border-blue-600 bg-blue-50/40 shadow-xs'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-bold text-slate-900">Qwen 2.5 Coder</span>
+                      {settings.aiEngine.activeProvider === 'qwen' && (
+                        <Check className="w-4 h-4 text-blue-600 stroke-[3]" />
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                      World-class open coding & architecture model. Runs on Groq or DashScope.
+                    </p>
+                  </div>
+
+                  {/* Option 5: OpenAI GPT-4o */}
                   <div
                     onClick={() =>
                       setSettings(prev => ({
@@ -688,20 +738,20 @@ export default function AdminDashboardPage() {
                         aiEngine: { ...prev.aiEngine, activeProvider: 'openai', modelName: 'gpt-4o-mini' },
                       }))
                     }
-                    className={`border-2 rounded-2xl p-4 cursor-pointer transition-all ${
+                    className={`border-2 rounded-2xl p-3.5 cursor-pointer transition-all ${
                       settings.aiEngine.activeProvider === 'openai'
                         ? 'border-blue-600 bg-blue-50/40 shadow-xs'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-1.5">
                       <span className="text-xs font-bold text-slate-900">OpenAI GPT-4o-mini</span>
                       {settings.aiEngine.activeProvider === 'openai' && (
                         <Check className="w-4 h-4 text-blue-600 stroke-[3]" />
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
-                      Compact, highly structured code and thesis generation. Uses OPENAI_API_KEY from environment vault.
+                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                      Standard industry benchmark for structured JSON, thesis parsing, and fallback generation.
                     </p>
                   </div>
                 </div>
@@ -812,6 +862,80 @@ export default function AdminDashboardPage() {
                           }))
                         }
                         placeholder="sk-proj-..."
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* Groq LPU Key */}
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <span>Groq API Key (Fast LPU)</span>
+                          {settings.aiEngine.apiKeys?.groq && (
+                            <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Set</span>
+                          )}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowKeys(prev => ({ ...prev, groq: !prev.groq }))}
+                          className="text-slate-400 hover:text-slate-600 p-1"
+                        >
+                          {showKeys.groq ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      <input
+                        type={showKeys.groq ? 'text' : 'password'}
+                        value={settings.aiEngine.apiKeys?.groq || ''}
+                        onChange={e =>
+                          setSettings(prev => ({
+                            ...prev,
+                            aiEngine: {
+                              ...prev.aiEngine,
+                              apiKeys: {
+                                ...(prev.aiEngine.apiKeys || {}),
+                                groq: e.target.value,
+                              },
+                            },
+                          }))
+                        }
+                        placeholder="gsk_..."
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    {/* Qwen Key */}
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <span>Qwen API Key (DashScope / OpenRouter)</span>
+                          {settings.aiEngine.apiKeys?.qwen && (
+                            <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Set</span>
+                          )}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowKeys(prev => ({ ...prev, qwen: !prev.qwen }))}
+                          className="text-slate-400 hover:text-slate-600 p-1"
+                        >
+                          {showKeys.qwen ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      <input
+                        type={showKeys.qwen ? 'text' : 'password'}
+                        value={settings.aiEngine.apiKeys?.qwen || ''}
+                        onChange={e =>
+                          setSettings(prev => ({
+                            ...prev,
+                            aiEngine: {
+                              ...prev.aiEngine,
+                              apiKeys: {
+                                ...(prev.aiEngine.apiKeys || {}),
+                                qwen: e.target.value,
+                              },
+                            },
+                          }))
+                        }
+                        placeholder="sk-..."
                         className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>

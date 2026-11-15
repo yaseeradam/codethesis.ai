@@ -28,6 +28,14 @@ export async function GET(req: NextRequest) {
           configured: !!keys.openai && keys.openai.trim() !== '',
           masked: maskKey(keys.openai),
         },
+        groq: {
+          configured: !!keys.groq && keys.groq.trim() !== '',
+          masked: maskKey(keys.groq),
+        },
+        qwen: {
+          configured: !!keys.qwen && keys.qwen.trim() !== '',
+          masked: maskKey(keys.qwen),
+        },
         anthropic: {
           configured: !!keys.anthropic && keys.anthropic.trim() !== '',
           masked: maskKey(keys.anthropic),
@@ -56,12 +64,14 @@ export async function POST(req: NextRequest) {
       body = {};
     }
 
-    const { activeProvider, gemini, openai, anthropic, deepseek } = body as any;
+    const { activeProvider, gemini, openai, groq, qwen, anthropic, deepseek } = body as any;
 
     const updatedSettings = await updateAdminApiKeys({
       activeProvider,
       gemini,
       openai,
+      groq,
+      qwen,
       anthropic,
       deepseek,
     });
@@ -80,6 +90,14 @@ export async function POST(req: NextRequest) {
         openai: {
           configured: !!keys.openai && keys.openai.trim() !== '',
           masked: maskKey(keys.openai),
+        },
+        groq: {
+          configured: !!keys.groq && keys.groq.trim() !== '',
+          masked: maskKey(keys.groq),
+        },
+        qwen: {
+          configured: !!keys.qwen && keys.qwen.trim() !== '',
+          masked: maskKey(keys.qwen),
         },
         anthropic: {
           configured: !!keys.anthropic && keys.anthropic.trim() !== '',

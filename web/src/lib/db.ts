@@ -109,7 +109,7 @@ export interface AdminSettings {
     assignmentSolver: number; // default: 1
   };
   aiEngine: {
-    activeProvider: 'heuristic' | 'gemini' | 'openai' | 'anthropic' | 'deepseek';
+    activeProvider: 'heuristic' | 'gemini' | 'openai' | 'groq' | 'qwen' | 'anthropic' | 'deepseek';
     modelName: string;
     temperature: number;
     maxTokens: number;
@@ -118,6 +118,8 @@ export interface AdminSettings {
     apiKeys?: {
       gemini?: string;
       openai?: string;
+      groq?: string;
+      qwen?: string;
       anthropic?: string;
       deepseek?: string;
     };
@@ -691,9 +693,11 @@ export async function getVivaSession(sessionId: string): Promise<VivaSession | n
 // Admin AI Key Vault Operations
 // ─────────────────────────────────────────────────────────────
 export async function updateAdminApiKeys(payload: {
-  activeProvider?: 'heuristic' | 'gemini' | 'openai' | 'anthropic' | 'deepseek';
+  activeProvider?: 'heuristic' | 'gemini' | 'openai' | 'groq' | 'qwen' | 'anthropic' | 'deepseek';
   gemini?: string;
   openai?: string;
+  groq?: string;
+  qwen?: string;
   anthropic?: string;
   deepseek?: string;
 }): Promise<AdminSettings> {
@@ -720,6 +724,12 @@ export async function updateAdminApiKeys(payload: {
   }
   if (payload.openai !== undefined) {
     db.settings.aiEngine.apiKeys.openai = payload.openai;
+  }
+  if (payload.groq !== undefined) {
+    db.settings.aiEngine.apiKeys.groq = payload.groq;
+  }
+  if (payload.qwen !== undefined) {
+    db.settings.aiEngine.apiKeys.qwen = payload.qwen;
   }
   if (payload.anthropic !== undefined) {
     db.settings.aiEngine.apiKeys.anthropic = payload.anthropic;
