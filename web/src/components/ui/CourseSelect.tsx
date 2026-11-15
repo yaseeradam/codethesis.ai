@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { GraduationCap, Edit3 } from 'lucide-react';
 
 export const STANDARD_COURSES = [
   'Computer Science',
@@ -49,15 +48,13 @@ interface CourseSelectProps {
 export default function CourseSelect({
   value,
   onChange,
-  label = 'Course of Study',
-  placeholder = 'Type your exact course / department (e.g. Cyber Forensics)...',
+  label = 'Course / Department',
+  placeholder = 'Enter your course or department...',
   required = false,
   className = '',
 }: CourseSelectProps) {
-  // Check if current value matches one of the standard presets (excluding 'Other')
   const isPreset = STANDARD_COURSES.slice(0, -1).includes(value);
 
-  // If not in presets, mode is 'Other'
   const [selectedOption, setSelectedOption] = useState<string>(
     isPreset ? value : 'Other'
   );
@@ -94,17 +91,9 @@ export default function CourseSelect({
   return (
     <div className={`space-y-1.5 ${className}`}>
       {label && (
-        <label className="flex items-center justify-between text-xs font-bold text-slate-700">
-          <span className="flex items-center gap-1.5">
-            <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
-            <span>{label}</span>
-            {required && <span className="text-rose-500">*</span>}
-          </span>
-          {selectedOption === 'Other' && (
-            <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
-              Custom Course
-            </span>
-          )}
+        <label className="block text-xs font-medium text-slate-700">
+          <span>{label}</span>
+          {required && <span className="text-rose-500 ml-0.5">*</span>}
         </label>
       )}
 
@@ -113,27 +102,26 @@ export default function CourseSelect({
         <select
           value={selectedOption}
           onChange={handleSelectChange}
-          className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10 cursor-pointer"
+          className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 outline-none transition-all shadow-xs cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[right_12px_center] bg-no-repeat pr-9"
         >
           {STANDARD_COURSES.map(course => (
             <option key={course} value={course}>
-              {course === 'Other' ? '✨ Other (Enter custom course...)' : course}
+              {course === 'Other' ? 'Other (Enter custom department...)' : course}
             </option>
           ))}
         </select>
       </div>
 
-      {/* Dynamic Custom Course Text Input (Shows when "Other" is selected) */}
+      {/* Dynamic Custom Course Text Input */}
       {selectedOption === 'Other' && (
-        <div className="relative animate-in fade-in slide-in-from-top-1 duration-200 pt-0.5">
-          <Edit3 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sky-500 pointer-events-none" />
+        <div className="pt-1 animate-fadeIn">
           <input
             type="text"
             required={required}
             value={customCourse}
             onChange={handleCustomInputChange}
             placeholder={placeholder}
-            className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
+            className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
             autoFocus
           />
         </div>

@@ -4,27 +4,19 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import CourseSelect from '@/components/ui/CourseSelect';
 import { useAuth } from '@/context/AuthContext';
 import { signInWithGoogle } from '@/lib/firebase';
+import CourseSelect from '@/components/ui/CourseSelect';
 import {
-  Lock,
-  Mail,
-  User,
-  Building,
-  Hash,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  Gift,
-  AlertCircle,
-  Loader2,
   Eye,
   EyeOff,
-  Sparkles
+  AlertCircle,
+  CheckCircle2,
+  Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 
-function GoogleIcon({ className = "w-5 h-5" }: { className?: string }) {
+function GoogleIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24">
       <path
@@ -61,7 +53,7 @@ export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const [loaderStatus, setLoaderStatus] = useState('Securing credentials & registering account...');
+  const [loaderStatus, setLoaderStatus] = useState('Securing credentials...');
   const [errorMsg, setErrorMsg] = useState('');
 
   async function handleRegister(e: React.FormEvent) {
@@ -69,7 +61,7 @@ export default function RegisterPage() {
     setErrorMsg('');
     setIsSubmitting(true);
     setRegistrationSuccess(false);
-    setLoaderStatus('Hashing credentials & creating scholar profile...');
+    setLoaderStatus('Creating scholar profile...');
 
     try {
       const res = await register({
@@ -88,11 +80,10 @@ export default function RegisterPage() {
       }
 
       setRegistrationSuccess(true);
-      setLoaderStatus('Allocating 15 free starter credits in Neon DB...');
+      setLoaderStatus('Allocating 15 starter credits...');
 
-      // Guaranteed hard redirect via window.location to pass cookie and trigger dashboard
       setTimeout(() => {
-        setLoaderStatus('Launching your academic workspace...');
+        setLoaderStatus('Launching your workspace...');
         window.location.href = '/dashboard';
       }, 700);
     } catch (err: any) {
@@ -115,7 +106,7 @@ export default function RegisterPage() {
         return;
       }
 
-      setLoaderStatus('Provisioning scholar account in Neon DB...');
+      setLoaderStatus('Provisioning scholar account...');
       const syncRes = await loginWithGoogle(googleRes.user);
       if (!syncRes.success) {
         setErrorMsg(syncRes.error || 'Failed to initialize account with Google.');
@@ -124,7 +115,7 @@ export default function RegisterPage() {
       }
 
       setRegistrationSuccess(true);
-      setLoaderStatus('Account created! Launching dashboard...');
+      setLoaderStatus('Account created! Launching workspace...');
       setTimeout(() => {
         window.location.href = '/dashboard';
       }, 700);
@@ -135,7 +126,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex items-center justify-center p-4 sm:p-6 relative font-sans">
       {/* Centered Modal Loader at the Middle of the Page */}
       {(isSubmitting || isGoogleSubmitting) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fadeIn">
@@ -154,8 +145,8 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
-                {registrationSuccess ? 'Account Created Successfully!' : 'Creating Your Account...'}
+              <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                {registrationSuccess ? 'Account Created!' : 'Setting Up Account...'}
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed font-medium">
                 {loaderStatus}
@@ -179,237 +170,159 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* Background Ambient Accents */}
-      <div className="absolute top-1/4 -left-20 w-80 h-80 bg-sky-400/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Main Container Card with Refined 1px Border and Soft Shadow */}
-      <div className="w-full max-w-4xl bg-white border border-slate-200/90 shadow-2xl shadow-slate-200/60 rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10">
-        
-        {/* Left Side: Brand & Benefits (5 Cols) */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-slate-50 via-sky-50/40 to-blue-50/30 p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200/80 relative">
-          <div className="space-y-6">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="relative w-11 h-11 rounded-2xl overflow-hidden border border-sky-300 shadow-sm flex-shrink-0">
-                <Image
-                  src="/assets/logo_codethesis_3d.jpg"
-                  alt="CodeThesis 3D Logo"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-slate-950 text-xl tracking-tight">CodeThesis</span>
-                  <span className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-xs">
-                    AI
-                  </span>
-                </div>
-                <p className="text-[10px] text-sky-700 font-bold uppercase tracking-wider">Build • Document • Defend</p>
-              </div>
-            </Link>
-
-            <div>
-              <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Create Student Account</h1>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Join thousands of final-year scholars generating thesis dissertations, software packages, and viva defense slides.
-              </p>
+      {/* Main Register Card - Clean, Focused, Minimal */}
+      <div className="w-full max-w-[500px] bg-white border border-slate-200/90 shadow-xl shadow-slate-200/50 rounded-2xl p-6 sm:p-8 relative z-10 space-y-5">
+        {/* Brand Header */}
+        <div className="text-center space-y-2">
+          <Link href="/" className="inline-flex items-center gap-2.5 group">
+            <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-sky-200 shadow-xs flex-shrink-0">
+              <Image
+                src="/assets/logo_codethesis_3d.jpg"
+                alt="CodeThesis Logo"
+                fill
+                className="object-cover"
+                priority
+              />
             </div>
-
-            {/* Free Starter Credits Callout */}
-            <div className="p-4 rounded-2xl bg-sky-50/80 border border-sky-200 space-y-1.5 shadow-xs">
-              <div className="flex items-center gap-2 text-sky-800 font-black text-xs">
-                <Gift className="w-4 h-4 text-sky-600 flex-shrink-0" />
-                <span>15 Free Starter Credits Granted</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                Immediately compile your 5-chapter thesis draft, software code ZIP, and defense cheatsheet upon sign-up.
-              </p>
+            <div className="flex items-center gap-1">
+              <span className="font-extrabold text-slate-950 text-lg tracking-tight">CodeThesis</span>
+              <span className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-2xs">
+                AI
+              </span>
             </div>
-
-            <div className="space-y-2.5 pt-1">
-              {[
-                'NUC Standard 5-Chapter Thesis Compilers',
-                'Zero-pip runnable Python software repos',
-                'Interactive Viva oral examiner simulator',
-                'Custom course & university degree calibration',
-              ].map(feat => (
-                <div key={feat} className="flex items-center gap-2 text-xs text-slate-700 font-medium">
-                  <div className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 border border-emerald-300">
-                    <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />
-                  </div>
-                  <span>{feat}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-slate-200/80 mt-6 text-xs text-slate-600">
-            Already have an account?{' '}
-            <Link href="/auth/login" className="text-sky-600 font-bold hover:underline">
-              Sign In &rarr;
-            </Link>
+          </Link>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Create your account</h1>
+            <p className="text-xs text-slate-500 mt-0.5">Includes 15 free starter credits for your project</p>
           </div>
         </div>
 
-        {/* Right Side: Form (7 Cols) */}
-        <div className="lg:col-span-7 p-6 sm:p-10 bg-white flex flex-col justify-center space-y-4">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Student Registration</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Quick 1-step registration with 15 free starter credits.</p>
+        {/* Google 1-Click Sign-Up */}
+        <div>
+          <button
+            type="button"
+            onClick={handleGoogleSignUp}
+            disabled={isGoogleSubmitting || isSubmitting}
+            className="w-full h-11 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-medium text-xs sm:text-sm rounded-xl shadow-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-60"
+          >
+            <GoogleIcon className="w-4 h-4 flex-shrink-0" />
+            <span>Sign up with Google</span>
+          </button>
+        </div>
+
+        {/* Minimal Divider */}
+        <div className="relative flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-200" />
+          </div>
+          <div className="relative bg-white px-3 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+            or
+          </div>
+        </div>
+
+        {/* Error Alert */}
+        {errorMsg && (
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 font-medium animate-fadeIn">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {/* Registration Form */}
+        <form onSubmit={handleRegister} className="space-y-3.5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-slate-700">Full name</label>
+            <input
+              type="text"
+              required
+              value={fullName}
+              onChange={e => setFullName(e.target.value)}
+              placeholder="e.g. Babatunde Segun"
+              className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
+            />
           </div>
 
-          {/* Google 1-Click Sign Up */}
-          <div>
-            <button
-              type="button"
-              onClick={handleGoogleSignUp}
-              disabled={isGoogleSubmitting || isSubmitting}
-              className="w-full py-2.5 px-4 bg-white hover:bg-slate-50/80 border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 font-semibold rounded-xl shadow-xs hover:shadow-sm flex items-center justify-center gap-3 transition-all active:scale-[0.99] cursor-pointer disabled:opacity-60"
-            >
-              {isGoogleSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-sky-600" />
-                  <span className="text-xs font-medium">Setting up account with Google...</span>
-                </>
-              ) : (
-                <>
-                  <GoogleIcon className="w-5 h-5 flex-shrink-0" />
-                  <span className="text-xs font-semibold">Sign up with Google</span>
-                </>
-              )}
-            </button>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-slate-700">Student university email</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="name@university.edu.ng"
+              className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
+            />
           </div>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 text-slate-400 text-xs font-semibold">
-            <div className="flex-1 h-px bg-slate-200" />
-            <span className="uppercase text-[10px] tracking-wider text-slate-400 font-medium">or register with email</span>
-            <div className="flex-1 h-px bg-slate-200" />
+          <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-slate-700">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl pl-3.5 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
-          <form onSubmit={handleRegister} className="space-y-3.5">
-            {errorMsg && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 font-medium animate-fadeIn">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Full Name</label>
-                <div className="relative group">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={e => setFullName(e.target.value)}
-                    placeholder="e.g. Adebayo Tunde"
-                    className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Matric / Reg Number</label>
-                <div className="relative group">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
-                    <Hash className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="text"
-                    value={matricNumber}
-                    onChange={e => setMatricNumber(e.target.value)}
-                    placeholder="e.g. FUTA/CSC/20/4182"
-                    className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
-                  />
-                </div>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-slate-700">Institution</label>
+              <input
+                type="text"
+                value={institution}
+                onChange={e => setInstitution(e.target.value)}
+                placeholder="e.g. FUTA, UNILAG, ABU"
+                className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Student University Email</label>
-              <div className="relative group">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="student@futa.edu.ng"
-                  className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
-                />
-              </div>
+              <CourseSelect
+                value={course}
+                onChange={setCourse}
+                label="Department"
+              />
             </div>
+          </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
-              <div className="relative group">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="At least 6 characters"
-                  className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:text-sky-600 transition-colors cursor-pointer"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-slate-700">Matric / Reg number (optional)</label>
+            <input
+              type="text"
+              value={matricNumber}
+              onChange={e => setMatricNumber(e.target.value)}
+              placeholder="e.g. FUTA/CSC/20/4182"
+              className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
+            />
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-0.5">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Tertiary Institution</label>
-                <div className="relative group">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 group-hover:text-slate-600 transition-colors pointer-events-none">
-                    <Building className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="text"
-                    value={institution}
-                    onChange={e => setInstitution(e.target.value)}
-                    placeholder="Federal University of Technology, Akure"
-                    className="w-full bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none transition-all shadow-xs focus:ring-4 focus:ring-sky-500/10"
-                  />
-                </div>
-              </div>
+          <button
+            type="submit"
+            disabled={isSubmitting || isGoogleSubmitting}
+            className="w-full mt-2 h-11 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white font-medium text-xs sm:text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
+          >
+            <span>Create account</span>
+          </button>
+        </form>
 
-              <div>
-                <CourseSelect
-                  value={course}
-                  onChange={setCourse}
-                  label="Course / Department"
-                  placeholder="e.g. Mechatronics, Cyber Forensics..."
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full mt-2 py-3 bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-md shadow-sky-500/25 hover:shadow-lg hover:shadow-sky-500/30 flex items-center justify-center gap-2 transition-transform active:scale-[0.99] disabled:opacity-50 cursor-pointer"
-            >
-              <span>{isSubmitting ? 'Creating Account & Loading Credits...' : 'Create Account & Claim 15 Free Credits'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </form>
+        {/* Footer Link */}
+        <div className="text-center text-xs text-slate-500 pt-1">
+          Already have an account?{' '}
+          <Link href="/auth/login" className="font-semibold text-sky-600 hover:text-sky-700">
+            Sign in
+          </Link>
         </div>
       </div>
     </div>
