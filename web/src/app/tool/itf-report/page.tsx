@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 import CourseSelect from '@/components/ui/CourseSelect';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
@@ -174,6 +175,24 @@ export default function ItfReportPage() {
       title="ITF Technical Defense Report Generator"
       subtitle="Generates comprehensive 30–50 pages 5-Chapter SIWES defense reports formatted to institutional guidelines"
     >
+      {/* SIWES & ITF Industrial Training Suite Hub Switcher */}
+      <div className="flex items-center gap-2 mb-5 bg-slate-200/80 p-1.5 rounded-2xl w-fit">
+        <Link
+          href="/tool/siwes-logbook"
+          className="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center gap-2 transition-colors"
+        >
+          <BookOpen className="w-3.5 h-3.5 text-teal-600" />
+          <span>Weekly Work Logbook (12–24 Weeks)</span>
+        </Link>
+        <Link
+          href="/tool/itf-report"
+          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white text-slate-900 shadow-xs flex items-center gap-2"
+        >
+          <FileCheck className="w-3.5 h-3.5 text-fuchsia-600" />
+          <span>Final 5-Chapter Technical Defense Report</span>
+        </Link>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Control Sidebar (4 Cols) */}
         <div className="lg:col-span-4 space-y-4">

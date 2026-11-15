@@ -209,148 +209,188 @@ function LoginContent() {
         </div>
       )}
 
-      {/* Main Login Card - Glassmorphism */}
-      <div className="w-full max-w-[420px] bg-white/85 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-slate-950/50 rounded-3xl p-6 sm:p-8 relative z-10 space-y-6 ring-1 ring-white/40">
-        {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-sky-200 shadow-xs flex-shrink-0">
-              <Image
-                src="/assets/logo_codethesis_3d.jpg"
-                alt="CodeThesis Logo"
-                fill
-                className="object-cover"
-                priority
-              />
+      {/* Main Login Card - Landscape Glassmorphism */}
+      <div className="w-full max-w-4xl bg-white/92 backdrop-blur-2xl border border-white/70 shadow-2xl shadow-slate-950/50 rounded-3xl overflow-hidden relative z-10 grid grid-cols-1 md:grid-cols-12 ring-1 ring-white/50">
+        {/* Left Academic Brand Showcase Panel (5 Cols) */}
+        <div className="md:col-span-5 bg-gradient-to-br from-slate-950/95 via-slate-900/90 to-blue-950/95 p-6 sm:p-8 text-white flex flex-col justify-between relative overflow-hidden">
+          {/* Ambient Glow Orbs */}
+          <div className="absolute -top-12 -left-12 w-44 h-44 bg-cyan-500/25 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -right-12 w-44 h-44 bg-blue-600/25 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 space-y-5">
+            <Link href="/" className="inline-flex items-center gap-2.5 group">
+              <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-cyan-400/40 shadow-md shadow-cyan-500/20 flex-shrink-0">
+                <Image
+                  src="/assets/logo_codethesis_3d.jpg"
+                  alt="CodeThesis Logo"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-extrabold text-white text-lg tracking-tight">CodeThesis</span>
+                  <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-xs">
+                    AI
+                  </span>
+                </div>
+                <p className="text-[9px] tracking-wider uppercase text-cyan-300/80 font-medium">
+                  Build • Document • Defend
+                </p>
+              </div>
+            </Link>
+
+            <div className="pt-4 space-y-2.5">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 text-[10px] font-bold">
+                <Sparkles className="w-3 h-3 text-cyan-400" />
+                <span>NUC 2025/2026 Calibrated</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-white leading-tight tracking-tight">
+                Academic Engineering Workspace
+              </h2>
+              <p className="text-xs text-slate-300 leading-relaxed font-normal">
+                Everything you need for your undergraduate thesis, system software, and oral defense in one platform.
+              </p>
             </div>
-            <div className="flex items-center gap-1">
-              <span className="font-extrabold text-slate-950 text-lg tracking-tight">CodeThesis</span>
-              <span className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-2xs">
-                AI
-              </span>
+          </div>
+
+          {/* Bottom Trust Highlights */}
+          <div className="relative z-10 pt-6 mt-6 border-t border-slate-800/80 space-y-2 text-[11px] text-slate-300">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span>Turnitin Safe Guaranteed (&lt;8% similarity)</span>
             </div>
-          </Link>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-sky-400 flex-shrink-0" />
+              <span>Approved across 80+ Nigerian Universities</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Form Panel (7 Cols) */}
+        <div className="md:col-span-7 p-6 sm:p-8 flex flex-col justify-center space-y-5">
           <div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
             <p className="text-xs text-slate-500 mt-0.5">Sign in to your account to continue</p>
           </div>
-        </div>
 
-        {/* High-Visibility Error Alert Banner */}
-        {errorMessage && (
-          <div className="p-3.5 rounded-xl bg-red-50/95 border-2 border-red-200 text-red-800 text-xs flex items-start gap-2.5 font-medium animate-fadeIn backdrop-blur-xs">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600 mt-0.5" />
-            <div className="space-y-0.5 flex-1">
-              <p className="font-semibold text-red-900">Sign-in Failed</p>
-              <p className="text-red-700 leading-relaxed">{errorMessage}</p>
+          {/* High-Visibility Error Alert Banner */}
+          {errorMessage && (
+            <div className="p-3.5 rounded-xl bg-red-50/95 border-2 border-red-200 text-red-800 text-xs flex items-start gap-2.5 font-medium animate-fadeIn">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600 mt-0.5" />
+              <div className="space-y-0.5 flex-1">
+                <p className="font-semibold text-red-900">Sign-in Failed</p>
+                <p className="text-red-700 leading-relaxed">{errorMessage}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Google 1-Click Sign-In */}
+          <div>
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={isGoogleSubmitting || isSubmitting}
+              className="w-full h-11 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-medium text-xs sm:text-sm rounded-xl shadow-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-60"
+            >
+              <GoogleIcon className="w-4 h-4 flex-shrink-0" />
+              <span>Continue with Google</span>
+            </button>
+          </div>
+
+          {/* Minimal Divider */}
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200" />
+            </div>
+            <div className="relative bg-white/90 backdrop-blur-xs px-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider rounded-full">
+              or
             </div>
           </div>
-        )}
 
-        {/* Google 1-Click Sign-In */}
-        <div>
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={isGoogleSubmitting || isSubmitting}
-            className="w-full h-11 bg-white/90 hover:bg-white border border-slate-200/90 hover:border-slate-300 text-slate-700 font-medium text-xs sm:text-sm rounded-xl shadow-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-60"
-          >
-            <GoogleIcon className="w-4 h-4 flex-shrink-0" />
-            <span>Continue with Google</span>
-          </button>
-        </div>
-
-        {/* Minimal Divider */}
-        <div className="relative flex items-center justify-center">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-300/60" />
-          </div>
-          <div className="relative bg-white/80 backdrop-blur-xs px-3 text-[11px] font-medium text-slate-500 uppercase tracking-wider rounded-full">
-            or
-          </div>
-        </div>
-
-        {/* Standard Email/Password Form */}
-        <form onSubmit={handleStandardLogin} noValidate className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-700">Email address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => {
-                setEmail(e.target.value);
-                if (emailError) setEmailError('');
-                if (errorMessage) setErrorMessage('');
-              }}
-              placeholder="name@university.edu.ng"
-              className={`w-full h-11 bg-white/95 focus:bg-white border ${
-                emailError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
-              } rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
-            />
-            {emailError && (
-              <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
-                <XCircle className="w-3 h-3 flex-shrink-0" />
-                <span>{emailError}</span>
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-medium text-slate-700">Password</label>
-              <Link
-                href="/auth/forgot-password"
-                className="text-xs font-medium text-sky-600 hover:text-sky-700 transition-colors"
-              >
-                Forgot password?
-              </Link>
-            </div>
-            <div className="relative">
+          {/* Standard Email/Password Form */}
+          <form onSubmit={handleStandardLogin} noValidate className="space-y-3.5">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-slate-700">Email address</label>
               <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
+                type="email"
+                value={email}
                 onChange={e => {
-                  setPassword(e.target.value);
-                  if (passwordError) setPasswordError('');
+                  setEmail(e.target.value);
+                  if (emailError) setEmailError('');
                   if (errorMessage) setErrorMessage('');
                 }}
-                placeholder="••••••••"
+                placeholder="name@university.edu.ng"
                 className={`w-full h-11 bg-white/95 focus:bg-white border ${
-                  passwordError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
-                } rounded-xl pl-3.5 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
+                  emailError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+                } rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 cursor-pointer"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+              {emailError && (
+                <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
+                  <XCircle className="w-3 h-3 flex-shrink-0" />
+                  <span>{emailError}</span>
+                </p>
+              )}
             </div>
-            {passwordError && (
-              <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
-                <XCircle className="w-3 h-3 flex-shrink-0" />
-                <span>{passwordError}</span>
-              </p>
-            )}
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-medium text-slate-700">Password</label>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs font-medium text-sky-600 hover:text-sky-700 transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => {
+                    setPassword(e.target.value);
+                    if (passwordError) setPasswordError('');
+                    if (errorMessage) setErrorMessage('');
+                  }}
+                  placeholder="••••••••"
+                  className={`w-full h-11 bg-white/95 focus:bg-white border ${
+                    passwordError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+                  } rounded-xl pl-3.5 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {passwordError && (
+                <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
+                  <XCircle className="w-3 h-3 flex-shrink-0" />
+                  <span>{passwordError}</span>
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting || isGoogleSubmitting}
+              className="w-full h-11 bg-slate-950 hover:bg-slate-900 active:bg-black text-white font-medium text-xs sm:text-sm rounded-xl shadow-lg shadow-slate-950/25 transition-all flex items-center justify-center cursor-pointer disabled:opacity-50"
+            >
+              <span>Sign in &rarr;</span>
+            </button>
+          </form>
+
+          {/* Footer Link */}
+          <div className="text-center text-xs text-slate-500 pt-1">
+            Don&apos;t have an account?{' '}
+            <Link href="/auth/register" className="font-semibold text-sky-600 hover:text-sky-700">
+              Sign up
+            </Link>
           </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting || isGoogleSubmitting}
-            className="w-full h-11 bg-slate-950 hover:bg-slate-900 active:bg-black text-white font-medium text-xs sm:text-sm rounded-xl shadow-lg shadow-slate-950/25 transition-all flex items-center justify-center cursor-pointer disabled:opacity-50"
-          >
-            <span>Sign in &rarr;</span>
-          </button>
-        </form>
-
-        {/* Footer Link */}
-        <div className="text-center text-xs text-slate-500 pt-1">
-          Don&apos;t have an account?{' '}
-          <Link href="/auth/register" className="font-semibold text-sky-600 hover:text-sky-700">
-            Sign up
-          </Link>
         </div>
       </div>
     </div>

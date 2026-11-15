@@ -1607,6 +1607,28 @@
   ],
   "authAuditLogs": [
     {
+      "id": "audit-f701d5ec",
+      "email": "adebayo@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.167 Safari/537.36 Antigravity/2.32.0",
+      "metadata": {
+        "reason": "user_not_found"
+      },
+      "timestamp": "2026-11-15T22:01:14.803Z"
+    },
+    {
+      "id": "audit-33fee0c5",
+      "email": "wrong@abu.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.167 Safari/537.36 Antigravity/2.32.0",
+      "metadata": {
+        "reason": "user_not_found"
+      },
+      "timestamp": "2026-11-15T21:15:27.712Z"
+    },
+    {
       "id": "audit-5369b429",
       "userId": "usr-60f0ed22",
       "email": "ibrahim_test_1794769582325@abu.edu.ng",

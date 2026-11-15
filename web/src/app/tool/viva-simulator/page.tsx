@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 import CourseSelect from '@/components/ui/CourseSelect';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
@@ -21,6 +22,7 @@ import {
   UserCheck,
   BrainCircuit,
   MessageSquareQuote,
+  Presentation,
   Loader2
 } from 'lucide-react';
 
@@ -226,6 +228,24 @@ export default function VivaSimulatorPage() {
       title="Viva Defense Simulator"
       subtitle="Interactive mock defense panel with speech-to-text, real-time examiner scoring rubric, and tricky questions"
     >
+      {/* Viva Defense Suite Tab Switcher */}
+      <div className="flex items-center gap-2 mb-5 bg-slate-200/80 p-1.5 rounded-2xl w-fit">
+        <Link
+          href="/tool/viva-presentation"
+          className="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center gap-2 transition-colors"
+        >
+          <Presentation className="w-3.5 h-3.5 text-blue-600" />
+          <span>15-Slide Defense Deck (.pptx)</span>
+        </Link>
+        <Link
+          href="/tool/viva-simulator"
+          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white text-slate-900 shadow-xs flex items-center gap-2"
+        >
+          <Mic className="w-3.5 h-3.5 text-yellow-500" />
+          <span>Oral Defense Mock Simulator</span>
+        </Link>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Panel: Examination Board & Scoring Rubric (4 Cols) */}
         <div className="lg:col-span-4 space-y-4">

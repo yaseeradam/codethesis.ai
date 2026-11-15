@@ -4,6 +4,15 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { sql, isNeonConfigured } from './postgres';
 
+export interface UserPreferences {
+  citationFormat?: 'apa7' | 'harvard' | 'ieee';
+  lineSpacing?: '1.5' | '2.0';
+  pythonGui?: 'tkinter' | 'flask';
+  geminiKey?: string;
+  openAiKey?: string;
+  theme?: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -11,6 +20,11 @@ export interface User {
   fullName: string;
   matricNumber?: string;
   institution?: string;
+  department?: string;
+  phone?: string;
+  degreeLevel?: string;
+  graduationYear?: string;
+  preferences?: UserPreferences;
   plan: 'free' | 'starter' | 'standard' | 'complete' | 'faculty';
   credits: number;
   status?: 'active' | 'flagged' | 'suspended';
@@ -312,7 +326,9 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     try {
       const rows = await sql`
         SELECT id, email, password_hash as "passwordHash", full_name as "fullName",
-               matric_number as "matricNumber", institution, plan, credits,
+               matric_number as "matricNumber", institution, department, phone,
+               degree_level as "degreeLevel", graduation_year as "graduationYear",
+               preferences, plan, credits,
                status, role, reset_token as "resetToken", created_at as "createdAt"
         FROM users
         WHERE LOWER(email) = ${cleanEmail}
@@ -336,7 +352,9 @@ export async function getUserById(id: string): Promise<User | null> {
     try {
       const rows = await sql`
         SELECT id, email, password_hash as "passwordHash", full_name as "fullName",
-               matric_number as "matricNumber", institution, plan, credits,
+               matric_number as "matricNumber", institution, department, phone,
+               degree_level as "degreeLevel", graduation_year as "graduationYear",
+               preferences, plan, credits,
                status, role, reset_token as "resetToken", created_at as "createdAt"
         FROM users
         WHERE id = ${id}
@@ -361,6 +379,11 @@ export async function createUser(userData: {
   fullName: string;
   matricNumber?: string;
   institution?: string;
+  department?: string;
+  phone?: string;
+  degreeLevel?: string;
+  graduationYear?: string;
+  preferences?: UserPreferences;
   role?: 'student' | 'admin';
 }): Promise<User> {
   const existing = await getUserByEmail(userData.email);
@@ -374,6 +397,15 @@ export async function createUser(userData: {
   const fullName = userData.fullName.trim();
   const matricNumber = userData.matricNumber?.trim() || 'FUTA/CSC/20/4182';
   const institution = userData.institution?.trim() || 'Federal University of Technology, Akure';
+  const department = userData.department?.trim() || 'Computer Science';
+  const phone = userData.phone?.trim() || '';
+  const degreeLevel = userData.degreeLevel?.trim() || 'B.Sc';
+  const graduationYear = userData.graduationYear?.trim() || '2026';
+  const preferences = userData.preferences || {
+    citationFormat: 'apa7',
+    lineSpacing: '1.5',
+    pythonGui: 'tkinter',
+  };
   const freeCredits = 15;
   const role = userData.role || 'student';
   const createdAt = new Date().toISOString();
@@ -381,10 +413,12 @@ export async function createUser(userData: {
   if (isNeonConfigured()) {
     try {
       const rows = await sql`
-        INSERT INTO users (id, email, password_hash, full_name, matric_number, institution, plan, credits, role, status, created_at)
-        VALUES (${id}, ${cleanEmail}, ${passwordHash}, ${fullName}, ${matricNumber}, ${institution}, 'free', ${freeCredits}, ${role}, 'active', ${createdAt})
+        INSERT INTO users (id, email, password_hash, full_name, matric_number, institution, department, phone, degree_level, graduation_year, preferences, plan, credits, role, status, created_at)
+        VALUES (${id}, ${cleanEmail}, ${passwordHash}, ${fullName}, ${matricNumber}, ${institution}, ${department}, ${phone}, ${degreeLevel}, ${graduationYear}, ${JSON.stringify(preferences)}, 'free', ${freeCredits}, ${role}, 'active', ${createdAt})
         RETURNING id, email, password_hash as "passwordHash", full_name as "fullName",
-                  matric_number as "matricNumber", institution, plan, credits,
+                  matric_number as "matricNumber", institution, department, phone,
+                  degree_level as "degreeLevel", graduation_year as "graduationYear",
+                  preferences, plan, credits,
                   status, role, reset_token as "resetToken", created_at as "createdAt";
       `;
       if (rows && rows.length > 0) {
@@ -403,6 +437,11 @@ export async function createUser(userData: {
     fullName,
     matricNumber,
     institution,
+    department,
+    phone,
+    degreeLevel,
+    graduationYear,
+    preferences,
     plan: 'free',
     credits: freeCredits,
     role,
@@ -428,6 +467,11 @@ export async function updateUser(id: string, updates: Partial<User>): Promise<Us
           full_name = ${merged.fullName},
           matric_number = ${merged.matricNumber || null},
           institution = ${merged.institution || null},
+          department = ${merged.department || null},
+          phone = ${merged.phone || null},
+          degree_level = ${merged.degreeLevel || null},
+          graduation_year = ${merged.graduationYear || null},
+          preferences = ${JSON.stringify(merged.preferences || {})},
           plan = ${merged.plan},
           credits = ${merged.credits},
           status = ${merged.status || 'active'},
@@ -435,7 +479,9 @@ export async function updateUser(id: string, updates: Partial<User>): Promise<Us
           reset_token = ${merged.resetToken ? JSON.stringify(merged.resetToken) : null}
         WHERE id = ${id}
         RETURNING id, email, password_hash as "passwordHash", full_name as "fullName",
-                  matric_number as "matricNumber", institution, plan, credits,
+                  matric_number as "matricNumber", institution, department, phone,
+                  degree_level as "degreeLevel", graduation_year as "graduationYear",
+                  preferences, plan, credits,
                   status, role, reset_token as "resetToken", created_at as "createdAt";
       `;
       if (rows && rows.length > 0) {

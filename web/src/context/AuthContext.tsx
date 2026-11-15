@@ -2,12 +2,26 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
+export interface UserPreferences {
+  citationFormat?: 'apa7' | 'harvard' | 'ieee';
+  lineSpacing?: '1.5' | '2.0';
+  pythonGui?: 'tkinter' | 'flask';
+  geminiKey?: string;
+  openAiKey?: string;
+  theme?: string;
+}
+
 export interface SafeUser {
   id: string;
   email: string;
   fullName: string;
   matricNumber?: string;
   institution?: string;
+  department?: string;
+  phone?: string;
+  degreeLevel?: string;
+  graduationYear?: string;
+  preferences?: UserPreferences;
   plan: 'free' | 'starter' | 'standard' | 'complete' | 'faculty';
   credits: number;
   status?: 'active' | 'flagged' | 'suspended';

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import CourseSelect from '@/components/ui/CourseSelect';
+import InstitutionSelect from '@/components/ui/InstitutionSelect';
 import { useAuth } from '@/context/AuthContext';
 import {
   Settings,
@@ -42,18 +43,18 @@ const NIGERIAN_UNIVERSITIES = [
 ];
 
 export default function SettingsPage() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'security' | 'formatting' | 'ai-keys' | 'appearance'>('profile');
 
   // Profile state initialized with current session user
   const [fullName, setFullName] = useState(user?.fullName || 'ADEBAYO TUNDE');
   const [matricNumber, setMatricNumber] = useState(user?.matricNumber || 'FUTA/CSC/20/4182');
   const [email, setEmail] = useState(user?.email || 't.adebayo@student.futa.edu.ng');
-  const [phone, setPhone] = useState('+234 814 555 0192');
+  const [phone, setPhone] = useState(user?.phone || '+234 814 555 0192');
   const [institution, setInstitution] = useState(user?.institution || 'Federal University of Technology, Akure (FUTA)');
-  const [department, setDepartment] = useState('Computer Science');
-  const [degreeLevel, setDegreeLevel] = useState('B.Sc');
-  const [graduationYear, setGraduationYear] = useState('2026');
+  const [department, setDepartment] = useState(user?.department || 'Computer Science');
+  const [degreeLevel, setDegreeLevel] = useState(user?.degreeLevel || 'B.Sc');
+  const [graduationYear, setGraduationYear] = useState(user?.graduationYear || '2026');
 
   // Password update state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -63,15 +64,15 @@ export default function SettingsPage() {
   const [passwordError, setPasswordError] = useState('');
 
   // AI BYOK Keys
-  const [geminiKey, setGeminiKey] = useState('');
-  const [openAiKey, setOpenAiKey] = useState('');
+  const [geminiKey, setGeminiKey] = useState(user?.preferences?.geminiKey || '');
+  const [openAiKey, setOpenAiKey] = useState(user?.preferences?.openAiKey || '');
   const [showGemini, setShowGemini] = useState(false);
   const [showOpenAi, setShowOpenAi] = useState(false);
 
   // Formatting preferences
-  const [citationFormat, setCitationFormat] = useState<'apa7' | 'harvard' | 'ieee'>('apa7');
-  const [lineSpacing, setLineSpacing] = useState<'1.5' | '2.0'>('1.5');
-  const [pythonGui, setPythonGui] = useState<'tkinter' | 'flask'>('tkinter');
+  const [citationFormat, setCitationFormat] = useState<'apa7' | 'harvard' | 'ieee'>(user?.preferences?.citationFormat || 'apa7');
+  const [lineSpacing, setLineSpacing] = useState<'1.5' | '2.0'>(user?.preferences?.lineSpacing || '1.5');
+  const [pythonGui, setPythonGui] = useState<'tkinter' | 'flask'>(user?.preferences?.pythonGui || 'tkinter');
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -82,6 +83,15 @@ export default function SettingsPage() {
       if (user.matricNumber) setMatricNumber(user.matricNumber);
       if (user.email) setEmail(user.email);
       if (user.institution) setInstitution(user.institution);
+      if (user.department) setDepartment(user.department);
+      if (user.phone) setPhone(user.phone);
+      if (user.degreeLevel) setDegreeLevel(user.degreeLevel);
+      if (user.graduationYear) setGraduationYear(user.graduationYear);
+      if (user.preferences?.citationFormat) setCitationFormat(user.preferences.citationFormat);
+      if (user.preferences?.lineSpacing) setLineSpacing(user.preferences.lineSpacing);
+      if (user.preferences?.pythonGui) setPythonGui(user.preferences.pythonGui);
+      if (user.preferences?.geminiKey !== undefined) setGeminiKey(user.preferences.geminiKey);
+      if (user.preferences?.openAiKey !== undefined) setOpenAiKey(user.preferences.openAiKey);
     }
   }, [user]);
 
@@ -94,6 +104,17 @@ export default function SettingsPage() {
       fullName,
       matricNumber,
       institution,
+      department,
+      phone,
+      degreeLevel,
+      graduationYear,
+      preferences: {
+        citationFormat,
+        lineSpacing,
+        pythonGui,
+        geminiKey,
+        openAiKey,
+      },
     };
 
     if (newPassword) {
@@ -124,11 +145,15 @@ export default function SettingsPage() {
       return;
     }
 
+    if (refreshUser) {
+      await refreshUser();
+    }
+
     setSavedSuccess(true);
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    setTimeout(() => setSavedSuccess(false), 3000);
+    setTimeout(() => setSavedSuccess(false), 4000);
   }
 
   return (
@@ -208,7 +233,7 @@ export default function SettingsPage() {
                       value={fullName}
                       onChange={e => setFullName(e.target.value)}
                       required
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-medium"
+                      className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 font-medium shadow-xs outline-none transition-all"
                     />
                   </div>
 
@@ -219,7 +244,7 @@ export default function SettingsPage() {
                       value={matricNumber}
                       onChange={e => setMatricNumber(e.target.value)}
                       required
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-medium"
+                      className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 font-medium shadow-xs outline-none transition-all"
                     />
                   </div>
 
@@ -239,7 +264,8 @@ export default function SettingsPage() {
                       type="tel"
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-medium"
+                      placeholder="+234 814 000 0000"
+                      className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 font-medium shadow-xs outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -256,16 +282,12 @@ export default function SettingsPage() {
 
                 <div className="space-y-4 text-xs">
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Select Tertiary Institution</label>
-                    <select
+                    <InstitutionSelect
                       value={institution}
-                      onChange={e => setInstitution(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-medium"
-                    >
-                      {NIGERIAN_UNIVERSITIES.map(u => (
-                        <option key={u} value={u}>{u}</option>
-                      ))}
-                    </select>
+                      onChange={setInstitution}
+                      label="Tertiary Institution"
+                      placeholder="Search list or type your university..."
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -280,7 +302,7 @@ export default function SettingsPage() {
                       <select
                         value={degreeLevel}
                         onChange={e => setDegreeLevel(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900"
+                        className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 font-medium shadow-xs outline-none transition-all"
                       >
                         <option value="B.Sc">B.Sc (Bachelor of Science)</option>
                         <option value="B.Eng">B.Eng (Bachelor of Engineering)</option>
@@ -296,7 +318,7 @@ export default function SettingsPage() {
                         type="text"
                         value={graduationYear}
                         onChange={e => setGraduationYear(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-medium"
+                        className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 font-medium shadow-xs outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -320,7 +342,7 @@ export default function SettingsPage() {
                       value={currentPassword}
                       onChange={e => setCurrentPassword(e.target.value)}
                       placeholder="Enter current password"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-medium"
+                      className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 font-medium shadow-xs outline-none transition-all"
                     />
                   </div>
 
@@ -328,7 +350,7 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1.5"
+                      className="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1.5 cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                       <span>{showPassword ? 'Hide Passwords' : 'Show Passwords'}</span>
@@ -342,7 +364,7 @@ export default function SettingsPage() {
                       value={newPassword}
                       onChange={e => setNewPassword(e.target.value)}
                       placeholder="Min. 6 characters"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-medium"
+                      className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 font-medium shadow-xs outline-none transition-all"
                     />
                   </div>
 
@@ -353,7 +375,7 @@ export default function SettingsPage() {
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
                       placeholder="Repeat new password"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-medium"
+                      className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 font-medium shadow-xs outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -379,7 +401,7 @@ export default function SettingsPage() {
                     <select
                       value={citationFormat}
                       onChange={e => setCitationFormat(e.target.value as any)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900"
+                      className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 shadow-xs outline-none transition-all"
                     >
                       <option value="apa7">APA 7th Edition (Standard)</option>
                       <option value="harvard">Harvard Referencing</option>
@@ -392,7 +414,7 @@ export default function SettingsPage() {
                     <select
                       value={lineSpacing}
                       onChange={e => setLineSpacing(e.target.value as any)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900"
+                      className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 shadow-xs outline-none transition-all"
                     >
                       <option value="1.5">1.5 Lines (NUC Guideline)</option>
                       <option value="2.0">Double Spacing (2.0)</option>
@@ -404,7 +426,7 @@ export default function SettingsPage() {
                     <select
                       value={pythonGui}
                       onChange={e => setPythonGui(e.target.value as any)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900"
+                      className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 shadow-xs outline-none transition-all"
                     >
                       <option value="tkinter">Zero-Pip Tkinter Desktop GUI</option>
                       <option value="flask">Flask / SQLite Local Web App</option>
@@ -431,12 +453,12 @@ export default function SettingsPage() {
                         value={geminiKey}
                         onChange={e => setGeminiKey(e.target.value)}
                         placeholder="AIzaSy..."
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pr-10 text-slate-900 font-mono"
+                        className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 pr-10 text-slate-900 font-mono shadow-xs outline-none transition-all"
                       />
                       <button
                         type="button"
                         onClick={() => setShowGemini(!showGemini)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                       >
                         {showGemini ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -451,12 +473,12 @@ export default function SettingsPage() {
                         value={openAiKey}
                         onChange={e => setOpenAiKey(e.target.value)}
                         placeholder="sk-proj-..."
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pr-10 text-slate-900 font-mono"
+                        className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 pr-10 text-slate-900 font-mono shadow-xs outline-none transition-all"
                       />
                       <button
                         type="button"
                         onClick={() => setShowOpenAi(!showOpenAi)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                       >
                         {showOpenAi ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>

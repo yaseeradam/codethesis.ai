@@ -56,19 +56,74 @@ interface Project {
   href: string;
 }
 
-const ACADEMIC_TOOLS = [
+interface NavItem {
+  id: string;
+  label: string;
+  href: string;
+  icon: any;
+  color: string;
+  badge?: string;
+  desc?: string;
+}
+
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
   {
-    id: 'studio',
-    name: 'Academic Studio',
-    description: 'Complete workspace for your academic project.',
-    href: '/studio',
-    icon: GraduationCap,
-    gradient: 'from-cyan-400 to-blue-500',
+    title: 'Workspace',
+    items: [
+      { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-sky-400' },
+      { id: 'studio', label: 'Academic Studio', href: '/studio', icon: GraduationCap, color: 'text-cyan-400', badge: 'All-in-One' },
+    ],
   },
   {
+    title: 'Capstone Generators',
+    items: [
+      { id: 'thesis', label: 'Thesis Generator', href: '/tool/thesis', icon: FileText, color: 'text-amber-400', desc: 'Chapters 1-5' },
+      { id: 'software-builder', label: 'Software Builder', href: '/tool/software-builder', icon: Code2, color: 'text-emerald-400', desc: 'Code & DB' },
+      { id: 'uml-diagrams', label: 'UML Diagrams', href: '/tool/uml-diagrams', icon: GitFork, color: 'text-purple-400', desc: 'Architecture' },
+    ],
+  },
+  {
+    title: 'Defense & SIWES',
+    items: [
+      { id: 'viva-presentation', label: 'Viva Slide Deck', href: '/tool/viva-presentation', icon: Presentation, color: 'text-blue-400', desc: '15 Slides' },
+      { id: 'viva-simulator', label: 'Viva Oral Simulator', href: '/tool/viva-simulator', icon: Mic, color: 'text-yellow-400', desc: 'Mock Q&A' },
+      { id: 'siwes-logbook', label: 'SIWES Logbook', href: '/tool/siwes-logbook', icon: BookOpen, color: 'text-teal-400', desc: 'Weekly Logs' },
+      { id: 'itf-report', label: 'ITF Technical Report', href: '/tool/itf-report', icon: FileCheck, color: 'text-fuchsia-400', desc: 'Defense Report' },
+    ],
+  },
+  {
+    title: 'Coursework',
+    items: [
+      { id: 'assignment-solver', label: 'Assignment Solver', href: '/tool/assignment-solver', icon: Calculator, color: 'text-sky-400', desc: 'Step-by-step' },
+    ],
+  },
+];
+
+interface AcademicToolItem {
+  id: string;
+  name: string;
+  category: 'capstone' | 'defense-siwes' | 'coursework';
+  categoryLabel: string;
+  description: string;
+  badge: string;
+  href: string;
+  icon: any;
+  gradient: string;
+}
+
+const ACADEMIC_TOOLS: AcademicToolItem[] = [
+  {
     id: 'thesis',
-    name: '5-Chapter Thesis',
-    description: 'Generate a full thesis (~18,000+ words).',
+    name: 'Thesis Generator',
+    category: 'capstone',
+    categoryLabel: 'Capstone',
+    description: 'Chapters 1–5 APA/IEEE formatted with Turnitin <8% defense.',
+    badge: 'Docx & PDF',
     href: '/tool/thesis',
     icon: FileText,
     gradient: 'from-amber-400 to-orange-500',
@@ -76,39 +131,54 @@ const ACADEMIC_TOOLS = [
   {
     id: 'software-builder',
     name: 'Software Builder',
-    description: 'Build & run Python apps with 1-click.',
+    category: 'capstone',
+    categoryLabel: 'Capstone',
+    description: 'Full codebases, interactive frontend & SQLite/Postgres schemas.',
+    badge: 'Code & DB',
     href: '/tool/software-builder',
     icon: Code2,
     gradient: 'from-emerald-400 to-teal-500',
   },
   {
     id: 'uml-engine',
-    name: 'UML Engine',
-    description: 'Create professional UML diagrams.',
+    name: 'UML Diagrams',
+    category: 'capstone',
+    categoryLabel: 'Capstone',
+    description: 'Use Case, Class, Sequence & ERD system architecture models.',
+    badge: 'Visual AST',
     href: '/tool/uml-diagrams',
     icon: GitFork,
     gradient: 'from-purple-400 to-indigo-500',
   },
   {
     id: 'viva-presentation',
-    name: 'Viva Presentation',
-    description: '15-slide defense deck.',
+    name: 'Viva Slide Deck',
+    category: 'defense-siwes',
+    categoryLabel: 'Defense',
+    description: '15-slide defense deck with speaker notes and timings (.pptx).',
+    badge: 'PPTX Deck',
     href: '/tool/viva-presentation',
     icon: Presentation,
     gradient: 'from-blue-500 to-indigo-600',
   },
   {
     id: 'viva-simulator',
-    name: 'Viva Simulator',
-    description: 'Practice your oral defense with AI.',
+    name: 'Viva Oral Simulator',
+    category: 'defense-siwes',
+    categoryLabel: 'Defense',
+    description: 'Practice your oral defense live with AI supervisor examiners.',
+    badge: 'Oral Practice',
     href: '/tool/viva-simulator',
     icon: Mic,
     gradient: 'from-amber-400 to-yellow-500',
   },
   {
     id: 'siwes-logbook',
-    name: 'SIWES Logbook',
-    description: '12–24 Weeks logbook.',
+    name: 'SIWES Weekly Logbook',
+    category: 'defense-siwes',
+    categoryLabel: 'SIWES / IT',
+    description: '12–24 weeks of Monday–Friday daily logs, schematics & remarks.',
+    badge: 'Weekly Logs',
     href: '/tool/siwes-logbook',
     icon: BookOpen,
     gradient: 'from-teal-400 to-emerald-500',
@@ -116,7 +186,10 @@ const ACADEMIC_TOOLS = [
   {
     id: 'itf-report',
     name: 'ITF Technical Report',
-    description: '5-Chapter industrial report.',
+    category: 'defense-siwes',
+    categoryLabel: 'SIWES / IT',
+    description: 'Comprehensive 5-chapter industrial training defense document.',
+    badge: 'Final Defense',
     href: '/tool/itf-report',
     icon: FileCheck,
     gradient: 'from-fuchsia-500 to-purple-600',
@@ -124,7 +197,10 @@ const ACADEMIC_TOOLS = [
   {
     id: 'assignment-solver',
     name: 'Assignment Solver',
-    description: 'Math, proofs & circuits.',
+    category: 'coursework',
+    categoryLabel: 'Coursework',
+    description: 'Step-by-step solutions for advanced engineering, math & proofs.',
+    badge: 'Step-by-Step',
     href: '/tool/assignment-solver',
     icon: Calculator,
     gradient: 'from-sky-400 to-cyan-600',
@@ -210,6 +286,7 @@ function DashboardMain() {
   const [demoBanner, setDemoBanner] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'capstone' | 'defense-siwes' | 'coursework'>('all');
 
   // Live Neon DB projects state
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
@@ -364,9 +441,9 @@ function DashboardMain() {
         {/* Subtle Ambient Cyan Glow Orb at Bottom Left */}
         <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
 
-        {/* Top Brand Section & Collapse Button */}
-        <div>
-          <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center flex-col gap-2' : 'justify-between'} px-1 py-2.5 mb-3`}>
+        {/* Top Brand Section & Nav */}
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+          <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center flex-col gap-2' : 'justify-between'} px-1 py-2.5 mb-2`}>
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="relative w-9 h-9 rounded-xl overflow-hidden shadow-md shadow-cyan-500/20 border border-cyan-400/30 flex-shrink-0">
                 <Image
@@ -396,7 +473,7 @@ function DashboardMain() {
             {/* Collapse / Expand Icon Button */}
             <button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center cursor-pointer"
               title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
               aria-label={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             >
@@ -408,127 +485,50 @@ function DashboardMain() {
             </button>
           </div>
 
-          {/* Primary Tool Navigation */}
-          <nav className="space-y-1">
-            <Link
-              href="/dashboard"
-              prefetch={false}
-              title="Dashboard"
-              className={`flex items-center rounded-xl text-sm font-semibold bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] text-white shadow-md shadow-sky-600/20 transition-all active:scale-95 ${
-                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'
-              }`}
-            >
-              <Home className="w-4 h-4 stroke-[2.2] flex-shrink-0" />
-              {!isSidebarCollapsed && <span className="truncate">Dashboard</span>}
-            </Link>
-
-            <Link
-              href="/studio"
-              prefetch={false}
-              title="Academic Studio"
-              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
-                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
-              }`}
-            >
-              <GraduationCap className="w-4 h-4 text-slate-400 group-hover:text-cyan-400 transition-colors flex-shrink-0" />
-              {!isSidebarCollapsed && <span className="truncate">Academic Studio</span>}
-            </Link>
-
-            <Link
-              href="/tool/thesis"
-              prefetch={false}
-              title="Thesis Generator"
-              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
-                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
-              }`}
-            >
-              <FileText className="w-4 h-4 text-slate-400 group-hover:text-amber-400 transition-colors flex-shrink-0" />
-              {!isSidebarCollapsed && <span className="truncate">Thesis Generator</span>}
-            </Link>
-
-            <Link
-              href="/tool/software-builder"
-              prefetch={false}
-              title="Software Builder"
-              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
-                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
-              }`}
-            >
-              <Code2 className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-colors flex-shrink-0" />
-              {!isSidebarCollapsed && <span className="truncate">Software Builder</span>}
-            </Link>
-
-            <Link
-              href="/tool/uml-diagrams"
-              prefetch={false}
-              title="UML Diagrams"
-              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
-                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
-              }`}
-            >
-              <GitFork className="w-4 h-4 text-slate-400 group-hover:text-purple-400 transition-colors flex-shrink-0" />
-              {!isSidebarCollapsed && <span className="truncate">UML Diagrams</span>}
-            </Link>
-
-            <Link
-              href="/tool/viva-presentation"
-              prefetch={false}
-              title="Viva Presentation"
-              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
-                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
-              }`}
-            >
-              <Presentation className="w-4 h-4 text-slate-400 group-hover:text-blue-400 transition-colors flex-shrink-0" />
-              {!isSidebarCollapsed && <span className="truncate">Viva Presentation</span>}
-            </Link>
-
-            <Link
-              href="/tool/viva-simulator"
-              prefetch={false}
-              title="Viva Simulator"
-              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
-                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
-              }`}
-            >
-              <Mic className="w-4 h-4 text-slate-400 group-hover:text-yellow-400 transition-colors flex-shrink-0" />
-              {!isSidebarCollapsed && <span className="truncate">Viva Simulator</span>}
-            </Link>
-
-            <Link
-              href="/tool/siwes-logbook"
-              prefetch={false}
-              title="SIWES Logbook"
-              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
-                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
-              }`}
-            >
-              <BookOpen className="w-4 h-4 text-slate-400 group-hover:text-teal-400 transition-colors flex-shrink-0" />
-              {!isSidebarCollapsed && <span className="truncate">SIWES Logbook</span>}
-            </Link>
-
-            <Link
-              href="/tool/itf-report"
-              prefetch={false}
-              title="ITF Report"
-              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
-                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
-              }`}
-            >
-              <FileCheck className="w-4 h-4 text-slate-400 group-hover:text-fuchsia-400 transition-colors flex-shrink-0" />
-              {!isSidebarCollapsed && <span className="truncate">ITF Report</span>}
-            </Link>
-
-            <Link
-              href="/tool/assignment-solver"
-              prefetch={false}
-              title="Assignment Solver"
-              className={`flex items-center rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 group ${
-                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
-              }`}
-            >
-              <Calculator className="w-4 h-4 text-slate-400 group-hover:text-sky-400 transition-colors flex-shrink-0" />
-              {!isSidebarCollapsed && <span className="truncate">Assignment Solver</span>}
-            </Link>
+          {/* Primary Tool Navigation by Categorized Sections */}
+          <nav className="space-y-3">
+            {navSections.map((section, idx) => (
+              <div key={section.title} className="space-y-1">
+                {!isSidebarCollapsed && (
+                  <div className={`text-[10px] font-bold text-slate-400/80 uppercase tracking-wider px-3.5 ${idx > 0 ? 'pt-2' : 'pt-0.5'} pb-1`}>
+                    {section.title}
+                  </div>
+                )}
+                {section.items.map((item) => {
+                  const IconComp = item.icon;
+                  const isActive = item.id === 'dashboard';
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      prefetch={false}
+                      title={`${item.label}${item.desc ? ` (${item.desc})` : ''}`}
+                      className={`flex items-center rounded-xl text-sm font-medium transition-all active:scale-95 group ${
+                        isSidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3.5 py-2'
+                      } ${
+                        isActive
+                          ? 'bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] text-white font-semibold shadow-md shadow-sky-600/20'
+                          : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <IconComp
+                          className={`w-4 h-4 flex-shrink-0 ${
+                            isActive ? 'text-white' : 'text-slate-400 group-hover:' + item.color
+                          } transition-colors`}
+                        />
+                        {!isSidebarCollapsed && <span className="truncate text-xs">{item.label}</span>}
+                      </div>
+                      {!isSidebarCollapsed && item.badge && (
+                        <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-cyan-400/15 border border-cyan-400/30 text-cyan-300">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
 
           {/* Subtle Horizontal Divider */}
@@ -732,88 +732,41 @@ function DashboardMain() {
                 </button>
               </div>
 
-              {/* Mobile Primary Nav */}
-              <nav className="space-y-1">
-                <Link
-                  href="/dashboard"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] text-white shadow-md"
-                >
-                  <Home className="w-4 h-4 text-white" />
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  href="/studio"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
-                >
-                  <GraduationCap className="w-4 h-4 text-cyan-400" />
-                  <span>Academic Studio</span>
-                </Link>
-                <Link
-                  href="/tool/thesis"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
-                >
-                  <FileText className="w-4 h-4 text-amber-400" />
-                  <span>Thesis Generator</span>
-                </Link>
-                <Link
-                  href="/tool/software-builder"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
-                >
-                  <Code2 className="w-4 h-4 text-emerald-400" />
-                  <span>Software Builder</span>
-                </Link>
-                <Link
-                  href="/tool/uml-diagrams"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
-                >
-                  <GitFork className="w-4 h-4 text-purple-400" />
-                  <span>UML Diagrams</span>
-                </Link>
-                <Link
-                  href="/tool/viva-presentation"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
-                >
-                  <Presentation className="w-4 h-4 text-blue-400" />
-                  <span>Viva Presentation</span>
-                </Link>
-                <Link
-                  href="/tool/viva-simulator"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
-                >
-                  <Mic className="w-4 h-4 text-yellow-400" />
-                  <span>Viva Simulator</span>
-                </Link>
-                <Link
-                  href="/tool/siwes-logbook"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
-                >
-                  <BookOpen className="w-4 h-4 text-teal-400" />
-                  <span>SIWES Logbook</span>
-                </Link>
-                <Link
-                  href="/tool/itf-report"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
-                >
-                  <FileCheck className="w-4 h-4 text-fuchsia-400" />
-                  <span>ITF Report</span>
-                </Link>
-                <Link
-                  href="/tool/assignment-solver"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
-                >
-                  <Calculator className="w-4 h-4 text-sky-400" />
-                  <span>Assignment Solver</span>
-                </Link>
+              {/* Mobile Primary Nav by Categorized Sections */}
+              <nav className="space-y-3">
+                {navSections.map((section, idx) => (
+                  <div key={section.title} className="space-y-1">
+                    <div className={`text-[10px] font-bold text-slate-400/80 uppercase tracking-wider px-3 ${idx > 0 ? 'pt-2' : 'pt-0.5'} pb-1`}>
+                      {section.title}
+                    </div>
+                    {section.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = item.id === 'dashboard';
+                      return (
+                        <Link
+                          key={item.id}
+                          href={item.href}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                            isActive
+                              ? 'bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] text-white shadow-md'
+                              : 'text-slate-300 hover:text-white hover:bg-white/5'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Icon className={`w-4 h-4 ${isActive ? 'text-white' : item.color}`} />
+                            <span className="truncate">{item.label}</span>
+                          </div>
+                          {item.badge && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-400/20 text-cyan-300">
+                              {item.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))}
               </nav>
 
               <div className="border-t border-slate-800/80 my-3 mx-1" />
@@ -1074,76 +1027,143 @@ function DashboardMain() {
                  Right: Telemetry & Activity Panel (32%)
           ─────────────────────────────────────────────────────────────── */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left 9-Tool Grid */}
-            <div className="lg:col-span-8 space-y-4">
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center">
-                    <Layers className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                      Our 9 Powerful Academic Tools
-                    </h2>
-                    <p className="text-[11px] text-slate-500">
-                      Everything you need for your thesis, projects and academic success.
+            {/* Left Tool Suite (Flagship Studio + 8 Specialized Tools) */}
+            <div className="lg:col-span-8 space-y-5">
+              {/* Flagship All-In-One Studio Hero Card */}
+              <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border border-cyan-500/30 rounded-3xl p-5 sm:p-6 text-white shadow-xl relative overflow-hidden group">
+                <div className="absolute -top-12 -right-12 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform" />
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+                  <div className="space-y-2 max-w-xl">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-[10px] font-bold">
+                      <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Flagship All-In-One Workspace</span>
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                      Academic Studio: Build Your Entire Project In One Place
+                    </h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Synchronize your 5-chapter thesis document, full-stack runnable software, UML architectural diagrams, and viva defense slides in a single integrated project session.
                     </p>
+                    <div className="flex flex-wrap gap-2 pt-1 text-[11px] text-cyan-200/90 font-medium">
+                      <span className="bg-white/10 px-2 py-0.5 rounded-md">Chapters 1–5 Writer</span>
+                      <span className="bg-white/10 px-2 py-0.5 rounded-md">Full-Stack Code Builder</span>
+                      <span className="bg-white/10 px-2 py-0.5 rounded-md">4 UML Architecture Diagrams</span>
+                      <span className="bg-white/10 px-2 py-0.5 rounded-md">15 Defense Slides</span>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <Link
+                      href="/studio"
+                      prefetch={false}
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-bold px-5 py-3 rounded-2xl text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95 group-hover:shadow-cyan-500/40 cursor-pointer"
+                    >
+                      <span>Launch Academic Studio</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Specialized Tools Header & Category Tabs */}
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center">
+                      <Layers className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                        Specialized Project Generators
+                      </h2>
+                      <p className="text-[11px] text-slate-500">
+                        Dedicated standalone tools for each academic deliverable and defense milestone.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Category Filter Pills */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                    {[
+                      { id: 'all', label: `All Tools (${ACADEMIC_TOOLS.length})` },
+                      { id: 'capstone', label: 'Capstone (3)' },
+                      { id: 'defense-siwes', label: 'Defense & SIWES (4)' },
+                      { id: 'coursework', label: 'Coursework (1)' },
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setSelectedCategory(tab.id as any)}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                          selectedCategory === tab.id
+                            ? 'bg-slate-900 text-white shadow-xs'
+                            : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                <Link
-                  href="/studio"
-                  prefetch={false}
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group"
-                >
-                  <span>Explore All Tools</span>
-                  <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                </Link>
-              </div>
+                {/* Filtered Tool Cards Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3.5">
+                  {ACADEMIC_TOOLS.filter((tool) => {
+                    const matchesCategory = selectedCategory === 'all' || tool.category === selectedCategory;
+                    const matchesSearch =
+                      !searchQuery.trim() ||
+                      tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      tool.description.toLowerCase().includes(searchQuery.toLowerCase());
+                    return matchesCategory && matchesSearch;
+                  }).map((tool) => {
+                    const IconComp = tool.icon;
+                    return (
+                      <Link
+                        key={tool.id}
+                        href={tool.href}
+                        prefetch={false}
+                        className="group bg-white border border-slate-200/90 rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all flex flex-col justify-between active:scale-98"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            {/* Custom Tool Squircle Badge */}
+                            <div
+                              className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${tool.gradient} text-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform`}
+                            >
+                              <IconComp className="w-5.5 h-5.5 stroke-[2.2]" />
+                            </div>
 
-              {/* 3x3 Tool Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
-                {(searchQuery.trim()
-                  ? ACADEMIC_TOOLS.filter(
-                      (tool) =>
-                        tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        tool.description.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                  : ACADEMIC_TOOLS
-                ).map((tool) => {
-                  const IconComp = tool.icon;
-                  return (
-                    <Link
-                      key={tool.id}
-                      href={tool.href}
-                      prefetch={false}
-                      className="group bg-white border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all flex items-center justify-between active:scale-98"
-                    >
-                      <div className="flex items-center gap-3 min-w-0 pr-2">
-                        {/* Custom Tool Squircle Badge */}
-                        <div
-                          className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${tool.gradient} text-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform`}
-                        >
-                          <IconComp className="w-5.5 h-5.5 stroke-[2.2]" />
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
-                            {tool.name}
-                          </h3>
-                          <p className="text-[10px] sm:text-[11px] text-slate-500 line-clamp-1 leading-snug">
-                            {tool.description}
-                          </p>
-                        </div>
-                      </div>
+                            {/* Output Badge */}
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                              {tool.badge}
+                            </span>
+                          </div>
 
-                      {/* Right Action Circle Pill */}
-                      <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-500 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center flex-shrink-0 transition-colors">
-                        <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                    </Link>
-                  );
-                })}
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-sky-600 bg-sky-50 px-1.5 py-0.2 rounded">
+                                {tool.categoryLabel}
+                              </span>
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                              {tool.name}
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">
+                              {tool.description}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Bottom Action Row */}
+                        <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-700 group-hover:text-blue-600">
+                          <span>Open Tool &rarr;</span>
+                          <div className="w-5 h-5 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-colors">
+                            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 

@@ -2,6 +2,51 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { updateUser, getUserById, hashPassword } from '@/lib/db';
 
+export async function GET() {
+  try {
+    const sessionUser = await getCurrentUser();
+    const userId = sessionUser?.id || 'demo-student-001';
+
+    const user = await getUserById(userId);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User profile not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        matricNumber: user.matricNumber || '',
+        institution: user.institution || '',
+        department: user.department || 'Computer Science',
+        phone: user.phone || '',
+        degreeLevel: user.degreeLevel || 'B.Sc',
+        graduationYear: user.graduationYear || '2026',
+        preferences: user.preferences || {
+          citationFormat: 'apa7',
+          lineSpacing: '1.5',
+          pythonGui: 'tkinter',
+          geminiKey: '',
+          openAiKey: '',
+        },
+        plan: user.plan,
+        credits: user.credits,
+        role: user.role || 'student',
+      },
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Failed to fetch settings' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(req: NextRequest) {
   try {
     const sessionUser = await getCurrentUser();
@@ -18,6 +63,11 @@ export async function PUT(req: NextRequest) {
       fullName,
       matricNumber,
       institution,
+      department,
+      phone,
+      degreeLevel,
+      graduationYear,
+      preferences,
       plan,
       currentPassword,
       newPassword,
@@ -32,10 +82,21 @@ export async function PUT(req: NextRequest) {
     }
 
     const updates: any = {};
-    if (fullName) updates.fullName = fullName.trim();
-    if (matricNumber) updates.matricNumber = matricNumber.trim();
-    if (institution) updates.institution = institution.trim();
-    if (plan) updates.plan = plan;
+    if (fullName !== undefined) updates.fullName = fullName.trim();
+    if (matricNumber !== undefined) updates.matricNumber = matricNumber.trim();
+    if (institution !== undefined) updates.institution = institution.trim();
+    if (department !== undefined) updates.department = department.trim();
+    if (phone !== undefined) updates.phone = phone.trim();
+    if (degreeLevel !== undefined) updates.degreeLevel = degreeLevel.trim();
+    if (graduationYear !== undefined) updates.graduationYear = graduationYear.trim();
+    if (plan !== undefined) updates.plan = plan;
+
+    if (preferences !== undefined) {
+      updates.preferences = {
+        ...(user.preferences || {}),
+        ...preferences,
+      };
+    }
 
     // Password change verification
     if (newPassword) {
@@ -72,15 +133,21 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Profile updated successfully',
+      message: 'All settings updated and saved to database successfully',
       user: {
         id: updated.id,
         email: updated.email,
         fullName: updated.fullName,
         matricNumber: updated.matricNumber,
         institution: updated.institution,
+        department: updated.department,
+        phone: updated.phone,
+        degreeLevel: updated.degreeLevel,
+        graduationYear: updated.graduationYear,
+        preferences: updated.preferences,
         plan: updated.plan,
         credits: updated.credits,
+        role: updated.role || 'student',
       },
     });
   } catch (error: any) {

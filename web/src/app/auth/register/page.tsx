@@ -252,212 +252,272 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* Main Register Card - Glassmorphism */}
-      <div className="w-full max-w-[500px] bg-white/85 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-slate-950/50 rounded-3xl p-6 sm:p-8 relative z-10 space-y-5 ring-1 ring-white/40">
-        {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-sky-200 shadow-xs flex-shrink-0">
-              <Image
-                src="/assets/logo_codethesis_3d.jpg"
-                alt="CodeThesis Logo"
-                fill
-                className="object-cover"
-                priority
-              />
+      {/* Main Register Card - Landscape Glassmorphism */}
+      <div className="w-full max-w-5xl bg-white/92 backdrop-blur-2xl border border-white/70 shadow-2xl shadow-slate-950/50 rounded-3xl overflow-hidden relative z-10 grid grid-cols-1 lg:grid-cols-12 ring-1 ring-white/50">
+        {/* Left Academic Brand Showcase Panel (5 Cols on LG) */}
+        <div className="lg:col-span-5 bg-gradient-to-br from-slate-950/95 via-slate-900/90 to-blue-950/95 p-6 sm:p-8 text-white flex flex-col justify-between relative overflow-hidden">
+          {/* Ambient Glow Orbs */}
+          <div className="absolute -top-12 -left-12 w-44 h-44 bg-cyan-500/25 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -right-12 w-44 h-44 bg-blue-600/25 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 space-y-6">
+            <Link href="/" className="inline-flex items-center gap-2.5 group">
+              <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-cyan-400/40 shadow-md shadow-cyan-500/20 flex-shrink-0">
+                <Image
+                  src="/assets/logo_codethesis_3d.jpg"
+                  alt="CodeThesis Logo"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-extrabold text-white text-lg tracking-tight">CodeThesis</span>
+                  <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-xs">
+                    AI
+                  </span>
+                </div>
+                <p className="text-[9px] tracking-wider uppercase text-cyan-300/80 font-medium">
+                  Build • Document • Defend
+                </p>
+              </div>
+            </Link>
+
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[10px] font-bold">
+                <Sparkles className="w-3 h-3 text-emerald-400" />
+                <span>15 Free Starter Credits Included</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-white leading-tight tracking-tight">
+                Launch Your Final Year Project With Confidence
+              </h2>
+              <p className="text-xs text-slate-300 leading-relaxed font-normal">
+                Join thousands of Nigerian undergraduate scholars creating supervisor-approved theses, working codebases, and defense presentations.
+              </p>
             </div>
-            <div className="flex items-center gap-1">
-              <span className="font-extrabold text-slate-950 text-lg tracking-tight">CodeThesis</span>
-              <span className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-2xs">
-                AI
-              </span>
+
+            {/* Feature Deliverables List */}
+            <div className="space-y-2.5 pt-2">
+              <div className="flex items-start gap-2.5 text-xs text-slate-200">
+                <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
+                <span><strong className="text-white font-semibold">Complete 5-Chapter Thesis:</strong> Formatted to your university guidelines with Turnitin &lt;8% defense.</span>
+              </div>
+              <div className="flex items-start gap-2.5 text-xs text-slate-200">
+                <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
+                <span><strong className="text-white font-semibold">Full Software Codebase:</strong> Production-ready Python, React, Next.js, or mobile code with runnable schemas.</span>
+              </div>
+              <div className="flex items-start gap-2.5 text-xs text-slate-200">
+                <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
+                <span><strong className="text-white font-semibold">Oral Defense Simulator:</strong> Anticipate tough supervisor questions and prepare PPTX defense slides.</span>
+              </div>
             </div>
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Create your account</h1>
-            <p className="text-xs text-slate-500 mt-0.5">Includes 15 free starter credits for your project</p>
+          </div>
+
+          {/* Bottom Security / Sync Bar */}
+          <div className="relative z-10 pt-6 mt-6 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-300">
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span>Neon PostgreSQL Cloud Synced</span>
+            </div>
+            <span className="text-slate-500">•</span>
+            <span className="text-slate-400">256-Bit Encrypted</span>
           </div>
         </div>
 
-        {/* High-Visibility Error Alert Banner */}
-        {globalErrorMsg && (
-          <div className="p-3.5 rounded-xl bg-red-50/95 border-2 border-red-200 text-red-800 text-xs flex items-start gap-2.5 font-medium animate-fadeIn backdrop-blur-xs">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600 mt-0.5" />
-            <div className="space-y-0.5 flex-1">
-              <p className="font-semibold text-red-900">Registration Notice</p>
-              <p className="text-red-700 leading-relaxed">{globalErrorMsg}</p>
+        {/* Right Form Panel (7 Cols on LG) */}
+        <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-center space-y-4">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Create your student account</h1>
+            <p className="text-xs text-slate-500 mt-0.5">Setup your academic profile to unlock your project workspace</p>
+          </div>
+
+          {/* High-Visibility Error Alert Banner */}
+          {globalErrorMsg && (
+            <div className="p-3.5 rounded-xl bg-red-50/95 border-2 border-red-200 text-red-800 text-xs flex items-start gap-2.5 font-medium animate-fadeIn">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600 mt-0.5" />
+              <div className="space-y-0.5 flex-1">
+                <p className="font-semibold text-red-900">Registration Notice</p>
+                <p className="text-red-700 leading-relaxed">{globalErrorMsg}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Google 1-Click Sign-Up */}
+          <div>
+            <button
+              type="button"
+              onClick={handleGoogleSignUp}
+              disabled={isGoogleSubmitting || isSubmitting}
+              className="w-full h-11 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-medium text-xs sm:text-sm rounded-xl shadow-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-60"
+            >
+              <GoogleIcon className="w-4 h-4 flex-shrink-0" />
+              <span>Sign up with Google</span>
+            </button>
+          </div>
+
+          {/* Minimal Divider */}
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200" />
+            </div>
+            <div className="relative bg-white/90 backdrop-blur-xs px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider rounded-full">
+              or register with student email
             </div>
           </div>
-        )}
 
-        {/* Google 1-Click Sign-Up */}
-        <div>
-          <button
-            type="button"
-            onClick={handleGoogleSignUp}
-            disabled={isGoogleSubmitting || isSubmitting}
-            className="w-full h-11 bg-white/90 hover:bg-white border border-slate-200/90 hover:border-slate-300 text-slate-700 font-medium text-xs sm:text-sm rounded-xl shadow-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-60"
-          >
-            <GoogleIcon className="w-4 h-4 flex-shrink-0" />
-            <span>Sign up with Google</span>
-          </button>
-        </div>
+          {/* Registration Form in 2-Column Responsive Layout */}
+          <form onSubmit={handleRegister} noValidate className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Full Name */}
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-slate-700">
+                  Full name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={e => {
+                    setFullName(e.target.value);
+                    if (fullNameError) setFullNameError('');
+                    if (globalErrorMsg) setGlobalErrorMsg('');
+                  }}
+                  placeholder="e.g. Babatunde Segun"
+                  className={`w-full h-10 bg-white border ${
+                    fullNameError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+                  } rounded-xl px-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
+                />
+                {fullNameError && (
+                  <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
+                    <XCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fullNameError}</span>
+                  </p>
+                )}
+              </div>
 
-        {/* Minimal Divider */}
-        <div className="relative flex items-center justify-center">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-300/60" />
-          </div>
-          <div className="relative bg-white/80 backdrop-blur-xs px-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider rounded-full">
-            or
-          </div>
-        </div>
+              {/* Student University Email */}
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-slate-700">
+                  Student email <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError('');
+                    if (globalErrorMsg) setGlobalErrorMsg('');
+                  }}
+                  placeholder="name@university.edu.ng"
+                  className={`w-full h-10 bg-white border ${
+                    emailError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+                  } rounded-xl px-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
+                />
+                {emailError && (
+                  <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
+                    <XCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{emailError}</span>
+                  </p>
+                )}
+              </div>
 
-        {/* Registration Form */}
-        <form onSubmit={handleRegister} noValidate className="space-y-3.5">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-700">
-              Full name <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={e => {
-                setFullName(e.target.value);
-                if (fullNameError) setFullNameError('');
-                if (globalErrorMsg) setGlobalErrorMsg('');
-              }}
-              placeholder="e.g. Babatunde Segun"
-              className={`w-full h-11 bg-white border ${
-                fullNameError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
-              } rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
-            />
-            {fullNameError && (
-              <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
-                <XCircle className="w-3 h-3 flex-shrink-0" />
-                <span>{fullNameError}</span>
-              </p>
-            )}
-          </div>
+              {/* Password */}
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-slate-700">
+                  Password <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => {
+                      setPassword(e.target.value);
+                      if (passwordError) setPasswordError('');
+                      if (globalErrorMsg) setGlobalErrorMsg('');
+                    }}
+                    placeholder="At least 6 characters"
+                    className={`w-full h-10 bg-white border ${
+                      passwordError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+                    } rounded-xl pl-3 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {passwordError && (
+                  <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
+                    <XCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{passwordError}</span>
+                  </p>
+                )}
+              </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-700">
-              Student university email <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => {
-                setEmail(e.target.value);
-                if (emailError) setEmailError('');
-                if (globalErrorMsg) setGlobalErrorMsg('');
-              }}
-              placeholder="name@university.edu.ng"
-              className={`w-full h-11 bg-white border ${
-                emailError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
-              } rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
-            />
-            {emailError && (
-              <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
-                <XCircle className="w-3 h-3 flex-shrink-0" />
-                <span>{emailError}</span>
-              </p>
-            )}
-          </div>
+              {/* Matric / Reg Number */}
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-slate-700">Matric / Reg No. (optional)</label>
+                <input
+                  type="text"
+                  value={matricNumber}
+                  onChange={e => setMatricNumber(e.target.value)}
+                  placeholder="e.g. FUTA/CSC/20/4182"
+                  className="w-full h-10 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
+                />
+              </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-700">
-              Password <span className="text-rose-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => {
-                  setPassword(e.target.value);
-                  if (passwordError) setPasswordError('');
-                  if (globalErrorMsg) setGlobalErrorMsg('');
-                }}
-                placeholder="At least 6 characters"
-                className={`w-full h-11 bg-white border ${
-                  passwordError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
-                } rounded-xl pl-3.5 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 cursor-pointer"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+              {/* Tertiary Institution (Full row on small, 2 cols on grid) */}
+              <div className="sm:col-span-2">
+                <InstitutionSelect
+                  value={institution}
+                  onChange={val => {
+                    setInstitution(val);
+                    if (institutionError) setInstitutionError('');
+                    if (globalErrorMsg) setGlobalErrorMsg('');
+                  }}
+                  label="Tertiary Institution"
+                  placeholder="Search list or type your university..."
+                  required
+                  error={institutionError}
+                />
+              </div>
+
+              {/* Department / Course of Study (Full row on small, 2 cols on grid) */}
+              <div className="sm:col-span-2">
+                <CourseSelect
+                  value={course}
+                  onChange={val => {
+                    setCourse(val);
+                    if (courseError) setCourseError('');
+                    if (globalErrorMsg) setGlobalErrorMsg('');
+                  }}
+                  label="Department / Course of Study"
+                  placeholder="Search list or type your department..."
+                  required
+                  error={courseError}
+                />
+              </div>
             </div>
-            {passwordError && (
-              <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
-                <XCircle className="w-3 h-3 flex-shrink-0" />
-                <span>{passwordError}</span>
-              </p>
-            )}
+
+            <button
+              type="submit"
+              disabled={isSubmitting || isGoogleSubmitting}
+              className="w-full mt-2 h-11 bg-slate-950 hover:bg-slate-900 active:bg-black text-white font-medium text-xs sm:text-sm rounded-xl shadow-lg shadow-slate-950/25 transition-all flex items-center justify-center cursor-pointer disabled:opacity-50"
+            >
+              <span>Create account &rarr;</span>
+            </button>
+          </form>
+
+          {/* Footer Link */}
+          <div className="text-center text-xs text-slate-500 pt-1">
+            Already have an account?{' '}
+            <Link href="/auth/login" className="font-semibold text-sky-600 hover:text-sky-700">
+              Sign in
+            </Link>
           </div>
-
-          {/* Institution Selector: Searchable, Typeable, List of Nigerian Schools, Manual Fallback */}
-          <div>
-            <InstitutionSelect
-              value={institution}
-              onChange={val => {
-                setInstitution(val);
-                if (institutionError) setInstitutionError('');
-                if (globalErrorMsg) setGlobalErrorMsg('');
-              }}
-              label="Tertiary Institution"
-              placeholder="Search list or type your university..."
-              required
-              error={institutionError}
-            />
-          </div>
-
-          {/* Department Selector: Searchable, Typeable, Popular Courses, Manual Fallback */}
-          <div>
-            <CourseSelect
-              value={course}
-              onChange={val => {
-                setCourse(val);
-                if (courseError) setCourseError('');
-                if (globalErrorMsg) setGlobalErrorMsg('');
-              }}
-              label="Department / Course of Study"
-              placeholder="Search list or type your department..."
-              required
-              error={courseError}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-700">Matric / Reg number (optional)</label>
-            <input
-              type="text"
-              value={matricNumber}
-              onChange={e => setMatricNumber(e.target.value)}
-              placeholder="e.g. FUTA/CSC/20/4182"
-              className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting || isGoogleSubmitting}
-            className="w-full mt-2 h-11 bg-slate-950 hover:bg-slate-900 active:bg-black text-white font-medium text-xs sm:text-sm rounded-xl shadow-lg shadow-slate-950/25 transition-all flex items-center justify-center cursor-pointer disabled:opacity-50"
-          >
-            <span>Create account &rarr;</span>
-          </button>
-        </form>
-
-        {/* Footer Link */}
-        <div className="text-center text-xs text-slate-500 pt-1">
-          Already have an account?{' '}
-          <Link href="/auth/login" className="font-semibold text-sky-600 hover:text-sky-700">
-            Sign in
-          </Link>
         </div>
       </div>
     </div>

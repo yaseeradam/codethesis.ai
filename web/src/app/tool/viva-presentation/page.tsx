@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 import CourseSelect from '@/components/ui/CourseSelect';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
@@ -259,6 +260,24 @@ export default function VivaPresentationPage() {
       title="Viva Presentation Studio"
       subtitle="Generates 15-Slide 16:9 widescreen defense decks with slide-by-slide speaker notes, timekeeper, and .pptx export"
     >
+      {/* Viva Defense Suite Tab Switcher */}
+      <div className="flex items-center gap-2 mb-5 bg-slate-200/80 p-1.5 rounded-2xl w-fit">
+        <Link
+          href="/tool/viva-presentation"
+          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white text-slate-900 shadow-xs flex items-center gap-2"
+        >
+          <Presentation className="w-3.5 h-3.5 text-blue-600" />
+          <span>15-Slide Defense Deck (.pptx)</span>
+        </Link>
+        <Link
+          href="/tool/viva-simulator"
+          className="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center gap-2 transition-colors"
+        >
+          <Mic className="w-3.5 h-3.5 text-yellow-500" />
+          <span>Oral Defense Mock Simulator</span>
+        </Link>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Slide List & Controls (4 Cols) */}
         <div className="lg:col-span-4 space-y-4">
