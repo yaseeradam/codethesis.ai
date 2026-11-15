@@ -45,48 +45,19 @@ export interface GoogleAuthResult {
 
 /**
  * Triggers Firebase Google Sign-In Popup.
- * Falls back to resilient simulation if Firebase config is using default placeholder keys.
+ * Authenticates with real Google accounts via Firebase.
  */
 export async function signInWithGoogle(): Promise<GoogleAuthResult> {
   if (typeof window === 'undefined') {
     return { success: false, error: 'Authentication is only available in the browser.' };
   }
 
-  const isPlaceholderConfig =
-    !process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
-    process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder');
-
-  // If using placeholder/test keys, provide a seamless simulated Google Auth
-  // so development and evaluation work smoothly without blocking the user
-  if (isPlaceholderConfig) {
-    console.info('CodeThesis: Using simulated Google Firebase Auth flow (default demo configuration)');
-    await new Promise((r) => setTimeout(r, 600)); // subtle network simulation
-    return {
-      success: true,
-      user: {
-        email: 'scholar.google@futa.edu.ng',
-        fullName: 'Dr. Google Scholar',
-        photoURL: '/assets/avatar_adebayo.jpg',
-        uid: `firebase-g-${Date.now()}`,
-      },
-    };
-  }
-
   try {
-    // 9-second timeout race to prevent button hanging indefinitely when browsers silently block popups
-    const popupPromise = signInWithPopup(auth, googleProvider);
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(
-        () => reject({ code: 'auth/popup-timeout', message: 'Popup timed out or was blocked by browser.' }),
-        9000
-      )
-    );
-
-    const result = await Promise.race([popupPromise, timeoutPromise]);
+    const result = await signInWithPopup(auth, googleProvider);
     const fbUser: FirebaseUser = result.user;
 
     if (!fbUser.email) {
-      return { success: false, error: 'No email associated with this Google account.' };
+      return { success: false, error: 'No email address was provided by Google account.' };
     }
 
     return {
@@ -99,25 +70,29 @@ export async function signInWithGoogle(): Promise<GoogleAuthResult> {
       },
     };
   } catch (err: any) {
-    const errorCode = err?.code || 'auth/popup-restricted';
-    const errorMsg = err?.message || (typeof err === 'string' ? err : 'Browser blocked popup window');
-    console.warn(`Firebase Google Sign-In Notice [${errorCode}]:`, errorMsg);
+    const errorCode = err?.code || 'auth/unknown';
+    const errorMsg = err?.message || 'Google Sign-In failed.';
+    console.error(`Firebase Google Sign-In Error [${errorCode}]:`, errorMsg);
 
-    // If popup was explicitly closed by user
     if (errorCode === 'auth/popup-closed-by-user') {
-      return { success: false, error: 'Google sign-in popup was closed. Please try again.' };
+      return { success: false, error: 'Google sign-in popup was closed before completion.' };
+    }
+    if (errorCode === 'auth/popup-blocked') {
+      return { success: false, error: 'Popup blocked by your browser. Please enable popups for this site and try again.' };
+    }
+    if (errorCode === 'auth/cancelled-popup-request') {
+      return { success: false, error: 'A sign-in request is already in progress.' };
+    }
+    if (errorCode === 'auth/unauthorized-domain') {
+      return { success: false, error: 'Domain unauthorized in Firebase. Add localhost to Firebase Console -> Authentication -> Settings -> Authorized Domains.' };
+    }
+    if (errorCode === 'auth/operation-not-allowed') {
+      return { success: false, error: 'Google Sign-In is disabled in Firebase Console -> Authentication -> Sign-in method.' };
     }
 
-    // For any popup block, localhost cookie restriction, timeout, or environment error:
-    console.info('Utilizing seamless Google Scholar session authorization.');
     return {
-      success: true,
-      user: {
-        email: 'scholar.google@futa.edu.ng',
-        fullName: 'Dr. Google Scholar',
-        photoURL: '/assets/avatar_adebayo.jpg',
-        uid: `firebase-scholar-${Date.now()}`,
-      },
+      success: false,
+      error: `Google Sign-In failed: ${errorMsg}`,
     };
   }
 }
