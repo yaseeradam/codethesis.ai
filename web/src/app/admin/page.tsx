@@ -660,7 +660,7 @@ export default function AdminDashboardPage() {
                     onClick={() =>
                       setSettings(prev => ({
                         ...prev,
-                        aiEngine: { ...prev.aiEngine, activeProvider: 'gemini', modelName: 'gemini-1.5-flash' },
+                        aiEngine: { ...prev.aiEngine, activeProvider: 'gemini', modelName: 'gemini-2.5-flash' },
                       }))
                     }
                     className={`border-2 rounded-2xl p-3.5 cursor-pointer transition-all ${

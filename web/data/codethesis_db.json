@@ -613,7 +613,7 @@
     },
     "aiEngine": {
       "activeProvider": "gemini",
-      "modelName": "gemini-1.5-flash",
+      "modelName": "gemini-2.5-flash",
       "temperature": 0.7,
       "maxTokens": 8192,
       "systemPromptOverride": "You are CodeThesis AI, the authoritative academic engineering copilot for tertiary university dissertations.",
@@ -627,6 +627,15 @@
     }
   },
   "creditLogs": [
+    {
+      "userId": "usr-cc08ef4e",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "id": "log-6af45920",
+      "createdAt": "2026-11-15T09:33:32.580Z"
+    },
     {
       "userId": "usr-31525d76",
       "amount": 15,
@@ -1316,6 +1325,97 @@
     }
   ],
   "authAuditLogs": [
+    {
+      "userId": "usr-cc08ef4e",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "id": "audit-f5f52286",
+      "timestamp": "2026-11-15T09:33:36.625Z"
+    },
+    {
+      "userId": "usr-cc08ef4e",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "id": "audit-5b06c6c5",
+      "timestamp": "2026-11-15T09:33:36.426Z"
+    },
+    {
+      "userId": "usr-cc08ef4e",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_success",
+      "id": "audit-55777ed3",
+      "timestamp": "2026-11-15T09:33:36.242Z"
+    },
+    {
+      "userId": "usr-cc08ef4e",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "password_reset_requested",
+      "metadata": {
+        "expiresAt": "2026-11-15T10:33:35.430Z"
+      },
+      "id": "audit-e41b3274",
+      "timestamp": "2026-11-15T09:33:35.466Z"
+    },
+    {
+      "userId": "demo-admin-001",
+      "email": "admin@codethesis.ai",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "admin",
+        "loginType": "demo"
+      },
+      "id": "audit-86ad7f11",
+      "timestamp": "2026-11-15T09:33:34.568Z"
+    },
+    {
+      "userId": "demo-student-001",
+      "email": "student@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "demoRole": "adebayo",
+        "loginType": "demo"
+      },
+      "id": "audit-872e4143",
+      "timestamp": "2026-11-15T09:33:34.359Z"
+    },
+    {
+      "userId": "usr-cc08ef4e",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "id": "audit-f8a04009",
+      "timestamp": "2026-11-15T09:33:33.831Z"
+    },
+    {
+      "userId": "usr-cc08ef4e",
+      "email": "qa.student.automated@futa.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "userAgent": "node",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "id": "audit-01708be8",
+      "timestamp": "2026-11-15T09:33:33.636Z"
+    },
     {
       "userId": "usr-31525d76",
       "email": "qa.student.automated@futa.edu.ng",

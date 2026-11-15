@@ -130,25 +130,30 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Google Gemini (Google AI Studio)
-    async function tryGemini(): Promise<string | null> {
+    async function tryGemini(requestedModel?: string): Promise<string | null> {
       if (!geminiKey) return null;
-      try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName || 'gemini-1.5-flash'}:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: `${fullSystemPrompt}\n\nTask: ${userQuery}` }] }],
-            generationConfig: { temperature, maxOutputTokens: Math.min(maxTokens, 4000) },
-          }),
-        });
+      const primaryModel = requestedModel || modelName || 'gemini-2.5-flash';
+      const candidateModels = Array.from(new Set([primaryModel, 'gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-flash-lite']));
 
-        if (response.ok) {
-          const data = await response.json();
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text && typeof text === 'string' && text.trim().length > 0) return text;
+      for (const m of candidateModels) {
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: `${fullSystemPrompt}\n\nTask: ${userQuery}` }] }],
+              generationConfig: { temperature, maxOutputTokens: Math.min(maxTokens, 4000) },
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text && typeof text === 'string' && text.trim().length > 0) return text;
+          }
+        } catch (err) {
+          console.warn(`Gemini (${m}) request failed:`, err);
         }
-      } catch (err) {
-        console.warn('Gemini request failed:', err);
       }
       return null;
     }
@@ -199,7 +204,7 @@ export async function POST(req: NextRequest) {
         if (groqResult) return { content: groqResult, provider: 'groq-lpu (qwen/qwen3.8-27b)' };
       } else if (activeProvider === 'gemini') {
         const geminiResult = await tryGemini();
-        if (geminiResult) return { content: geminiResult, provider: `google-gemini (${modelName || '1.5-flash'})` };
+        if (geminiResult) return { content: geminiResult, provider: `google-gemini (${modelName || '2.5-flash'})` };
       } else if (activeProvider === 'openai') {
         const openaiResult = await tryOpenAI();
         if (openaiResult) return { content: openaiResult, provider: 'openai (gpt-4o-mini)' };
