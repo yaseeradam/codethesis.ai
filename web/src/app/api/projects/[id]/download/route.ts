@@ -37,10 +37,16 @@ export async function GET(
       fileExt = 'docx';
     }
 
-    // Call the corresponding generator internally
+    const incomingCookie = req.headers.get('cookie') || '';
+
+    // Call the corresponding generator internally with re-download authorization
     const genRes = await fetch(`${host}${targetEndpoint}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-codethesis-redownload': 'true',
+        Cookie: incomingCookie,
+      },
       body: JSON.stringify({
         topic: project.title,
         title: project.title,
@@ -49,6 +55,7 @@ export async function GET(
         studentName: project.metadata?.studentName || 'ADEBAYO TUNDE',
         matricNumber: project.metadata?.matricNumber || 'FUTA/CSC/20/4182',
         session: project.metadata?.session || '2025/2026',
+        isRedownload: true,
       }),
     });
 

@@ -30,8 +30,9 @@ export async function POST(req: NextRequest) {
       weeks: inputWeeks 
     } = body;
 
-    // Deduct credits for SIWES Logbook
-    const creditCheck = await authorizeAndDeductCredits('siwesLogbook');
+    // Deduct credits for SIWES Logbook (allow free re-downloads)
+    const isRedownload = req.headers.get('x-codethesis-redownload') === 'true' || body.isRedownload === true;
+    const creditCheck = await authorizeAndDeductCredits('siwesLogbook', { skipDeduction: isRedownload });
     if (!creditCheck.allowed) {
       return NextResponse.json(
         { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },

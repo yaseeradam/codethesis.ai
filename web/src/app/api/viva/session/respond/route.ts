@@ -10,12 +10,10 @@ export async function POST(req: NextRequest) {
       body = {};
     }
 
-    const { sessionId, studentAnswer } = body as {
-      sessionId?: string;
-      studentAnswer?: string;
-    };
+    const { sessionId, studentAnswer, studentResponse } = body as any;
+    const answer = studentAnswer || studentResponse;
 
-    if (!sessionId || !studentAnswer) {
+    if (!sessionId || !answer) {
       return NextResponse.json(
         { success: false, error: 'sessionId and studentAnswer are required' },
         { status: 400 }
@@ -33,7 +31,7 @@ export async function POST(req: NextRequest) {
     const turnCount = session.turns.filter(t => t.role === 'student').length + 1;
 
     // Evaluate answer depth and calculate score (1-10)
-    const answerLength = studentAnswer.trim().split(/\s+/).length;
+    const answerLength = answer.trim().split(/\s+/).length;
     let rating = 7;
     let feedback = '';
 
@@ -63,7 +61,7 @@ export async function POST(req: NextRequest) {
     const studentTurn: VivaTurn = {
       id: `turn-student-${turnCount}`,
       role: 'student',
-      content: studentAnswer,
+      content: answer,
       feedback,
       rating,
       timestamp: new Date().toISOString(),
@@ -87,6 +85,7 @@ export async function POST(req: NextRequest) {
       nextQuestion,
       totalTurns: session.turns.length,
       isFinished: turnCount >= 3,
+      session,
     });
   } catch (error: any) {
     console.error('Viva respond error:', error);

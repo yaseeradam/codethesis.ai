@@ -11,11 +11,12 @@ export async function POST(req: NextRequest) {
       body = {};
     }
 
-    const { toolId } = body as { toolId?: keyof AdminSettings['toolCreditCosts'] };
+    const { toolId, toolType } = body as any;
+    const resolvedToolId = (toolId || toolType) as keyof AdminSettings['toolCreditCosts'];
 
-    if (!toolId) {
+    if (!resolvedToolId) {
       return NextResponse.json(
-        { success: false, error: 'toolId is required (e.g. thesis, softwareBuilder, vivaSimulator)' },
+        { success: false, error: 'toolId or toolType is required (e.g. thesis, softwareBuilder, vivaSimulator)' },
         { status: 400 }
       );
     }
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
     }
 
     const settings = await getAdminSettings();
-    const cost = settings.toolCreditCosts?.[toolId] ?? 1;
+    const cost = settings.toolCreditCosts?.[resolvedToolId] ?? 1;
 
     if (user.credits < cost) {
       return NextResponse.json(
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const deduction = await deductUserCredits(userId, toolId);
+    const deduction = await deductUserCredits(userId, resolvedToolId);
 
     return NextResponse.json({
       success: deduction.success,
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
       cost,
       remainingCredits: deduction.remainingCredits,
       userId,
-      toolId,
+      toolId: resolvedToolId,
     });
   } catch (error: any) {
     console.error('Credit deduction error:', error);

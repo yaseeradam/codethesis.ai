@@ -16,8 +16,9 @@ export async function POST(req: NextRequest) {
       institution = "Federal University of Technology, Akure",
     } = body;
 
-    // Deduct credits for Software Builder
-    const creditCheck = await authorizeAndDeductCredits('softwareBuilder');
+    // Deduct credits for Software Builder (allow free re-downloads)
+    const isRedownload = req.headers.get('x-codethesis-redownload') === 'true' || body.isRedownload === true;
+    const creditCheck = await authorizeAndDeductCredits('softwareBuilder', { skipDeduction: isRedownload });
     if (!creditCheck.allowed) {
       return NextResponse.json(
         { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },

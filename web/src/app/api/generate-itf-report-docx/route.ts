@@ -34,8 +34,9 @@ export async function POST(req: NextRequest) {
       session = "2025/2026",
     } = body;
 
-    // Deduct credits for ITF Technical Report
-    const creditCheck = await authorizeAndDeductCredits('itfReport');
+    // Deduct credits for ITF Technical Report (allow free re-downloads)
+    const isRedownload = req.headers.get('x-codethesis-redownload') === 'true' || body.isRedownload === true;
+    const creditCheck = await authorizeAndDeductCredits('itfReport', { skipDeduction: isRedownload });
     if (!creditCheck.allowed) {
       return NextResponse.json(
         { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },

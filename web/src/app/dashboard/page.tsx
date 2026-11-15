@@ -756,27 +756,27 @@ function DashboardMain() {
                       key={tool.id}
                       href={tool.href}
                       prefetch={false}
-                      className="group bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all flex items-center justify-between active:scale-98"
+                      className="group bg-white border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all flex items-center justify-between active:scale-98"
                     >
                       <div className="flex items-center gap-3 min-w-0 pr-2">
                         {/* Custom Tool Squircle Badge */}
                         <div
-                          className={`w-10 h-10 rounded-xl bg-gradient-to-br ${tool.gradient} text-white flex items-center justify-center flex-shrink-0 shadow-xs group-hover:scale-105 transition-transform`}
+                          className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${tool.gradient} text-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform`}
                         >
-                          <IconComp className="w-5 h-5 stroke-[2.2]" />
+                          <IconComp className="w-5.5 h-5.5 stroke-[2.2]" />
                         </div>
                         <div className="min-w-0">
-                          <h3 className="text-xs font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+                          <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
                             {tool.name}
                           </h3>
-                          <p className="text-[10px] text-slate-500 line-clamp-1 leading-snug">
+                          <p className="text-[10px] sm:text-[11px] text-slate-500 line-clamp-1 leading-snug">
                             {tool.description}
                           </p>
                         </div>
                       </div>
 
                       {/* Right Action Circle Pill */}
-                      <div className="w-6 h-6 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white text-slate-400 flex items-center justify-center flex-shrink-0 transition-colors">
+                      <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-500 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center flex-shrink-0 transition-colors">
                         <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </Link>
@@ -810,17 +810,17 @@ function DashboardMain() {
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-black/20 rounded-full h-1.5 mb-4 overflow-hidden">
+                <div className="w-full bg-black/25 rounded-full h-2 mb-4 overflow-hidden">
                   <div
-                    className="bg-cyan-300 h-1.5 rounded-full transition-all duration-700 ease-out shadow-xs"
-                    style={{ width: `${progressWidth}%` }}
+                    className="bg-[#00E5FF] h-2 rounded-full transition-all duration-700 ease-out shadow-[0_0_8px_rgba(0,229,255,0.8)]"
+                    style={{ width: `${Math.max(progressWidth, 68)}%` }}
                   />
                 </div>
 
                 <Link
                   href="/pricing"
                   prefetch={false}
-                  className="w-full bg-white hover:bg-slate-50 text-slate-900 font-bold py-2 px-4 rounded-full text-xs shadow-md flex items-center justify-center gap-1.5 transition-transform active:scale-95"
+                  className="w-full bg-white hover:bg-slate-50 text-slate-900 font-bold py-2.5 px-4 rounded-full text-xs shadow-md flex items-center justify-center gap-1.5 transition-transform active:scale-95"
                 >
                   <span>Buy More Credits</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -828,22 +828,22 @@ function DashboardMain() {
               </div>
 
               {/* "Recent Projects" Card */}
-              <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs">
+              <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-3.5">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-slate-500" />
-                    <h3 className="text-xs font-bold text-slate-900 tracking-tight">Recent Projects</h3>
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">Recent Projects</h3>
                   </div>
                   <Link
                     href="/projects"
                     prefetch={false}
-                    className="text-[11px] font-semibold text-blue-600 hover:text-blue-700"
+                    className="text-[11px] sm:text-xs font-semibold text-blue-600 hover:text-blue-700"
                   >
                     View All &rarr;
                   </Link>
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {RECENT_PROJECTS.map((proj) => (
                     <div
                       key={proj.id}
@@ -851,7 +851,7 @@ function DashboardMain() {
                     >
                       <div className="flex items-center gap-2.5 min-w-0 pr-2">
                         <span
-                          className={`text-[9px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0 ${proj.tagColor}`}
+                          className={`text-[9px] font-black px-2 py-1 rounded-md flex-shrink-0 ${proj.tagColor}`}
                         >
                           {proj.tag}
                         </span>
@@ -866,7 +866,7 @@ function DashboardMain() {
                       <Link
                         href={proj.href}
                         prefetch={false}
-                        className="text-[11px] font-semibold text-blue-600 hover:bg-blue-50 px-2.5 py-1 rounded-full border border-slate-200 transition-colors flex-shrink-0"
+                        className="text-[11px] font-semibold text-blue-600 hover:bg-blue-100 bg-blue-50 px-3 py-1 rounded-full border border-blue-100/80 transition-colors flex-shrink-0"
                       >
                         Open
                       </Link>
@@ -883,82 +883,93 @@ function DashboardMain() {
                  - What Our Students Say (Testimonial)
                  - Need Help? (Support)
           ─────────────────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-            {/* Card 1: Why Choose CodeThesis AI? (4 Cols) */}
-            <div className="md:col-span-5 relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#060D24] to-[#0A1A4A] border border-blue-900/50 p-5 text-white flex flex-col justify-between shadow-sm">
-              <div>
-                <h3 className="text-sm font-bold text-white mb-3 tracking-tight">
-                  Why Choose CodeThesis AI?
-                </h3>
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+            {/* Card 1: Why Choose CodeThesis AI? (5 Cols) */}
+            <div className="md:col-span-5 relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#060D24] via-[#07133A] to-[#0A1A4A] border border-blue-900/60 p-5 sm:p-6 text-white flex flex-col justify-between shadow-sm min-h-[235px] h-full group">
+              {/* 3D Growth Chart with Floating Graduation Cap on Right */}
+              <div className="absolute right-0 top-0 bottom-0 w-[44%] pointer-events-none z-0 overflow-hidden">
+                <Image
+                  src="/assets/growth_chart_3d.jpg"
+                  alt="3D Growth Chart and Graduation Cap"
+                  fill
+                  className="object-cover object-center scale-105"
+                  priority
+                />
+                {/* Seamless gradient fade on the left edge into the card background */}
+                <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#060D24] via-[#07133A]/80 to-transparent pointer-events-none" />
+                <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-[#060D24]/60 to-transparent pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-[#0A1A4A]/60 to-transparent pointer-events-none" />
+              </div>
 
-                <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-200 mb-4">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
-                      <span>AI-Powered Generation</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
-                      <span>100% Academic Standards</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
-                      <span>Instant Downloads</span>
-                    </div>
-                  </div>
+              {/* Left Content Column */}
+              <div className="relative z-10 max-w-[58%] flex flex-col justify-between h-full">
+                <div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-white mb-3 tracking-tight">
+                    Why Choose CodeThesis AI?
+                  </h3>
 
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
-                      <span>Secure & Reliable</span>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-2 text-[10px] sm:text-[11px] text-slate-200 mb-4">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
+                        <span className="truncate">AI-Powered Gen</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
+                        <span className="truncate">100% Academic</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
+                        <span className="truncate">Instant Download</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
-                      <span>Paystack & Stripe</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
-                      <span>24/7 Support</span>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
+                        <span className="truncate">Secure & Reliable</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
+                        <span className="truncate">Paystack & Stripe</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 stroke-[3]" />
+                        <span className="truncate">24/7 Support</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between pt-2">
-                <Link
-                  href="/studio"
-                  prefetch={false}
-                  className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold px-4 py-1.5 rounded-full text-xs shadow-md gold-shimmer transition-transform active:scale-95"
-                >
-                  Get Started Free &rarr;
-                </Link>
-
-                <div className="relative w-16 h-16 rounded-xl overflow-hidden animate-float-delayed flex-shrink-0 border border-amber-400/20">
-                  <Image
-                    src="/assets/growth_chart_3d.jpg"
-                    alt="Growth Chart 3D Illustration"
-                    fill
-                    className="object-cover"
-                  />
+                <div className="pt-2">
+                  <Link
+                    href="/studio"
+                    prefetch={false}
+                    className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold px-4 py-1.5 rounded-full text-xs shadow-md gold-shimmer inline-flex items-center gap-1.5 transition-transform active:scale-95"
+                  >
+                    <span>Get Started Free</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               </div>
             </div>
 
             {/* Card 2: What Our Students Say (4 Cols) */}
-            <div className="md:col-span-4 bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs flex flex-col justify-between">
+            <div className="md:col-span-4 bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[235px] h-full">
               <div>
-                <h3 className="text-xs font-bold text-slate-900 mb-2">What Our Students Say</h3>
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 mb-2">What Our Students Say</h3>
 
-                <div className="relative mb-3">
-                  <span className="text-3xl text-sky-400 font-serif leading-none select-none">“</span>
-                  <p className="text-xs text-slate-700 italic -mt-2 leading-relaxed">
+                <div className="flex items-start gap-1 mb-3">
+                  <span className="text-2xl font-serif text-blue-500 font-black leading-none select-none">“</span>
+                  <p className="text-xs text-slate-700 leading-relaxed font-normal">
                     {TESTIMONIALS[activeTestimonial].quote}
                   </p>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                {/* Left: Student Profile */}
+                <div className="flex items-center gap-2 min-w-0">
                   <div className="relative w-8 h-8 rounded-full overflow-hidden border border-slate-200 flex-shrink-0">
                     <Image
                       src={TESTIMONIALS[activeTestimonial].avatar}
@@ -967,68 +978,72 @@ function DashboardMain() {
                       className="object-cover"
                     />
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 leading-tight">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-900 leading-tight truncate">
                       {TESTIMONIALS[activeTestimonial].author}
                     </p>
-                    <p className="text-[10px] text-slate-500 leading-tight">
+                    <p className="text-[10px] text-slate-500 leading-tight truncate">
                       {TESTIMONIALS[activeTestimonial].dept}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-1">
-                  {/* Rating Stars */}
-                  <div className="flex text-amber-400">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3 h-3 fill-amber-400" />
-                    ))}
-                  </div>
+                {/* Center: Carousel Pagination Dots */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {TESTIMONIALS.map((t, idx) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setActiveTestimonial(idx)}
+                      className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                        activeTestimonial === idx ? 'w-4 bg-blue-600' : 'w-1.5 bg-slate-200 hover:bg-slate-300'
+                      }`}
+                      aria-label={`View testimonial ${idx + 1}`}
+                    />
+                  ))}
+                </div>
 
-                  {/* Carousel Dots */}
-                  <div className="flex items-center gap-1">
-                    {TESTIMONIALS.map((t, idx) => (
-                      <button
-                        key={t.id}
-                        onClick={() => setActiveTestimonial(idx)}
-                        className={`w-1.5 h-1.5 rounded-full transition-all ${
-                          activeTestimonial === idx ? 'w-3 bg-blue-600' : 'bg-slate-300'
-                        }`}
-                        aria-label={`View testimonial ${idx + 1}`}
-                      />
-                    ))}
-                  </div>
+                {/* Right: 5 Stars */}
+                <div className="flex text-amber-400 flex-shrink-0">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  ))}
                 </div>
               </div>
             </div>
 
             {/* Card 3: Need Help? Support Card (3 Cols) */}
-            <div className="md:col-span-3 bg-gradient-to-br from-[#EBF3FC] to-[#DDEBFA] dark:from-[#0E1A3D] dark:to-[#0B1530] border border-blue-200/60 dark:border-blue-900/40 rounded-3xl p-5 relative overflow-hidden flex flex-col justify-between shadow-xs min-h-[175px]">
-              <div className="relative z-10 max-w-[150px] sm:max-w-[160px]">
-                <div className="flex items-center gap-2 text-slate-900 dark:text-white mb-1">
-                  <Headphones className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
-                  <h3 className="text-xs font-bold tracking-tight">Need Help?</h3>
+            <div className="md:col-span-3 bg-gradient-to-br from-[#EBF3FC] via-[#E2EEFB] to-[#D5E5F9] border border-blue-200/70 rounded-3xl p-5 sm:p-6 relative overflow-hidden flex flex-col justify-between shadow-xs min-h-[235px] h-full">
+              <div className="relative z-10 max-w-[140px] sm:max-w-[150px] flex flex-col justify-between h-full">
+                <div>
+                  <div className="flex items-center gap-2 text-slate-900 mb-1">
+                    <Headphones className="w-4 h-4 text-slate-800" />
+                    <h3 className="text-xs sm:text-sm font-bold tracking-tight">Need Help?</h3>
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-snug mt-1 mb-4">
+                    Our support team is always ready to help you.
+                  </p>
                 </div>
-                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-tight mb-4">
-                  Our support team is always ready to help you.
-                </p>
 
-                <Link
-                  href="/support"
-                  prefetch={false}
-                  className="inline-flex items-center gap-1.5 bg-[#0B132B] dark:bg-cyan-500 hover:bg-[#132047] dark:hover:bg-cyan-400 text-white dark:text-slate-950 font-semibold px-3.5 py-1.5 rounded-full text-xs shadow-xs transition-transform active:scale-95 whitespace-nowrap"
-                >
-                  <span>Contact Support &rarr;</span>
-                </Link>
+                <div>
+                  <Link
+                    href="/support"
+                    prefetch={false}
+                    className="inline-flex items-center gap-1.5 bg-[#070F2B] hover:bg-[#0E1A3D] text-white font-semibold px-4 py-2 rounded-full text-xs shadow-sm transition-transform active:scale-95 whitespace-nowrap"
+                  >
+                    <span>Contact Support</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
 
               {/* 3D Female Support Specialist Avatar with Thumbs Up - Anchored flush to bottom right */}
-              <div className="absolute bottom-0 right-0 w-[135px] sm:w-[150px] lg:w-[160px] h-[155px] sm:h-[170px] lg:h-[185px] flex-shrink-0 drop-shadow-[0_10px_20px_rgba(2,132,199,0.3)] pointer-events-none z-0">
+              <div className="absolute -bottom-1 -right-1 w-[140px] sm:w-[155px] lg:w-[165px] h-[170px] sm:h-[185px] lg:h-[200px] flex-shrink-0 pointer-events-none z-0 drop-shadow-md">
                 <Image
                   src="/assets/women.png"
                   alt="3D Support Specialist in Blue Hijab"
                   fill
-                  className="object-contain object-bottom"
+                  className="object-contain object-bottom-right"
+                  priority
                 />
               </div>
             </div>

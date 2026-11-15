@@ -24,8 +24,9 @@ export async function POST(req: NextRequest) {
       references = []
     } = body;
 
-    // Deduct credits for Assignment Solver
-    const creditCheck = await authorizeAndDeductCredits('assignmentSolver');
+    // Deduct credits for Assignment Solver (allow free re-downloads of archived projects)
+    const isRedownload = req.headers.get('x-codethesis-redownload') === 'true' || body.isRedownload === true;
+    const creditCheck = await authorizeAndDeductCredits('assignmentSolver', { skipDeduction: isRedownload });
     if (!creditCheck.allowed) {
       return NextResponse.json(
         { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },

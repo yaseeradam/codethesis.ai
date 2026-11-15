@@ -33,8 +33,9 @@ export async function POST(req: NextRequest) {
       session = "2025/2026",
     } = body;
 
-    // Check and deduct credits
-    const creditCheck = await authorizeAndDeductCredits('thesis');
+    // Check and deduct credits (allow free re-downloads of archived projects)
+    const isRedownload = req.headers.get('x-codethesis-redownload') === 'true' || body.isRedownload === true;
+    const creditCheck = await authorizeAndDeductCredits('thesis', { skipDeduction: isRedownload });
     if (!creditCheck.allowed) {
       return NextResponse.json(
         { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },

@@ -9,9 +9,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { email, amount, planId, callbackUrl } = body;
 
-    if (!email || !amount || !planId) {
-      return NextResponse.json({ error: 'Email, amount, and planId are required' }, { status: 400 });
-    }
+    const PLAN_PRICES: Record<string, number> = {
+      starter: 3500,
+      standard: 8500,
+      complete: 15000,
+      'fyp-complete': 15000,
+      faculty: 35000,
+    };
+
+    const effectivePlanId = planId || 'standard';
+    const effectiveAmount = amount ? Number(amount) : (PLAN_PRICES[effectivePlanId] || 8500);
+    const effectiveEmail = email || user?.email || 'student@futa.edu.ng';
 
     const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
     const isLiveKey = Boolean(
@@ -27,10 +35,10 @@ export async function POST(req: NextRequest) {
     await createTransaction({
       userId: effectiveUserId,
       reference,
-      amount: Number(amount),
+      amount: effectiveAmount,
       currency: 'NGN',
       status: 'pending',
-      planId,
+      planId: effectivePlanId,
     });
 
     // 1. Live Paystack Gateway (if live secret key is supplied in .env)
@@ -43,14 +51,14 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            email,
-            amount: Math.round(Number(amount) * 100), // Paystack requires amount in kobo
+            email: effectiveEmail,
+            amount: Math.round(effectiveAmount * 100), // Paystack requires amount in kobo
             reference,
             callback_url: callbackUrl || `${req.nextUrl.origin}/dashboard?payment=success&ref=${reference}`,
             metadata: {
               userId: effectiveUserId,
-              planId,
-              customer_name: user?.fullName || email,
+              planId: effectivePlanId,
+              customer_name: user?.fullName || effectiveEmail,
             },
           }),
         });

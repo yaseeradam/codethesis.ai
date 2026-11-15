@@ -15,7 +15,10 @@ export interface CreditCheckResult {
  * Validates and deducts credits for a student running an academic generation tool.
  * Falls back to demo student if no active session is present.
  */
-export async function authorizeAndDeductCredits(toolKey: ToolKey): Promise<CreditCheckResult> {
+export async function authorizeAndDeductCredits(
+  toolKey: ToolKey,
+  options?: { skipDeduction?: boolean }
+): Promise<CreditCheckResult> {
   const sessionUser = await getCurrentUser();
   const userId = sessionUser?.id || 'demo-student-001';
 
@@ -31,6 +34,16 @@ export async function authorizeAndDeductCredits(toolKey: ToolKey): Promise<Credi
       remainingCredits: 0,
       cost,
       errorMessage: 'User account not found.',
+    };
+  }
+
+  // If this is a re-download of an already archived project, permit without double billing
+  if (options?.skipDeduction) {
+    return {
+      allowed: true,
+      userId,
+      remainingCredits: user.credits,
+      cost: 0,
     };
   }
 
