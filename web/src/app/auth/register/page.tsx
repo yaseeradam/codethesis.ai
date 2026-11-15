@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { signInWithGoogle } from '@/lib/firebase';
+import InstitutionSelect from '@/components/ui/InstitutionSelect';
 import CourseSelect from '@/components/ui/CourseSelect';
 import {
   Eye,
@@ -14,6 +15,7 @@ import {
   CheckCircle2,
   Sparkles,
   ShieldCheck,
+  XCircle,
 } from 'lucide-react';
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -42,23 +44,85 @@ function GoogleIcon({ className }: { className?: string }) {
 export default function RegisterPage() {
   const router = useRouter();
   const { register, loginWithGoogle } = useAuth();
+  
+  // Form values
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [matricNumber, setMatricNumber] = useState('');
-  const [institution, setInstitution] = useState('Federal University of Technology, Akure');
+  const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
   const [course, setCourse] = useState('Computer Science');
 
+  // Field-level error states
+  const [fullNameError, setFullNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [institutionError, setInstitutionError] = useState('');
+  const [courseError, setCourseError] = useState('');
+  const [globalErrorMsg, setGlobalErrorMsg] = useState('');
+
+  // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [loaderStatus, setLoaderStatus] = useState('Securing credentials...');
-  const [errorMsg, setErrorMsg] = useState('');
+
+  function validateForm() {
+    let isValid = true;
+    setFullNameError('');
+    setEmailError('');
+    setPasswordError('');
+    setInstitutionError('');
+    setCourseError('');
+    setGlobalErrorMsg('');
+
+    if (!fullName.trim()) {
+      setFullNameError('Please enter your full name');
+      isValid = false;
+    } else if (fullName.trim().length < 3) {
+      setFullNameError('Full name must be at least 3 characters');
+      isValid = false;
+    }
+
+    if (!email.trim()) {
+      setEmailError('Please enter your email address');
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setEmailError('Please enter a valid email format (e.g. name@university.edu.ng)');
+      isValid = false;
+    }
+
+    if (!password) {
+      setPasswordError('Please enter a password');
+      isValid = false;
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      isValid = false;
+    }
+
+    if (!institution.trim()) {
+      setInstitutionError('Please select or type your institution');
+      isValid = false;
+    }
+
+    if (!course.trim()) {
+      setCourseError('Please select or type your department');
+      isValid = false;
+    }
+
+    if (!isValid) {
+      setGlobalErrorMsg('Please fill in all required fields correctly below.');
+    }
+
+    return isValid;
+  }
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
-    setErrorMsg('');
+    if (!validateForm()) return;
+
+    setGlobalErrorMsg('');
     setIsSubmitting(true);
     setRegistrationSuccess(false);
     setLoaderStatus('Creating scholar profile...');
@@ -70,12 +134,16 @@ export default function RegisterPage() {
         password,
         matricNumber: matricNumber.trim() || 'FUTA/CSC/20/4182',
         institution: institution.trim(),
-        course,
+        course: course.trim(),
       });
 
       if (!res.success) {
         setIsSubmitting(false);
-        setErrorMsg(res.error || 'Registration failed. Please check details and try again.');
+        const err = res.error || 'Registration failed. Please check details and try again.';
+        setGlobalErrorMsg(err);
+        if (err.toLowerCase().includes('email')) {
+          setEmailError(err);
+        }
         return;
       }
 
@@ -88,12 +156,12 @@ export default function RegisterPage() {
       }, 700);
     } catch (err: any) {
       setIsSubmitting(false);
-      setErrorMsg(err.message || 'An unexpected error occurred during registration.');
+      setGlobalErrorMsg(err.message || 'An unexpected error occurred during registration.');
     }
   }
 
   async function handleGoogleSignUp() {
-    setErrorMsg('');
+    setGlobalErrorMsg('');
     setIsGoogleSubmitting(true);
     setRegistrationSuccess(false);
     setLoaderStatus('Connecting with Google authentication...');
@@ -101,7 +169,7 @@ export default function RegisterPage() {
     try {
       const googleRes = await signInWithGoogle();
       if (!googleRes.success || !googleRes.user) {
-        setErrorMsg(googleRes.error || 'Google sign-up was cancelled.');
+        setGlobalErrorMsg(googleRes.error || 'Google sign-up was cancelled.');
         setIsGoogleSubmitting(false);
         return;
       }
@@ -109,7 +177,7 @@ export default function RegisterPage() {
       setLoaderStatus('Provisioning scholar account...');
       const syncRes = await loginWithGoogle(googleRes.user);
       if (!syncRes.success) {
-        setErrorMsg(syncRes.error || 'Failed to initialize account with Google.');
+        setGlobalErrorMsg(syncRes.error || 'Failed to initialize account with Google.');
         setIsGoogleSubmitting(false);
         return;
       }
@@ -120,7 +188,7 @@ export default function RegisterPage() {
         window.location.href = '/dashboard';
       }, 700);
     } catch (err: any) {
-      setErrorMsg(err.message || 'An error occurred during Google sign up.');
+      setGlobalErrorMsg(err.message || 'An error occurred during Google sign up.');
       setIsGoogleSubmitting(false);
     }
   }
@@ -197,6 +265,17 @@ export default function RegisterPage() {
           </div>
         </div>
 
+        {/* High-Visibility Error Alert Banner */}
+        {globalErrorMsg && (
+          <div className="p-3.5 rounded-xl bg-red-50 border-2 border-red-200 text-red-800 text-xs flex items-start gap-2.5 font-medium animate-fadeIn">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600 mt-0.5" />
+            <div className="space-y-0.5 flex-1">
+              <p className="font-semibold text-red-900">Registration Notice</p>
+              <p className="text-red-700 leading-relaxed">{globalErrorMsg}</p>
+            </div>
+          </div>
+        )}
+
         {/* Google 1-Click Sign-Up */}
         <div>
           <button
@@ -220,81 +299,123 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* Error Alert */}
-        {errorMsg && (
-          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 font-medium animate-fadeIn">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
-
         {/* Registration Form */}
-        <form onSubmit={handleRegister} className="space-y-3.5">
+        <form onSubmit={handleRegister} noValidate className="space-y-3.5">
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-700">Full name</label>
+            <label className="block text-xs font-medium text-slate-700">
+              Full name <span className="text-rose-500">*</span>
+            </label>
             <input
               type="text"
-              required
               value={fullName}
-              onChange={e => setFullName(e.target.value)}
+              onChange={e => {
+                setFullName(e.target.value);
+                if (fullNameError) setFullNameError('');
+                if (globalErrorMsg) setGlobalErrorMsg('');
+              }}
               placeholder="e.g. Babatunde Segun"
-              className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
+              className={`w-full h-11 bg-white border ${
+                fullNameError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+              } rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
             />
+            {fullNameError && (
+              <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
+                <XCircle className="w-3 h-3 flex-shrink-0" />
+                <span>{fullNameError}</span>
+              </p>
+            )}
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-700">Student university email</label>
+            <label className="block text-xs font-medium text-slate-700">
+              Student university email <span className="text-rose-500">*</span>
+            </label>
             <input
               type="email"
-              required
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={e => {
+                setEmail(e.target.value);
+                if (emailError) setEmailError('');
+                if (globalErrorMsg) setGlobalErrorMsg('');
+              }}
               placeholder="name@university.edu.ng"
-              className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
+              className={`w-full h-11 bg-white border ${
+                emailError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+              } rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
             />
+            {emailError && (
+              <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
+                <XCircle className="w-3 h-3 flex-shrink-0" />
+                <span>{emailError}</span>
+              </p>
+            )}
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-700">Password</label>
+            <label className="block text-xs font-medium text-slate-700">
+              Password <span className="text-rose-500">*</span>
+            </label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
-                required
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={e => {
+                  setPassword(e.target.value);
+                  if (passwordError) setPasswordError('');
+                  if (globalErrorMsg) setGlobalErrorMsg('');
+                }}
                 placeholder="At least 6 characters"
-                className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl pl-3.5 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
+                className={`w-full h-11 bg-white border ${
+                  passwordError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+                } rounded-xl pl-3.5 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            {passwordError && (
+              <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
+                <XCircle className="w-3 h-3 flex-shrink-0" />
+                <span>{passwordError}</span>
+              </p>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-slate-700">Institution</label>
-              <input
-                type="text"
-                value={institution}
-                onChange={e => setInstitution(e.target.value)}
-                placeholder="e.g. FUTA, UNILAG, ABU"
-                className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
-              />
-            </div>
+          {/* Institution Selector: Searchable, Typeable, List of Nigerian Schools, Manual Fallback */}
+          <div>
+            <InstitutionSelect
+              value={institution}
+              onChange={val => {
+                setInstitution(val);
+                if (institutionError) setInstitutionError('');
+                if (globalErrorMsg) setGlobalErrorMsg('');
+              }}
+              label="Tertiary Institution"
+              placeholder="Search list or type your university..."
+              required
+              error={institutionError}
+            />
+          </div>
 
-            <div>
-              <CourseSelect
-                value={course}
-                onChange={setCourse}
-                label="Department"
-              />
-            </div>
+          {/* Department Selector: Searchable, Typeable, Popular Courses, Manual Fallback */}
+          <div>
+            <CourseSelect
+              value={course}
+              onChange={val => {
+                setCourse(val);
+                if (courseError) setCourseError('');
+                if (globalErrorMsg) setGlobalErrorMsg('');
+              }}
+              label="Department / Course of Study"
+              placeholder="Search list or type your department..."
+              required
+              error={courseError}
+            />
           </div>
 
           <div className="space-y-1.5">

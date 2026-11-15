@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   Sparkles,
   ShieldCheck,
+  XCircle,
+  ArrowRight
 } from 'lucide-react';
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -47,36 +49,77 @@ function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // Error and validation state
   const [errorMessage, setErrorMessage] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [loaderStatus, setLoaderStatus] = useState('Verifying credentials...');
 
+  function validateForm() {
+    let isValid = true;
+    setEmailError('');
+    setPasswordError('');
+    setErrorMessage('');
+
+    if (!email.trim()) {
+      setEmailError('Please enter your email address');
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setEmailError('Please enter a valid email format (e.g. name@university.edu.ng)');
+      isValid = false;
+    }
+
+    if (!password) {
+      setPasswordError('Please enter your password');
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
   async function handleStandardLogin(e: React.FormEvent) {
     e.preventDefault();
+    if (!validateForm()) return;
+
     setIsSubmitting(true);
     setErrorMessage('');
     setLoginSuccess(false);
     setLoaderStatus('Verifying credentials with database...');
 
-    const res = await login(email.trim().toLowerCase(), password);
-    if (!res.success) {
-      setErrorMessage(res.error || 'Invalid credentials. Please try again.');
-      setIsSubmitting(false);
-      return;
-    }
+    try {
+      const res = await login(email.trim().toLowerCase(), password);
+      if (!res.success) {
+        setIsSubmitting(false);
+        const serverError = res.error || 'Invalid email address or password. Please verify your details.';
+        setErrorMessage(serverError);
+        // Highlight inputs if credentials fail
+        setEmailError('Check your email address');
+        setPasswordError('Check your password');
+        return;
+      }
 
-    setLoginSuccess(true);
-    setLoaderStatus('Authentication successful! Launching workspace...');
-    setTimeout(() => {
-      window.location.href = returnTo;
-    }, 600);
+      setLoginSuccess(true);
+      setLoaderStatus('Authentication successful! Launching workspace...');
+      setTimeout(() => {
+        window.location.href = returnTo;
+      }, 600);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setErrorMessage(err.message || 'An unexpected connection error occurred.');
+    }
   }
 
   async function handleGoogleLogin() {
     setIsGoogleSubmitting(true);
     setErrorMessage('');
+    setEmailError('');
+    setPasswordError('');
     setLoginSuccess(false);
     setLoaderStatus('Connecting with Google authentication...');
 
@@ -179,6 +222,17 @@ function LoginContent() {
           </div>
         </div>
 
+        {/* High-Visibility Error Alert Banner */}
+        {errorMessage && (
+          <div className="p-3.5 rounded-xl bg-red-50 border-2 border-red-200 text-red-800 text-xs flex items-start gap-2.5 font-medium animate-fadeIn">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600 mt-0.5" />
+            <div className="space-y-0.5 flex-1">
+              <p className="font-semibold text-red-900">Sign-in Failed</p>
+              <p className="text-red-700 leading-relaxed">{errorMessage}</p>
+            </div>
+          </div>
+        )}
+
         {/* Google 1-Click Sign-In */}
         <div>
           <button
@@ -202,26 +256,29 @@ function LoginContent() {
           </div>
         </div>
 
-        {/* Error Alert */}
-        {errorMessage && (
-          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 font-medium animate-fadeIn">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
-
         {/* Standard Email/Password Form */}
-        <form onSubmit={handleStandardLogin} className="space-y-4">
+        <form onSubmit={handleStandardLogin} noValidate className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-medium text-slate-700">Email address</label>
             <input
               type="email"
-              required
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={e => {
+                setEmail(e.target.value);
+                if (emailError) setEmailError('');
+                if (errorMessage) setErrorMessage('');
+              }}
               placeholder="name@university.edu.ng"
-              className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
+              className={`w-full h-11 bg-white border ${
+                emailError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+              } rounded-xl px-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
             />
+            {emailError && (
+              <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
+                <XCircle className="w-3 h-3 flex-shrink-0" />
+                <span>{emailError}</span>
+              </p>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -237,21 +294,32 @@ function LoginContent() {
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
-                required
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={e => {
+                  setPassword(e.target.value);
+                  if (passwordError) setPasswordError('');
+                  if (errorMessage) setErrorMessage('');
+                }}
                 placeholder="••••••••"
-                className="w-full h-11 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl pl-3.5 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
+                className={`w-full h-11 bg-white border ${
+                  passwordError ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+                } rounded-xl pl-3.5 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            {passwordError && (
+              <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 animate-fadeIn">
+                <XCircle className="w-3 h-3 flex-shrink-0" />
+                <span>{passwordError}</span>
+              </p>
+            )}
           </div>
 
           <button
