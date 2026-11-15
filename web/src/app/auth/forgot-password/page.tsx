@@ -30,6 +30,8 @@ export default function ForgotPasswordPage() {
   const [resetResult, setResetResult] = useState<{
     token: string;
     resetUrl: string;
+    emailSent?: boolean;
+    email?: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -41,7 +43,8 @@ export default function ForgotPasswordPage() {
     setErrorMessage('');
     setResetResult(null);
 
-    const res = await requestPasswordReset(email.trim());
+    const targetEmail = email.trim();
+    const res = await requestPasswordReset(targetEmail);
 
     if (!res.success) {
       setErrorMessage(res.error || 'Unable to generate reset link. Please check your email and try again.');
@@ -56,6 +59,8 @@ export default function ForgotPasswordPage() {
     setResetResult({
       token,
       resetUrl,
+      emailSent: res.emailSent,
+      email: targetEmail,
     });
     setIsSubmitting(false);
   }
@@ -149,10 +154,16 @@ export default function ForgotPasswordPage() {
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-                    Recovery Link Generated Successfully!
+                    {resetResult.emailSent ? 'Recovery Email Dispatched to Inbox!' : 'Recovery Link Generated Successfully!'}
                   </h3>
                   <p className="text-[11px] text-emerald-800 leading-relaxed">
-                    Your password recovery link is ready. Use the link below or click proceed to set your new password.
+                    {resetResult.emailSent ? (
+                      <>
+                        We have dispatched your academic reset link directly to <strong className="font-semibold text-emerald-950">{resetResult.email}</strong> via transactional email. Please check your inbox or spam folder.
+                      </>
+                    ) : (
+                      'Your password recovery link is ready. Use the link below or click proceed to set your new password.'
+                    )}
                   </p>
                 </div>
               </div>

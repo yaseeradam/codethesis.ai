@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserByEmail, createPasswordResetToken } from '@/lib/db';
+import { sendPasswordResetEmail } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,11 +33,27 @@ export async function POST(req: NextRequest) {
 
     const resetData = await createPasswordResetToken(cleanEmail);
 
+    // Compute absolute URL for clickable email link
+    const origin = process.env.NEXT_PUBLIC_APP_URL || req.headers.get('origin') || 'http://localhost:3000';
+    const absoluteResetUrl = `${origin}/auth/reset-password?token=${encodeURIComponent(resetData.token)}`;
+
+    // Dispatch transactional email via Resend API
+    const emailDispatch = await sendPasswordResetEmail({
+      to: cleanEmail,
+      resetUrl: absoluteResetUrl,
+      userName: user.fullName,
+    });
+
     return NextResponse.json({
       success: true,
-      message: 'Password reset link generated',
+      message: emailDispatch.success
+        ? `Password reset instructions have been dispatched to ${cleanEmail}.`
+        : 'Password reset link generated.',
+      emailSent: emailDispatch.success,
+      emailError: emailDispatch.error,
       token: resetData.token,
       resetUrl: `/auth/reset-password?token=${resetData.token}`,
+      absoluteResetUrl,
     });
   } catch (error: any) {
     console.error('Forgot password API error:', error);

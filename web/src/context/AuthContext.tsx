@@ -33,7 +33,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateProfile: (data: Partial<SafeUser> & { currentPassword?: string; newPassword?: string }) => Promise<{ success: boolean; error?: string }>;
-  requestPasswordReset: (email: string) => Promise<{ success: boolean; resetToken?: string; resetUrl?: string; error?: string }>;
+  requestPasswordReset: (email: string) => Promise<{ success: boolean; resetToken?: string; resetUrl?: string; emailSent?: boolean; message?: string; emailError?: string; error?: string }>;
   confirmPasswordReset: (token: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -236,6 +236,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         success: true,
         resetToken: data.token,
         resetUrl: data.resetUrl,
+        emailSent: Boolean(data.emailSent),
+        message: data.message,
+        emailError: data.emailError,
       };
     } catch (err: any) {
       return { success: false, error: err.message || 'Password reset request failed' };

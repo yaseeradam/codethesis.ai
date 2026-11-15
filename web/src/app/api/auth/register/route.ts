@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createUser, getUserByEmail, logCreditEntry } from '@/lib/db';
 import { createSessionToken, COOKIE_NAME } from '@/lib/auth';
+import { sendWelcomeEmail } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
@@ -58,6 +59,13 @@ export async function POST(req: NextRequest) {
       balanceAfter: newUser.credits,
       description: `Welcome bonus: ${newUser.credits} free academic credits granted on signup`,
     });
+
+    // Asynchronously dispatch transactional welcome email via Resend
+    sendWelcomeEmail({
+      to: newUser.email,
+      fullName: newUser.fullName,
+      starterCredits: newUser.credits,
+    }).catch((err) => console.warn('[Resend] Welcome email dispatch caught:', err));
 
     const token = createSessionToken(newUser);
 
