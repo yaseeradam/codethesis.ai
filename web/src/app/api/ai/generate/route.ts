@@ -52,18 +52,87 @@ export async function POST(req: NextRequest) {
     } = adminSettings?.aiEngine || {};
 
     const dynamicKeys = adminSettings?.aiEngine?.apiKeys || {};
-    const geminiKey = dynamicKeys.gemini || process.env.GEMINI_API_KEY;
-    const openaiKey = dynamicKeys.openai || process.env.OPENAI_API_KEY;
+    const openrouterKey = (dynamicKeys as any).openrouter || process.env.OPENROUTER_API_KEY;
     const groqKey = dynamicKeys.groq || process.env.GROQ_API_KEY;
+    const groqBackupKey = process.env.GROQ_BACKUP_API_KEY;
+    const geminiKey = dynamicKeys.gemini || process.env.GEMINI_API_KEY;
     const qwenKey = dynamicKeys.qwen || process.env.QWEN_API_KEY;
+    const openaiKey = dynamicKeys.openai || process.env.OPENAI_API_KEY;
 
-    // Helper for Gemini Call (Google AI Studio)
+    const fullSystemPrompt = `${systemPromptOverride}\nTopic: "${topic || prompt}". Course: "${course}". Institution: "${institution}". Adhere strictly to formal academic English and APA 7th citations.`;
+    const userQuery = prompt || `Generate an exhaustive academic section for Chapter ${chapterNumber || 1} on the topic: ${topic}. Include introduction, theoretical framework, methodology/implementation analysis, and references.`;
+
+    // 1. OpenRouter (Qwen 2.5 Coder 32B, Llama 3.3 70B, etc.)
+    async function tryOpenRouter(targetModel = 'qwen/qwen-2.5-coder-32b-instruct'): Promise<string | null> {
+      if (!openrouterKey) return null;
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${openrouterKey}`,
+            'HTTP-Referer': 'https://codethesis.ai',
+            'X-Title': 'CodeThesis AI Academic Copilot',
+          },
+          body: JSON.stringify({
+            model: targetModel,
+            messages: [
+              { role: 'system', content: fullSystemPrompt },
+              { role: 'user', content: userQuery },
+            ],
+            max_tokens: Math.min(maxTokens, 4000),
+            temperature,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const text = data.choices?.[0]?.message?.content;
+          if (text && typeof text === 'string' && text.trim().length > 0) return text;
+        }
+      } catch (err) {
+        console.warn('OpenRouter request failed:', err);
+      }
+      return null;
+    }
+
+    // 2. Groq LPU (Ultra-fast LPU inference: Qwen 3.8 27B, GPT-OSS 120B, Llama 3.3)
+    async function tryGroq(customModel = 'qwen/qwen3.8-27b', apiKeyOverride?: string): Promise<string | null> {
+      const activeGroqKey = apiKeyOverride || groqKey;
+      if (!activeGroqKey) return null;
+      try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${activeGroqKey}`,
+          },
+          body: JSON.stringify({
+            model: customModel,
+            messages: [
+              { role: 'system', content: fullSystemPrompt },
+              { role: 'user', content: userQuery },
+            ],
+            max_tokens: Math.min(maxTokens, 4000),
+            temperature,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const text = data.choices?.[0]?.message?.content;
+          if (text && typeof text === 'string' && text.trim().length > 0) return text;
+        }
+      } catch (err) {
+        console.warn('Groq request failed:', err);
+      }
+      return null;
+    }
+
+    // 3. Google Gemini (Google AI Studio)
     async function tryGemini(): Promise<string | null> {
       if (!geminiKey) return null;
       try {
-        const fullSystemPrompt = `${systemPromptOverride}\nTopic: "${topic || prompt}". Course: "${course}". Institution: "${institution}". Adhere strictly to formal academic English and APA 7th citations.`;
-        const userQuery = prompt || `Generate an exhaustive academic section for Chapter ${chapterNumber || 1} on the topic: ${topic}. Include introduction, theoretical framework, methodology/implementation analysis, and references.`;
-
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName || 'gemini-1.5-flash'}:generateContent?key=${geminiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -75,7 +144,8 @@ export async function POST(req: NextRequest) {
 
         if (response.ok) {
           const data = await response.json();
-          return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text && typeof text === 'string' && text.trim().length > 0) return text;
         }
       } catch (err) {
         console.warn('Gemini request failed:', err);
@@ -83,79 +153,7 @@ export async function POST(req: NextRequest) {
       return null;
     }
 
-    // Helper for Groq Call (Ultra-fast LPU inference: 500-800 tok/s)
-    async function tryGroq(customModel?: string): Promise<string | null> {
-      if (!groqKey) return null;
-      try {
-        const selectedModel = customModel || (modelName && modelName.includes('llama') ? modelName : 'llama-3.3-70b-versatile');
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${groqKey}`,
-          },
-          body: JSON.stringify({
-            model: selectedModel,
-            messages: [
-              { role: 'system', content: systemPromptOverride },
-              { role: 'user', content: prompt || `Generate an exhaustive academic section for Chapter ${chapterNumber || 1} on the topic: ${topic} in the context of ${course} at ${institution}. Adhere strictly to APA 7th format.` },
-            ],
-            max_tokens: Math.min(maxTokens, 4000),
-            temperature,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return data.choices?.[0]?.message?.content || null;
-        }
-      } catch (err) {
-        console.warn('Groq request failed:', err);
-      }
-      return null;
-    }
-
-    // Helper for Qwen Call (Qwen 2.5 Coder / Qwen 2.5 72B via DashScope, OpenRouter, or Groq)
-    async function tryQwen(): Promise<string | null> {
-      // 1. Direct Qwen API (DashScope or OpenRouter compatible)
-      if (qwenKey) {
-        try {
-          const endpoint = process.env.QWEN_API_BASE_URL || 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions';
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${qwenKey}`,
-            },
-            body: JSON.stringify({
-              model: modelName && modelName.toLowerCase().includes('qwen') ? modelName : 'qwen-2.5-coder-32b-instruct',
-              messages: [
-                { role: 'system', content: systemPromptOverride },
-                { role: 'user', content: prompt || `Write an in-depth academic treatise for Chapter ${chapterNumber || 1} on: ${topic} in the context of ${course} at ${institution}. Adhere to academic standards and APA 7th citations.` },
-              ],
-              max_tokens: Math.min(maxTokens, 4000),
-              temperature,
-            }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            return data.choices?.[0]?.message?.content || null;
-          }
-        } catch (err) {
-          console.warn('Qwen API call failed:', err);
-        }
-      }
-
-      // 2. Groq-hosted Qwen fallback (if Groq key configured)
-      if (groqKey) {
-        return tryGroq('qwen-2.5-32b');
-      }
-
-      return null;
-    }
-
-    // Helper for OpenAI Call
+    // 4. OpenAI Direct
     async function tryOpenAI(): Promise<string | null> {
       if (!openaiKey) return null;
       try {
@@ -168,8 +166,8 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             model: 'gpt-4o-mini',
             messages: [
-              { role: 'system', content: systemPromptOverride },
-              { role: 'user', content: prompt || `Write an in-depth academic treatise for Chapter ${chapterNumber || 1} on: ${topic} in the context of ${course} at ${institution}.` },
+              { role: 'system', content: fullSystemPrompt },
+              { role: 'user', content: userQuery },
             ],
             max_tokens: Math.min(maxTokens, 3000),
             temperature,
@@ -186,53 +184,70 @@ export async function POST(req: NextRequest) {
       return null;
     }
 
-    // Priority Execution based on Admin Provider configuration
+    // Priority Execution with Resilient Multi-Tier Fallback Cascade
     let generatedContent: string | null = null;
     let providerUsed = 'academic-heuristic';
 
-    if (activeProvider === 'groq') {
-      generatedContent = await tryGroq();
-      if (generatedContent) providerUsed = 'groq-lpu-engine';
-      else if (fallbackEnabled) {
-        generatedContent = await tryGemini();
-        if (generatedContent) providerUsed = `google-${modelName} (fallback)`;
-        else {
-          generatedContent = await tryOpenAI();
-          if (generatedContent) providerUsed = 'openai-gpt-4o-mini (fallback)';
-        }
+    // Tier Execution Function: Runs preferred provider first, then cascades through all available models
+    async function executeWithFallback(): Promise<{ content: string; provider: string } | null> {
+      // 1. Primary Preference based on activeProvider
+      if (activeProvider === 'qwen') {
+        const qwenResult = await tryOpenRouter('qwen/qwen-2.5-coder-32b-instruct');
+        if (qwenResult) return { content: qwenResult, provider: 'openrouter (qwen-2.5-coder-32b-instruct)' };
+      } else if (activeProvider === 'groq') {
+        const groqResult = await tryGroq('qwen/qwen3.8-27b');
+        if (groqResult) return { content: groqResult, provider: 'groq-lpu (qwen/qwen3.8-27b)' };
+      } else if (activeProvider === 'gemini') {
+        const geminiResult = await tryGemini();
+        if (geminiResult) return { content: geminiResult, provider: `google-gemini (${modelName || '1.5-flash'})` };
+      } else if (activeProvider === 'openai') {
+        const openaiResult = await tryOpenAI();
+        if (openaiResult) return { content: openaiResult, provider: 'openai (gpt-4o-mini)' };
       }
-    } else if (activeProvider === 'qwen') {
-      generatedContent = await tryQwen();
-      if (generatedContent) providerUsed = 'qwen-2.5-coder-engine';
-      else if (fallbackEnabled) {
-        generatedContent = await tryGroq();
-        if (generatedContent) providerUsed = 'groq-lpu (fallback)';
-        else {
-          generatedContent = await tryGemini();
-          if (generatedContent) providerUsed = `google-${modelName} (fallback)`;
-        }
+
+      // If primary didn't succeed and fallback is disabled, stop here
+      if (!fallbackEnabled && activeProvider !== 'heuristic') {
+        return null;
       }
-    } else if (activeProvider === 'gemini') {
-      generatedContent = await tryGemini();
-      if (generatedContent) providerUsed = `google-${modelName}`;
-      else if (fallbackEnabled) {
-        generatedContent = await tryGroq();
-        if (generatedContent) providerUsed = 'groq-lpu (fallback)';
-        else {
-          generatedContent = await tryOpenAI();
-          if (generatedContent) providerUsed = 'openai-gpt-4o-mini (fallback)';
-        }
+
+      // 2. Cascade Step 1: OpenRouter (Qwen 2.5 Coder 32B — Premier Technical Output)
+      const orQwen = await tryOpenRouter('qwen/qwen-2.5-coder-32b-instruct');
+      if (orQwen) return { content: orQwen, provider: 'openrouter-qwen-2.5-coder-32b (fallback tier 1)' };
+
+      // 3. Cascade Step 2: OpenRouter (Llama 3.3 70B Instruct)
+      const orLlama = await tryOpenRouter('meta-llama/llama-3.3-70b-instruct');
+      if (orLlama) return { content: orLlama, provider: 'openrouter-llama-3.3-70b (fallback tier 2)' };
+
+      // 4. Cascade Step 3: Groq Primary Key (Qwen 3.8 27B @ 500+ tok/s)
+      const groqQwen = await tryGroq('qwen/qwen3.8-27b', groqKey);
+      if (groqQwen) return { content: groqQwen, provider: 'groq-lpu-qwen3.8-27b (fallback tier 3)' };
+
+      // 5. Cascade Step 4: Groq Primary Key (GPT-OSS-120B)
+      const groqGpt = await tryGroq('openai/gpt-oss-120b', groqKey);
+      if (groqGpt) return { content: groqGpt, provider: 'groq-lpu-gpt-oss-120b (fallback tier 4)' };
+
+      // 6. Cascade Step 5: Groq Backup Key (llama-3.3-70b-versatile)
+      if (groqBackupKey) {
+        const groqBackup = await tryGroq('llama-3.3-70b-versatile', groqBackupKey);
+        if (groqBackup) return { content: groqBackup, provider: 'groq-backup-lpu (fallback tier 5)' };
       }
-    } else if (activeProvider === 'openai') {
-      generatedContent = await tryOpenAI();
-      if (generatedContent) providerUsed = 'openai-gpt-4o-mini';
-      else if (fallbackEnabled) {
-        generatedContent = await tryGroq();
-        if (generatedContent) providerUsed = 'groq-lpu (fallback)';
-        else {
-          generatedContent = await tryGemini();
-          if (generatedContent) providerUsed = `google-${modelName} (fallback)`;
-        }
+
+      // 7. Cascade Step 6: Google Gemini (AIzaSy...)
+      const geminiFallback = await tryGemini();
+      if (geminiFallback) return { content: geminiFallback, provider: `google-gemini (fallback tier 6)` };
+
+      // 8. Cascade Step 7: OpenAI (if configured)
+      const openaiFallback = await tryOpenAI();
+      if (openaiFallback) return { content: openaiFallback, provider: 'openai-gpt-4o-mini (fallback tier 7)' };
+
+      return null;
+    }
+
+    if (activeProvider !== 'heuristic') {
+      const cascadeResult = await executeWithFallback();
+      if (cascadeResult) {
+        generatedContent = cascadeResult.content;
+        providerUsed = cascadeResult.provider;
       }
     }
 

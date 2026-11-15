@@ -608,12 +608,13 @@
       "assignmentSolver": 1
     },
     "aiEngine": {
-      "activeProvider": "heuristic",
+      "activeProvider": "gemini",
       "modelName": "gemini-1.5-flash",
       "temperature": 0.7,
       "maxTokens": 8192,
       "systemPromptOverride": "You are CodeThesis AI, the authoritative academic engineering copilot for tertiary university dissertations.",
-      "fallbackEnabled": true
+      "fallbackEnabled": true,
+      "apiKeys": {}
     },
     "platformStatus": {
       "online": true,
