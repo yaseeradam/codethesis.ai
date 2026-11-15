@@ -33,12 +33,6 @@ export default function ForgotPasswordPage() {
   } | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const demoEmails = [
-    'student@futa.edu.ng',
-    'imusa@futa.edu.ng',
-    'cokeke@unilag.edu.ng'
-  ];
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
@@ -158,7 +152,7 @@ export default function ForgotPasswordPage() {
                     Recovery Link Generated Successfully!
                   </h3>
                   <p className="text-[11px] text-emerald-800 leading-relaxed">
-                    In this local/development university environment, your recovery link has been created immediately without waiting for an SMTP mail dispatch.
+                    Your password recovery link is ready. Use the link below or click proceed to set your new password.
                   </p>
                 </div>
               </div>
@@ -244,25 +238,6 @@ export default function ForgotPasswordPage() {
                   autoFocus
                   className="w-full bg-slate-50 border-2 border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl pl-10 pr-3.5 py-3 text-slate-900 placeholder:text-slate-400 font-medium outline-none transition-all shadow-xs text-xs"
                 />
-              </div>
-            </div>
-
-            {/* Quick-Fill Demo Profiles Helper */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                Quick fill demo student accounts:
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {demoEmails.map((demo) => (
-                  <button
-                    key={demo}
-                    type="button"
-                    onClick={() => setEmail(demo)}
-                    className="text-[10px] font-semibold py-1 px-2.5 rounded-lg border-2 border-slate-200 bg-slate-50 hover:bg-sky-50 hover:border-sky-300 text-slate-700 transition-all cursor-pointer"
-                  >
-                    {demo}
-                  </button>
-                ))}
               </div>
             </div>
 

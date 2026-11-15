@@ -13,7 +13,6 @@ import {
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
-  UserCheck,
   Loader2,
   Sparkles
 } from 'lucide-react';
@@ -46,13 +45,12 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('from') || '/dashboard';
 
-  const { login, loginDemo, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
-  const [activeDemo, setActiveDemo] = useState<string | null>(null);
 
   async function handleStandardLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -93,20 +91,6 @@ function LoginContent() {
       setErrorMessage(err.message || 'An error occurred during Google sign in.');
       setIsGoogleSubmitting(false);
     }
-  }
-
-  async function handleQuickDemo(role: 'adebayo' | 'ibrahim' | 'chioma' | 'admin') {
-    setActiveDemo(role);
-    setErrorMessage('');
-
-    const res = await loginDemo(role);
-    if (!res.success) {
-      setErrorMessage(res.error || 'Demo login failed. Please try again.');
-      setActiveDemo(null);
-      return;
-    }
-
-    router.push(returnTo);
   }
 
   return (
@@ -198,7 +182,7 @@ function LoginContent() {
               Sign in to CodeThesis AI
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              Authenticate via Google, institutional email, or select a student demo profile.
+              Authenticate via Google or your institutional student email.
             </p>
           </div>
 
@@ -215,7 +199,7 @@ function LoginContent() {
             <button
               type="button"
               onClick={handleGoogleLogin}
-              disabled={isGoogleSubmitting || isSubmitting || Boolean(activeDemo)}
+              disabled={isGoogleSubmitting || isSubmitting}
               className="w-full py-3 px-4 bg-white hover:bg-slate-50 border-2 border-slate-300 hover:border-slate-400 text-slate-800 font-bold rounded-xl shadow-xs flex items-center justify-center gap-3 transition-all active:scale-98 cursor-pointer disabled:opacity-60"
             >
               {isGoogleSubmitting ? (
@@ -235,103 +219,11 @@ function LoginContent() {
           {/* Divider */}
           <div className="flex items-center gap-3 text-slate-400 text-xs font-semibold">
             <div className="flex-1 h-[2px] bg-slate-200" />
-            <span className="uppercase text-[10px] tracking-wider text-slate-500">or 1-click student demo</span>
+            <span className="uppercase text-[10px] tracking-wider text-slate-500">or sign in with email</span>
             <div className="flex-1 h-[2px] bg-slate-200" />
           </div>
 
-          {/* 2. INSTANT DEMO STUDENT PROFILES (1-CLICK) */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              <span>Instant Demo Profiles</span>
-              <span className="text-sky-600">No Password Required</span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('adebayo')}
-                disabled={Boolean(activeDemo) || isSubmitting || isGoogleSubmitting}
-                className={`p-2.5 rounded-xl border-2 text-left transition-all active:scale-95 flex flex-col justify-between cursor-pointer ${
-                  activeDemo === 'adebayo'
-                    ? 'border-sky-500 bg-sky-50 text-sky-950 font-bold'
-                    : 'border-slate-200 bg-slate-50/80 hover:bg-sky-50/50 hover:border-sky-300 text-slate-800'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
-                  <UserCheck className="w-3.5 h-3.5 text-sky-600 flex-shrink-0" />
-                  <span className="truncate">Adebayo</span>
-                </div>
-                <div className="text-[10px] text-slate-500 mt-1 font-medium">
-                  <span>FUTA • 15 Cr</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('ibrahim')}
-                disabled={Boolean(activeDemo) || isSubmitting || isGoogleSubmitting}
-                className={`p-2.5 rounded-xl border-2 text-left transition-all active:scale-95 flex flex-col justify-between cursor-pointer ${
-                  activeDemo === 'ibrahim'
-                    ? 'border-amber-500 bg-amber-50 text-amber-950 font-bold'
-                    : 'border-slate-200 bg-slate-50/80 hover:bg-amber-50/50 hover:border-amber-300 text-slate-800'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
-                  <UserCheck className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                  <span className="truncate">Ibrahim</span>
-                </div>
-                <div className="text-[10px] text-slate-500 mt-1 font-medium">
-                  <span>FUTA • 40 Cr</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('chioma')}
-                disabled={Boolean(activeDemo) || isSubmitting || isGoogleSubmitting}
-                className={`p-2.5 rounded-xl border-2 text-left transition-all active:scale-95 flex flex-col justify-between cursor-pointer ${
-                  activeDemo === 'chioma'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-950 font-bold'
-                    : 'border-slate-200 bg-slate-50/80 hover:bg-emerald-50/50 hover:border-emerald-300 text-slate-800'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                  <span className="truncate">Chioma</span>
-                </div>
-                <div className="text-[10px] text-slate-500 mt-1 font-medium">
-                  <span>UNILAG • 8 Cr</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('admin')}
-                disabled={Boolean(activeDemo) || isSubmitting || isGoogleSubmitting}
-                className={`p-2.5 rounded-xl border-2 text-left transition-all active:scale-95 flex flex-col justify-between cursor-pointer ${
-                  activeDemo === 'admin'
-                    ? 'border-purple-500 bg-purple-50 text-purple-950 font-bold'
-                    : 'border-slate-200 bg-slate-50/80 hover:bg-purple-50/50 hover:border-purple-300 text-slate-800'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
-                  <ShieldCheck className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" />
-                  <span className="truncate">Admin</span>
-                </div>
-                <div className="text-[10px] text-purple-700 mt-1 font-bold">
-                  <span>System Admin</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 text-slate-400 text-xs font-semibold">
-            <div className="flex-1 h-[2px] bg-slate-200" />
-            <span className="uppercase text-[10px] tracking-wider text-slate-500">or sign in with password</span>
-            <div className="flex-1 h-[2px] bg-slate-200" />
-          </div>
-
-          {/* 3. STANDARD CREDENTIALS FORM */}
+          {/* 2. STANDARD CREDENTIALS FORM */}
           <form onSubmit={handleStandardLogin} className="space-y-4 text-xs">
             <div>
               <label className="block font-bold text-slate-700 mb-1">Institutional Email</label>
@@ -373,7 +265,7 @@ function LoginContent() {
 
             <button
               type="submit"
-              disabled={isSubmitting || isGoogleSubmitting || Boolean(activeDemo)}
+              disabled={isSubmitting || isGoogleSubmitting}
               className="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-sky-500/20 active:scale-95 cursor-pointer disabled:opacity-60 text-xs"
             >
               <span>{isSubmitting ? 'Verifying Credentials...' : 'Sign In with Password'}</span>
