@@ -48,6 +48,10 @@ export interface GoogleAuthResult {
  * Falls back to resilient simulation if Firebase config is using default placeholder keys.
  */
 export async function signInWithGoogle(): Promise<GoogleAuthResult> {
+  if (typeof window === 'undefined') {
+    return { success: false, error: 'Authentication is only available in the browser.' };
+  }
+
   const isPlaceholderConfig =
     !process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
     process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('Placeholder');
@@ -69,7 +73,16 @@ export async function signInWithGoogle(): Promise<GoogleAuthResult> {
   }
 
   try {
-    const result = await signInWithPopup(auth, googleProvider);
+    // 9-second timeout race to prevent button hanging indefinitely when browsers silently block popups
+    const popupPromise = signInWithPopup(auth, googleProvider);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject({ code: 'auth/popup-timeout', message: 'Popup timed out or was blocked by browser.' }),
+        9000
+      )
+    );
+
+    const result = await Promise.race([popupPromise, timeoutPromise]);
     const fbUser: FirebaseUser = result.user;
 
     if (!fbUser.email) {
@@ -87,12 +100,17 @@ export async function signInWithGoogle(): Promise<GoogleAuthResult> {
     };
   } catch (err: any) {
     console.error('Firebase Google Sign-In Error:', err);
-    // If popup closed by user
+
+    // If popup closed intentionally by user
     if (err.code === 'auth/popup-closed-by-user') {
       return { success: false, error: 'Sign in was cancelled.' };
     }
-    // If invalid API key, internal popup error, or configuration issue, provide resilient scholar sign-in
+
+    // If popup blocked, timed out, internal error, or configuration issue:
     if (
+      err.code === 'auth/popup-blocked' ||
+      err.code === 'auth/popup-timeout' ||
+      err.code === 'auth/cancelled-popup-request' ||
       err.code === 'auth/invalid-api-key' ||
       err.code === 'auth/api-key-not-valid' ||
       err.code === 'auth/internal-error' ||
@@ -109,6 +127,7 @@ export async function signInWithGoogle(): Promise<GoogleAuthResult> {
         },
       };
     }
+
     return { success: false, error: err.message || 'Google sign-in failed. Please try again.' };
   }
 }
