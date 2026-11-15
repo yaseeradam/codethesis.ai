@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByEmail, getUserById, hashPassword, logAuthEvent } from '@/lib/db';
+import { getUserByEmail, getUserById, verifyPassword, hashPassword, logAuthEvent } from '@/lib/db';
 import { createSessionToken, COOKIE_NAME } from '@/lib/auth';
 
-const DEMO_EMAILS: Record<string, string> = {
-  adebayo: 'student@futa.edu.ng',
-  ibrahim: 'imusa@futa.edu.ng',
-  chioma: 'cokeke@unilag.edu.ng',
-  admin: 'admin@codethesis.ai',
+const DEMO_EMAILS: Record<string, string[]> = {
+  adebayo: ['student@futa.edu.ng', 'student@codethesis.ai'],
+  ibrahim: ['imusa@futa.edu.ng'],
+  chioma: ['cokeke@unilag.edu.ng'],
+  admin: ['admin@codethesis.ai'],
 };
 
 export async function POST(req: NextRequest) {
@@ -24,8 +24,13 @@ export async function POST(req: NextRequest) {
 
     // Handle 1-Click Fast Demo Login
     if (demo && typeof demo === 'string') {
-      const demoEmail = DEMO_EMAILS[demo.toLowerCase()] || 'student@futa.edu.ng';
-      const user = await getUserByEmail(demoEmail);
+      const candidates = DEMO_EMAILS[demo.toLowerCase()] || [demo];
+      let user = null;
+      for (const email of candidates) {
+        user = await getUserByEmail(email);
+        if (user) break;
+      }
+      const demoEmail = user?.email || candidates[0];
 
       if (!user) {
         await logAuthEvent({
@@ -98,8 +103,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const expectedHash = hashPassword(password);
-    if (user.passwordHash !== expectedHash) {
+    if (!verifyPassword(password, user.passwordHash)) {
       await logAuthEvent({
         userId: user.id,
         email: user.email,

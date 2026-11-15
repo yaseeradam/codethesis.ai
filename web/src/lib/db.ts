@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import { sql, isNeonConfigured } from './postgres';
 
 export interface User {
   id: string;
@@ -97,16 +99,16 @@ export interface VivaSession {
 }
 
 export interface AdminSettings {
-  defaultSignupCredits: number; // The free credits granted on first login/signup (default: 15)
+  defaultSignupCredits: number;
   toolCreditCosts: {
-    thesis: number;           // default: 3
-    softwareBuilder: number;  // default: 2
-    siwesLogbook: number;     // default: 2
-    itfReport: number;        // default: 2
-    vivaPresentation: number; // default: 1
-    vivaSimulator: number;    // default: 1
-    umlDiagrams: number;      // default: 1
-    assignmentSolver: number; // default: 1
+    thesis: number;
+    softwareBuilder: number;
+    siwesLogbook: number;
+    itfReport: number;
+    vivaPresentation: number;
+    vivaSimulator: number;
+    umlDiagrams: number;
+    assignmentSolver: number;
   };
   aiEngine: {
     activeProvider: 'heuristic' | 'gemini' | 'openai' | 'groq' | 'qwen' | 'anthropic' | 'deepseek';
@@ -145,7 +147,7 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'codethesis_db.json');
 
 const DEFAULT_SETTINGS: AdminSettings = {
-  defaultSignupCredits: 15, // Free credits on first login
+  defaultSignupCredits: 15,
   toolCreditCosts: {
     thesis: 3,
     softwareBuilder: 2,
@@ -157,8 +159,8 @@ const DEFAULT_SETTINGS: AdminSettings = {
     assignmentSolver: 1,
   },
   aiEngine: {
-    activeProvider: 'heuristic',
-    modelName: 'gemini-1.5-flash',
+    activeProvider: 'gemini',
+    modelName: 'gemini-2.5-flash',
     temperature: 0.7,
     maxTokens: 8192,
     systemPromptOverride: 'You are CodeThesis AI, the authoritative academic engineering copilot for tertiary university dissertations.',
@@ -171,7 +173,35 @@ const DEFAULT_SETTINGS: AdminSettings = {
   },
 };
 
-// Ensure data directory exists
+// ─────────────────────────────────────────────────────────────
+// Password Hashing with Bcrypt (with Legacy SHA-256 fallback)
+// ─────────────────────────────────────────────────────────────
+export function hashPassword(password: string): string {
+  try {
+    return bcrypt.hashSync(password, 10);
+  } catch {
+    return crypto.createHash('sha256').update(password + 'codethesis_academic_salt_2026').digest('hex');
+  }
+}
+
+export function verifyPassword(password: string, hash: string): boolean {
+  if (!password || !hash) return false;
+  // If bcrypt hash
+  if (hash.startsWith('$2a$') || hash.startsWith('$2b$') || hash.startsWith('$2y$')) {
+    try {
+      return bcrypt.compareSync(password, hash);
+    } catch {
+      return false;
+    }
+  }
+  // Otherwise sha256
+  const sha = crypto.createHash('sha256').update(password + 'codethesis_academic_salt_2026').digest('hex');
+  return sha === hash || password === hash;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Local File-based Fallback Store
+// ─────────────────────────────────────────────────────────────
 function ensureDb() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -181,13 +211,13 @@ function ensureDb() {
       users: [
         {
           id: 'demo-student-001',
-          email: 'student@futa.edu.ng',
-          passwordHash: hashPassword('password123'),
+          email: 'student@codethesis.ai',
+          passwordHash: hashPassword('student123'),
           fullName: 'Adebayo Tunde',
           matricNumber: 'FUTA/CSC/20/4182',
           institution: 'Federal University of Technology, Akure',
           plan: 'standard',
-          credits: 15,
+          credits: 25,
           role: 'student',
           status: 'active',
           createdAt: new Date().toISOString(),
@@ -231,204 +261,96 @@ function ensureDb() {
         }
       ],
       authAuditLogs: [],
-      projects: [
-        {
-          id: 'proj-001',
-          userId: 'demo-student-001',
-          toolId: 'thesis',
-          title: 'Design and Implementation of an Automated Hostel Allocation and Facility Management System',
-          course: 'Computer Science',
-          institution: 'Federal University of Technology, Akure',
-          summary: 'Full 5-chapter undergraduate thesis with UML diagrams and APA 7th citations.',
-          fileType: 'docx',
-          createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-          updatedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-        },
-        {
-          id: 'proj-002',
-          userId: 'demo-student-001',
-          toolId: 'viva-presentation',
-          title: 'Viva Presentation Deck for Hostel Allocation System',
-          course: 'Computer Science',
-          institution: 'Federal University of Technology, Akure',
-          summary: '15-slide widescreen presentation deck in Midnight Navy and Gold theme.',
-          fileType: 'pptx',
-          createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-          updatedAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-        },
-        {
-          id: 'proj-003',
-          userId: 'demo-student-001',
-          toolId: 'software-builder',
-          title: 'Hostel Allocation Python/SQLite Core Codebase',
-          course: 'Computer Science',
-          institution: 'Federal University of Technology, Akure',
-          summary: 'Zero-pip Python web app with 1-click run_project.bat offline launcher.',
-          fileType: 'zip',
-          createdAt: new Date(Date.now() - 3600000 * 72).toISOString(),
-          updatedAt: new Date(Date.now() - 3600000 * 72).toISOString(),
-        }
-      ],
-      transactions: [
-        {
-          id: 'tx-001',
-          userId: 'demo-student-001',
-          reference: 'CT-TX-849201948',
-          amount: 8500,
-          currency: 'NGN',
-          status: 'success',
-          planId: 'standard',
-          channel: 'card',
-          paidAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-          createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-        },
-        {
-          id: 'tx-002',
-          userId: 'demo-student-002',
-          reference: 'CT-TX-109283746',
-          amount: 15000,
-          currency: 'NGN',
-          status: 'success',
-          planId: 'complete',
-          channel: 'bank_transfer',
-          paidAt: new Date(Date.now() - 3600000 * 72).toISOString(),
-          createdAt: new Date(Date.now() - 3600000 * 72).toISOString(),
-        },
-        {
-          id: 'tx-003',
-          userId: 'demo-student-003',
-          reference: 'CT-TX-551029481',
-          amount: 3500,
-          currency: 'NGN',
-          status: 'success',
-          planId: 'starter',
-          channel: 'ussd',
-          paidAt: new Date(Date.now() - 3600000 * 120).toISOString(),
-          createdAt: new Date(Date.now() - 3600000 * 120).toISOString(),
-        }
-      ],
+      projects: [],
+      transactions: [],
       settings: DEFAULT_SETTINGS,
     };
     fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2), 'utf-8');
   }
 }
 
-export function hashPassword(password: string): string {
-  const salt = 'codethesis_secure_salt_2026';
-  return crypto.createHash('sha256').update(password + salt).digest('hex');
-}
-
-function readDb(): DatabaseSchema {
+export function readDb(): DatabaseSchema {
   ensureDb();
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    const parsed = JSON.parse(raw);
-    let needsSave = false;
-
-    if (!parsed.settings) {
-      parsed.settings = DEFAULT_SETTINGS;
-      needsSave = true;
-    }
-    if (!parsed.authAuditLogs) {
-      parsed.authAuditLogs = [];
-      needsSave = true;
-    }
-    if (!parsed.users) {
-      parsed.users = [];
-      needsSave = true;
-    }
-
-    // Ensure demo admin exists
-    const adminExists = parsed.users.some(
-      (u: User) => u.email.toLowerCase() === 'admin@codethesis.ai' || u.role === 'admin'
-    );
-    if (!adminExists) {
-      parsed.users.push({
-        id: 'demo-admin-001',
-        email: 'admin@codethesis.ai',
-        passwordHash: hashPassword('admin123'),
-        fullName: 'System Administrator',
-        plan: 'faculty',
-        credits: 9999,
-        role: 'admin',
-        status: 'active',
-        createdAt: new Date().toISOString(),
-      });
-      needsSave = true;
-    }
-
-    // Ensure all demo users or users have explicit role set
-    for (const u of parsed.users) {
-      if (!u.role) {
-        if (u.id === 'demo-admin-001' || u.email.toLowerCase() === 'admin@codethesis.ai') {
-          u.role = 'admin';
-        } else {
-          u.role = 'student';
-        }
-        needsSave = true;
-      }
-    }
-
-    if (needsSave) {
-      writeDb(parsed);
-    }
-
-    return parsed;
+    const data = JSON.parse(raw);
+    if (!data.settings) data.settings = DEFAULT_SETTINGS;
+    if (!data.creditLogs) data.creditLogs = [];
+    if (!data.vivaSessions) data.vivaSessions = [];
+    if (!data.authAuditLogs) data.authAuditLogs = [];
+    return data;
   } catch (err) {
-    console.error('Error reading DB, resetting to defaults:', err);
-    return { users: [], projects: [], transactions: [], authAuditLogs: [], settings: DEFAULT_SETTINGS };
+    return {
+      users: [],
+      projects: [],
+      transactions: [],
+      creditLogs: [],
+      vivaSessions: [],
+      authAuditLogs: [],
+      settings: DEFAULT_SETTINGS,
+    };
   }
 }
 
-function writeDb(data: DatabaseSchema): void {
+export function writeDb(data: DatabaseSchema): void {
   ensureDb();
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  const tempPath = `${DB_FILE}.tmp.${Date.now()}`;
+  try {
+    fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf-8');
+    fs.renameSync(tempPath, DB_FILE);
+  } catch (err) {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
-// Admin Settings Operations
+// User Operations (Neon PostgreSQL with Local Fallback)
 // ─────────────────────────────────────────────────────────────
-export async function getAdminSettings(): Promise<AdminSettings> {
-  const db = readDb();
-  return db.settings || DEFAULT_SETTINGS;
-}
-
-export async function updateAdminSettings(updates: Partial<AdminSettings>): Promise<AdminSettings> {
-  const db = readDb();
-  db.settings = {
-    ...db.settings,
-    ...updates,
-    toolCreditCosts: {
-      ...db.settings.toolCreditCosts,
-      ...(updates.toolCreditCosts || {}),
-    },
-    aiEngine: {
-      ...db.settings.aiEngine,
-      ...(updates.aiEngine || {}),
-    },
-    platformStatus: {
-      ...db.settings.platformStatus,
-      ...(updates.platformStatus || {}),
-    },
-  };
-  writeDb(db);
-  return db.settings;
-}
-
-// ─────────────────────────────────────────────────────────────
-// User & Automatic Credit Operations
-// ─────────────────────────────────────────────────────────────
-export async function getAllUsers(): Promise<User[]> {
-  const db = readDb();
-  return db.users;
-}
-
 export async function getUserByEmail(email: string): Promise<User | null> {
+  const cleanEmail = email.toLowerCase().trim();
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, email, password_hash as "passwordHash", full_name as "fullName",
+               matric_number as "matricNumber", institution, plan, credits,
+               status, role, reset_token as "resetToken", created_at as "createdAt"
+        FROM users
+        WHERE LOWER(email) = ${cleanEmail}
+        LIMIT 1;
+      `;
+      if (rows && rows.length > 0) {
+        return rows[0] as User;
+      }
+      return null;
+    } catch (err) {
+      console.error('Neon getUserByEmail error, falling back to local store:', err);
+    }
+  }
+
   const db = readDb();
-  return db.users.find(u => u.email.toLowerCase() === email.toLowerCase()) || null;
+  return db.users.find(u => u.email.toLowerCase() === cleanEmail) || null;
 }
 
 export async function getUserById(id: string): Promise<User | null> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, email, password_hash as "passwordHash", full_name as "fullName",
+               matric_number as "matricNumber", institution, plan, credits,
+               status, role, reset_token as "resetToken", created_at as "createdAt"
+        FROM users
+        WHERE id = ${id}
+        LIMIT 1;
+      `;
+      if (rows && rows.length > 0) {
+        return rows[0] as User;
+      }
+      return null;
+    } catch (err) {
+      console.error('Neon getUserById error, falling back to local store:', err);
+    }
+  }
+
   const db = readDb();
   return db.users.find(u => u.id === id) || null;
 }
@@ -441,35 +363,89 @@ export async function createUser(userData: {
   institution?: string;
   role?: 'student' | 'admin';
 }): Promise<User> {
-  const db = readDb();
-  const existing = db.users.find(u => u.email.toLowerCase() === userData.email.toLowerCase());
+  const existing = await getUserByEmail(userData.email);
   if (existing) {
     throw new Error('User with this email already exists.');
   }
 
-  // Grant configured default free credits on first signup
-  const freeCredits = db.settings?.defaultSignupCredits ?? 15;
+  const id = `usr-${crypto.randomUUID().slice(0, 8)}`;
+  const cleanEmail = userData.email.toLowerCase().trim();
+  const passwordHash = hashPassword(userData.password);
+  const fullName = userData.fullName.trim();
+  const matricNumber = userData.matricNumber?.trim() || 'FUTA/CSC/20/4182';
+  const institution = userData.institution?.trim() || 'Federal University of Technology, Akure';
+  const freeCredits = 15;
+  const role = userData.role || 'student';
+  const createdAt = new Date().toISOString();
 
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        INSERT INTO users (id, email, password_hash, full_name, matric_number, institution, plan, credits, role, status, created_at)
+        VALUES (${id}, ${cleanEmail}, ${passwordHash}, ${fullName}, ${matricNumber}, ${institution}, 'free', ${freeCredits}, ${role}, 'active', ${createdAt})
+        RETURNING id, email, password_hash as "passwordHash", full_name as "fullName",
+                  matric_number as "matricNumber", institution, plan, credits,
+                  status, role, reset_token as "resetToken", created_at as "createdAt";
+      `;
+      if (rows && rows.length > 0) {
+        return rows[0] as User;
+      }
+    } catch (err) {
+      console.error('Neon createUser error, falling back to local store:', err);
+    }
+  }
+
+  const db = readDb();
   const newUser: User = {
-    id: `usr-${crypto.randomUUID().slice(0, 8)}`,
-    email: userData.email.toLowerCase().trim(),
-    passwordHash: hashPassword(userData.password),
-    fullName: userData.fullName.trim(),
-    matricNumber: userData.matricNumber?.trim() || 'FUTA/CSC/20/4182',
-    institution: userData.institution?.trim() || 'Federal University of Technology, Akure',
+    id,
+    email: cleanEmail,
+    passwordHash,
+    fullName,
+    matricNumber,
+    institution,
     plan: 'free',
     credits: freeCredits,
-    role: userData.role || 'student',
+    role,
     status: 'active',
-    createdAt: new Date().toISOString(),
+    createdAt,
   };
-
   db.users.push(newUser);
   writeDb(db);
   return newUser;
 }
 
 export async function updateUser(id: string, updates: Partial<User>): Promise<User | null> {
+  if (isNeonConfigured()) {
+    try {
+      const current = await getUserById(id);
+      if (!current) return null;
+      const merged = { ...current, ...updates };
+
+      const rows = await sql`
+        UPDATE users SET
+          email = ${merged.email},
+          password_hash = ${merged.passwordHash},
+          full_name = ${merged.fullName},
+          matric_number = ${merged.matricNumber || null},
+          institution = ${merged.institution || null},
+          plan = ${merged.plan},
+          credits = ${merged.credits},
+          status = ${merged.status || 'active'},
+          role = ${merged.role || 'student'},
+          reset_token = ${merged.resetToken ? JSON.stringify(merged.resetToken) : null}
+        WHERE id = ${id}
+        RETURNING id, email, password_hash as "passwordHash", full_name as "fullName",
+                  matric_number as "matricNumber", institution, plan, credits,
+                  status, role, reset_token as "resetToken", created_at as "createdAt";
+      `;
+      if (rows && rows.length > 0) {
+        return rows[0] as User;
+      }
+    } catch (err) {
+      console.error('Neon updateUser error, falling back to local store:', err);
+    }
+  }
+
   const db = readDb();
   const index = db.users.findIndex(u => u.id === id);
   if (index === -1) return null;
@@ -479,17 +455,40 @@ export async function updateUser(id: string, updates: Partial<User>): Promise<Us
   return db.users[index];
 }
 
-/**
- * Deduct credits automatically when a student runs a tool
- */
-export async function deductUserCredits(userId: string, toolType: keyof AdminSettings['toolCreditCosts']): Promise<{ success: boolean; remainingCredits: number; message: string }> {
+export async function getAllUsers(): Promise<User[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, email, password_hash as "passwordHash", full_name as "fullName",
+               matric_number as "matricNumber", institution, plan, credits,
+               status, role, reset_token as "resetToken", created_at as "createdAt"
+        FROM users
+        ORDER BY created_at DESC;
+      `;
+      return rows as User[];
+    } catch (err) {
+      console.error('Neon getAllUsers error, falling back to local store:', err);
+    }
+  }
+
   const db = readDb();
-  const user = db.users.find(u => u.id === userId);
+  return db.users;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Credit Operations
+// ─────────────────────────────────────────────────────────────
+export async function deductUserCredits(
+  userId: string,
+  toolType: keyof AdminSettings['toolCreditCosts']
+): Promise<{ success: boolean; remainingCredits: number; message: string }> {
+  const user = await getUserById(userId);
   if (!user) {
     return { success: false, remainingCredits: 0, message: 'User not found' };
   }
 
-  const cost = db.settings?.toolCreditCosts?.[toolType] ?? 1;
+  const settings = await getAdminSettings();
+  const cost = settings.toolCreditCosts?.[toolType] ?? 1;
 
   if (user.credits < cost) {
     return {
@@ -499,139 +498,289 @@ export async function deductUserCredits(userId: string, toolType: keyof AdminSet
     };
   }
 
-  user.credits -= cost;
+  const newBalance = user.credits - cost;
+  await updateUser(userId, { credits: newBalance });
+
+  const logId = `log-${crypto.randomUUID().slice(0, 8)}`;
+  const description = `Used ${toolType} tool (${cost} credit${cost > 1 ? 's' : ''})`;
+  const createdAt = new Date().toISOString();
+
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        INSERT INTO credit_logs (id, user_id, amount, type, tool_id, balance_after, description, created_at)
+        VALUES (${logId}, ${userId}, ${-cost}, 'tool_usage', ${toolType}, ${newBalance}, ${description}, ${createdAt});
+      `;
+    } catch (err) {
+      console.error('Neon insert credit_log error:', err);
+    }
+  }
+
+  const db = readDb();
   if (!db.creditLogs) db.creditLogs = [];
-  const log: CreditLog = {
-    id: `log-${crypto.randomUUID().slice(0, 8)}`,
+  db.creditLogs.unshift({
+    id: logId,
     userId,
     amount: -cost,
     type: 'tool_usage',
     toolId: toolType,
-    balanceAfter: user.credits,
-    description: `Used ${toolType} tool (${cost} credit${cost > 1 ? 's' : ''})`,
-    createdAt: new Date().toISOString(),
-  };
-  db.creditLogs.unshift(log);
+    balanceAfter: newBalance,
+    description,
+    createdAt,
+  });
   writeDb(db);
+
   return {
     success: true,
-    remainingCredits: user.credits,
-    message: `Deducted ${cost} credit(s). ${user.credits} credits remaining.`
+    remainingCredits: newBalance,
+    message: `Deducted ${cost} credit(s). ${newBalance} credits remaining.`
   };
 }
 
-/**
- * Automatically increase credits upon successful Paystack or Stripe payment
- */
 export async function addCreditsOnPayment(userId: string, creditsToAdd: number, planId?: string): Promise<User | null> {
-  const db = readDb();
-  const user = db.users.find(u => u.id === userId);
+  const user = await getUserById(userId);
   if (!user) return null;
 
-  user.credits += creditsToAdd;
-  if (planId) {
-    user.plan = planId as any;
+  const newBalance = user.credits + creditsToAdd;
+  const updates: Partial<User> = { credits: newBalance };
+  if (planId) updates.plan = planId as any;
+
+  const updatedUser = await updateUser(userId, updates);
+
+  const logId = `log-${crypto.randomUUID().slice(0, 8)}`;
+  const description = `Payment credit top-up (${creditsToAdd} credits added${planId ? ' - ' + planId : ''})`;
+  const createdAt = new Date().toISOString();
+
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        INSERT INTO credit_logs (id, user_id, amount, type, balance_after, description, created_at)
+        VALUES (${logId}, ${userId}, ${creditsToAdd}, 'payment_topup', ${newBalance}, ${description}, ${createdAt});
+      `;
+    } catch (err) {
+      console.error('Neon insert payment credit log error:', err);
+    }
   }
+
+  const db = readDb();
   if (!db.creditLogs) db.creditLogs = [];
-  const log: CreditLog = {
-    id: `log-${crypto.randomUUID().slice(0, 8)}`,
+  db.creditLogs.unshift({
+    id: logId,
     userId,
     amount: creditsToAdd,
     type: 'payment_topup',
-    balanceAfter: user.credits,
-    description: `Payment credit top-up (${creditsToAdd} credits added${planId ? ' - ' + planId : ''})`,
-    createdAt: new Date().toISOString(),
-  };
-  db.creditLogs.unshift(log);
+    balanceAfter: newBalance,
+    description,
+    createdAt,
+  });
   writeDb(db);
-  return user;
+
+  return updatedUser;
+}
+
+export async function logCreditEntry(entry: {
+  userId: string;
+  amount: number;
+  type: CreditLog['type'];
+  balanceAfter: number;
+  description: string;
+  toolId?: string;
+}): Promise<CreditLog> {
+  const logId = `log-${crypto.randomUUID().slice(0, 8)}`;
+  const now = new Date().toISOString();
+
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        INSERT INTO credit_logs (id, user_id, amount, type, tool_id, balance_after, description, created_at)
+        VALUES (${logId}, ${entry.userId}, ${entry.amount}, ${entry.type}, ${entry.toolId || null}, ${entry.balanceAfter}, ${entry.description}, ${now});
+      `;
+    } catch (err) {
+      console.error('Neon logCreditEntry error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.creditLogs) db.creditLogs = [];
+  const newLog: CreditLog = {
+    id: logId,
+    userId: entry.userId,
+    amount: entry.amount,
+    type: entry.type,
+    toolId: entry.toolId,
+    balanceAfter: entry.balanceAfter,
+    description: entry.description,
+    createdAt: now,
+  };
+  db.creditLogs.unshift(newLog);
+  writeDb(db);
+  return newLog;
+}
+
+export const updateTransactionByReference = updateTransaction;
+
+export async function getCreditLogsByUserId(userId: string): Promise<CreditLog[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", amount, type, tool_id as "toolId",
+               balance_after as "balanceAfter", description, created_at as "createdAt"
+        FROM credit_logs
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC;
+      `;
+      return rows as CreditLog[];
+    } catch (err) {
+      console.error('Neon getCreditLogsByUserId error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.creditLogs || []).filter(l => l.userId === userId);
 }
 
 // ─────────────────────────────────────────────────────────────
 // Project Operations
 // ─────────────────────────────────────────────────────────────
-export async function getAllProjects(): Promise<Project[]> {
-  const db = readDb();
-  return db.projects;
-}
+export async function saveProject(projectData: {
+  userId: string;
+  toolId: string;
+  title: string;
+  course: string;
+  institution: string;
+  summary?: string;
+  fileType?: 'docx' | 'pptx' | 'zip' | 'pdf';
+  fileDownloadUrl?: string;
+  metadata?: Record<string, any>;
+}): Promise<Project> {
+  const id = `proj-${crypto.randomUUID().slice(0, 8)}`;
+  const createdAt = new Date().toISOString();
+  const fileType = projectData.fileType || 'docx';
 
-export async function getProjectsByUserId(userId: string): Promise<Project[]> {
-  const db = readDb();
-  return db.projects.filter(p => p.userId === userId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        INSERT INTO projects (id, user_id, tool_id, title, course, institution, summary, file_type, file_download_url, metadata, created_at, updated_at)
+        VALUES (
+          ${id},
+          ${projectData.userId},
+          ${projectData.toolId},
+          ${projectData.title},
+          ${projectData.course},
+          ${projectData.institution},
+          ${projectData.summary || null},
+          ${fileType},
+          ${projectData.fileDownloadUrl || null},
+          ${projectData.metadata ? JSON.stringify(projectData.metadata) : null},
+          ${createdAt},
+          ${createdAt}
+        )
+        RETURNING id, user_id as "userId", tool_id as "toolId", title, course,
+                  institution, summary, file_type as "fileType",
+                  file_download_url as "fileDownloadUrl", metadata,
+                  created_at as "createdAt", updated_at as "updatedAt";
+      `;
+      if (rows && rows.length > 0) return rows[0] as Project;
+    } catch (err) {
+      console.error('Neon saveProject error:', err);
+    }
+  }
 
-export async function saveProject(projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<Project> {
   const db = readDb();
   const newProject: Project = {
-    ...projectData,
-    id: `proj-${crypto.randomUUID().slice(0, 8)}`,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    id,
+    userId: projectData.userId,
+    toolId: projectData.toolId,
+    title: projectData.title,
+    course: projectData.course,
+    institution: projectData.institution,
+    summary: projectData.summary,
+    fileType,
+    fileDownloadUrl: projectData.fileDownloadUrl,
+    metadata: projectData.metadata,
+    createdAt,
+    updatedAt: createdAt,
   };
-
   db.projects.unshift(newProject);
   writeDb(db);
   return newProject;
 }
 
-export async function deleteProject(projectId: string, userId: string): Promise<boolean> {
-  const db = readDb();
-  const prevCount = db.projects.length;
-  db.projects = db.projects.filter(p => !(p.id === projectId && p.userId === userId));
-  if (db.projects.length !== prevCount) {
-    writeDb(db);
-    return true;
+export async function getProjectById(id: string): Promise<Project | null> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", tool_id as "toolId", title, course,
+               institution, summary, file_type as "fileType",
+               file_download_url as "fileDownloadUrl", metadata,
+               created_at as "createdAt", updated_at as "updatedAt"
+        FROM projects
+        WHERE id = ${id}
+        LIMIT 1;
+      `;
+      if (rows && rows.length > 0) return rows[0] as Project;
+      return null;
+    } catch (err) {
+      console.error('Neon getProjectById error:', err);
+    }
   }
-  return false;
+
+  const db = readDb();
+  return db.projects.find(p => p.id === id) || null;
 }
 
-// ─────────────────────────────────────────────────────────────
-// Transaction Operations
-// ─────────────────────────────────────────────────────────────
-export async function getAllTransactions(): Promise<Transaction[]> {
+export async function getProjectsByUserId(userId: string): Promise<Project[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", tool_id as "toolId", title, course,
+               institution, summary, file_type as "fileType",
+               file_download_url as "fileDownloadUrl", metadata,
+               created_at as "createdAt", updated_at as "updatedAt"
+        FROM projects
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC;
+      `;
+      return rows as Project[];
+    } catch (err) {
+      console.error('Neon getProjectsByUserId error:', err);
+    }
+  }
+
   const db = readDb();
-  return db.transactions;
+  return db.projects.filter(p => p.userId === userId);
 }
 
-export async function createTransaction(txData: Omit<Transaction, 'id' | 'createdAt'>): Promise<Transaction> {
+export async function updateProject(id: string, userId: string, updates: Partial<Project>): Promise<Project | null> {
+  if (isNeonConfigured()) {
+    try {
+      const current = await getProjectById(id);
+      if (!current || current.userId !== userId) return null;
+      const merged = { ...current, ...updates };
+
+      const rows = await sql`
+        UPDATE projects SET
+          title = ${merged.title},
+          course = ${merged.course},
+          institution = ${merged.institution},
+          summary = ${merged.summary || null},
+          file_type = ${merged.fileType},
+          metadata = ${merged.metadata ? JSON.stringify(merged.metadata) : null},
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id} AND user_id = ${userId}
+        RETURNING id, user_id as "userId", tool_id as "toolId", title, course,
+                  institution, summary, file_type as "fileType",
+                  file_download_url as "fileDownloadUrl", metadata,
+                  created_at as "createdAt", updated_at as "updatedAt";
+      `;
+      if (rows && rows.length > 0) return rows[0] as Project;
+    } catch (err) {
+      console.error('Neon updateProject error:', err);
+    }
+  }
+
   const db = readDb();
-  const newTx: Transaction = {
-    ...txData,
-    id: `tx-${crypto.randomUUID().slice(0, 8)}`,
-    createdAt: new Date().toISOString(),
-  };
-
-  db.transactions.unshift(newTx);
-  writeDb(db);
-  return newTx;
-}
-
-export async function updateTransactionByReference(reference: string, updates: Partial<Transaction>): Promise<Transaction | null> {
-  const db = readDb();
-  const index = db.transactions.findIndex(t => t.reference === reference);
-  if (index === -1) return null;
-
-  db.transactions[index] = { ...db.transactions[index], ...updates };
-  writeDb(db);
-  return db.transactions[index];
-}
-
-export async function getTransactionByReference(reference: string): Promise<Transaction | null> {
-  const db = readDb();
-  return db.transactions.find(t => t.reference === reference) || null;
-}
-
-// ─────────────────────────────────────────────────────────────
-// Project Get & Update Helpers
-// ─────────────────────────────────────────────────────────────
-export async function getProjectById(projectId: string): Promise<Project | null> {
-  const db = readDb();
-  return db.projects.find(p => p.id === projectId) || null;
-}
-
-export async function updateProject(projectId: string, userId: string, updates: Partial<Project>): Promise<Project | null> {
-  const db = readDb();
-  const index = db.projects.findIndex(p => p.id === projectId && (p.userId === userId || userId === 'admin'));
+  const index = db.projects.findIndex(p => p.id === id && p.userId === userId);
   if (index === -1) return null;
 
   db.projects[index] = {
@@ -643,57 +792,308 @@ export async function updateProject(projectId: string, userId: string, updates: 
   return db.projects[index];
 }
 
-// ─────────────────────────────────────────────────────────────
-// Credit Logs Operations
-// ─────────────────────────────────────────────────────────────
-export async function getCreditLogsByUserId(userId: string): Promise<CreditLog[]> {
+export async function deleteProject(id: string, userId: string): Promise<boolean> {
+  if (isNeonConfigured()) {
+    try {
+      await sql`DELETE FROM projects WHERE id = ${id} AND user_id = ${userId};`;
+      return true;
+    } catch (err) {
+      console.error('Neon deleteProject error:', err);
+    }
+  }
+
   const db = readDb();
-  if (!db.creditLogs) return [];
-  return db.creditLogs
-    .filter(l => l.userId === userId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const initialLength = db.projects.length;
+  db.projects = db.projects.filter(p => !(p.id === id && p.userId === userId));
+  const deleted = db.projects.length < initialLength;
+  if (deleted) writeDb(db);
+  return deleted;
 }
 
-export async function logCreditEntry(entry: Omit<CreditLog, 'id' | 'createdAt'>): Promise<CreditLog> {
+export async function getAllProjects(): Promise<Project[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", tool_id as "toolId", title, course,
+               institution, summary, file_type as "fileType",
+               file_download_url as "fileDownloadUrl", metadata,
+               created_at as "createdAt", updated_at as "updatedAt"
+        FROM projects
+        ORDER BY created_at DESC;
+      `;
+      return rows as Project[];
+    } catch (err) {
+      console.error('Neon getAllProjects error:', err);
+    }
+  }
+
   const db = readDb();
-  if (!db.creditLogs) db.creditLogs = [];
-  const newLog: CreditLog = {
-    ...entry,
-    id: `log-${crypto.randomUUID().slice(0, 8)}`,
-    createdAt: new Date().toISOString(),
+  return db.projects;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Transaction Operations
+// ─────────────────────────────────────────────────────────────
+export async function createTransaction(txData: {
+  userId: string;
+  reference: string;
+  amount: number;
+  currency?: string;
+  status?: 'pending' | 'success' | 'failed';
+  planId: string;
+  channel?: string;
+}): Promise<Transaction> {
+  const id = `tx-${crypto.randomUUID().slice(0, 8)}`;
+  const createdAt = new Date().toISOString();
+  const currency = txData.currency || 'NGN';
+  const status = txData.status || 'pending';
+
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        INSERT INTO transactions (id, user_id, reference, amount, currency, status, plan_id, channel, created_at)
+        VALUES (${id}, ${txData.userId}, ${txData.reference}, ${txData.amount}, ${currency}, ${status}, ${txData.planId}, ${txData.channel || null}, ${createdAt})
+        RETURNING id, user_id as "userId", reference, amount, currency, status, plan_id as "planId", channel, paid_at as "paidAt", created_at as "createdAt";
+      `;
+      if (rows && rows.length > 0) return rows[0] as Transaction;
+    } catch (err) {
+      console.error('Neon createTransaction error:', err);
+    }
+  }
+
+  const db = readDb();
+  const newTx: Transaction = {
+    id,
+    userId: txData.userId,
+    reference: txData.reference,
+    amount: txData.amount,
+    currency,
+    status,
+    planId: txData.planId,
+    channel: txData.channel,
+    createdAt,
   };
-  db.creditLogs.unshift(newLog);
+  db.transactions.unshift(newTx);
   writeDb(db);
-  return newLog;
+  return newTx;
+}
+
+export async function getTransactionByReference(reference: string): Promise<Transaction | null> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", reference, amount, currency, status, plan_id as "planId", channel, paid_at as "paidAt", created_at as "createdAt"
+        FROM transactions
+        WHERE reference = ${reference}
+        LIMIT 1;
+      `;
+      if (rows && rows.length > 0) return rows[0] as Transaction;
+      return null;
+    } catch (err) {
+      console.error('Neon getTransactionByReference error:', err);
+    }
+  }
+
+  const db = readDb();
+  return db.transactions.find(t => t.reference === reference) || null;
+}
+
+export async function updateTransaction(reference: string, updates: Partial<Transaction>): Promise<Transaction | null> {
+  if (isNeonConfigured()) {
+    try {
+      const current = await getTransactionByReference(reference);
+      if (!current) return null;
+      const merged = { ...current, ...updates };
+
+      const rows = await sql`
+        UPDATE transactions SET
+          status = ${merged.status},
+          channel = ${merged.channel || null},
+          paid_at = ${merged.paidAt || null}
+        WHERE reference = ${reference}
+        RETURNING id, user_id as "userId", reference, amount, currency, status, plan_id as "planId", channel, paid_at as "paidAt", created_at as "createdAt";
+      `;
+      if (rows && rows.length > 0) return rows[0] as Transaction;
+    } catch (err) {
+      console.error('Neon updateTransaction error:', err);
+    }
+  }
+
+  const db = readDb();
+  const index = db.transactions.findIndex(t => t.reference === reference);
+  if (index === -1) return null;
+
+  db.transactions[index] = { ...db.transactions[index], ...updates };
+  writeDb(db);
+  return db.transactions[index];
+}
+
+export async function getAllTransactions(): Promise<Transaction[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", reference, amount, currency, status, plan_id as "planId", channel, paid_at as "paidAt", created_at as "createdAt"
+        FROM transactions
+        ORDER BY created_at DESC;
+      `;
+      return rows as Transaction[];
+    } catch (err) {
+      console.error('Neon getAllTransactions error:', err);
+    }
+  }
+
+  const db = readDb();
+  return db.transactions;
 }
 
 // ─────────────────────────────────────────────────────────────
-// Viva Session Operations
+// Viva Simulator Sessions
 // ─────────────────────────────────────────────────────────────
+export async function getVivaSession(id: string): Promise<VivaSession | null> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", topic, course, examiner_persona as "examinerPersona",
+               turns, scorecard, status, created_at as "createdAt", updated_at as "updatedAt"
+        FROM viva_sessions
+        WHERE id = ${id}
+        LIMIT 1;
+      `;
+      if (rows && rows.length > 0) {
+        const item = rows[0] as any;
+        return {
+          id: item.id,
+          userId: item.userId,
+          topic: item.topic,
+          course: item.course,
+          examinerPersona: item.examinerPersona,
+          turns: typeof item.turns === 'string' ? JSON.parse(item.turns) : item.turns || [],
+          scorecard: typeof item.scorecard === 'string' ? JSON.parse(item.scorecard) : item.scorecard,
+          status: item.status,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error('Neon getVivaSession error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.vivaSessions || []).find(s => s.id === id) || null;
+}
+
 export async function saveVivaSession(session: VivaSession): Promise<VivaSession> {
+  const turnsJson = JSON.stringify(session.turns || []);
+  const scorecardJson = session.scorecard ? JSON.stringify(session.scorecard) : null;
+  const now = new Date().toISOString();
+
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        INSERT INTO viva_sessions (id, user_id, topic, course, examiner_persona, turns, scorecard, status, created_at, updated_at)
+        VALUES (
+          ${session.id},
+          ${session.userId},
+          ${session.topic},
+          ${session.course},
+          ${session.examinerPersona || 'strict'},
+          ${turnsJson},
+          ${scorecardJson},
+          ${session.status || 'active'},
+          ${session.createdAt || now},
+          ${now}
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          turns = EXCLUDED.turns,
+          scorecard = EXCLUDED.scorecard,
+          status = EXCLUDED.status,
+          updated_at = EXCLUDED.updated_at;
+      `;
+      return session;
+    } catch (err) {
+      console.error('Neon saveVivaSession error:', err);
+    }
+  }
+
   const db = readDb();
   if (!db.vivaSessions) db.vivaSessions = [];
   const index = db.vivaSessions.findIndex(s => s.id === session.id);
-  if (index >= 0) {
-    db.vivaSessions[index] = { ...session, updatedAt: new Date().toISOString() };
+  if (index !== -1) {
+    db.vivaSessions[index] = { ...session, updatedAt: now };
   } else {
-    db.vivaSessions.unshift({ ...session, updatedAt: new Date().toISOString() });
+    db.vivaSessions.unshift({ ...session, createdAt: session.createdAt || now, updatedAt: now });
   }
   writeDb(db);
   return session;
 }
 
-export async function getVivaSession(sessionId: string): Promise<VivaSession | null> {
+// ─────────────────────────────────────────────────────────────
+// Admin Settings & Audit Logs
+// ─────────────────────────────────────────────────────────────
+export async function getAdminSettings(): Promise<AdminSettings> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`SELECT * FROM admin_settings WHERE id = 'default' LIMIT 1;`;
+      if (rows && rows.length > 0) {
+        const item = rows[0] as any;
+        return {
+          defaultSignupCredits: item.default_signup_credits || 15,
+          toolCreditCosts: typeof item.tool_credit_costs === 'string' ? JSON.parse(item.tool_credit_costs) : item.tool_credit_costs || DEFAULT_SETTINGS.toolCreditCosts,
+          aiEngine: typeof item.ai_engine === 'string' ? JSON.parse(item.ai_engine) : item.ai_engine || DEFAULT_SETTINGS.aiEngine,
+          platformStatus: typeof item.platform_status === 'string' ? JSON.parse(item.platform_status) : item.platform_status || DEFAULT_SETTINGS.platformStatus,
+        };
+      }
+    } catch (err) {
+      console.error('Neon getAdminSettings error:', err);
+    }
+  }
+
   const db = readDb();
-  if (!db.vivaSessions) return null;
-  return db.vivaSessions.find(s => s.id === sessionId) || null;
+  return db.settings || DEFAULT_SETTINGS;
 }
 
-// ─────────────────────────────────────────────────────────────
-// Admin AI Key Vault Operations
-// ─────────────────────────────────────────────────────────────
-export async function updateAdminApiKeys(payload: {
-  activeProvider?: 'heuristic' | 'gemini' | 'openai' | 'groq' | 'qwen' | 'anthropic' | 'deepseek';
+export async function updateAdminSettings(settings: Partial<AdminSettings>): Promise<AdminSettings> {
+  const current = await getAdminSettings();
+  const merged: AdminSettings = {
+    defaultSignupCredits: settings.defaultSignupCredits ?? current.defaultSignupCredits,
+    toolCreditCosts: { ...current.toolCreditCosts, ...(settings.toolCreditCosts || {}) },
+    aiEngine: { ...current.aiEngine, ...(settings.aiEngine || {}) },
+    platformStatus: { ...current.platformStatus, ...(settings.platformStatus || {}) },
+  };
+
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        INSERT INTO admin_settings (id, default_signup_credits, tool_credit_costs, ai_engine, platform_status, updated_at)
+        VALUES (
+          'default',
+          ${merged.defaultSignupCredits},
+          ${JSON.stringify(merged.toolCreditCosts)},
+          ${JSON.stringify(merged.aiEngine)},
+          ${JSON.stringify(merged.platformStatus)},
+          CURRENT_TIMESTAMP
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          default_signup_credits = EXCLUDED.default_signup_credits,
+          tool_credit_costs = EXCLUDED.tool_credit_costs,
+          ai_engine = EXCLUDED.ai_engine,
+          platform_status = EXCLUDED.platform_status,
+          updated_at = CURRENT_TIMESTAMP;
+      `;
+    } catch (err) {
+      console.error('Neon updateAdminSettings error:', err);
+    }
+  }
+
+  const db = readDb();
+  db.settings = merged;
+  writeDb(db);
+  return merged;
+}
+
+export async function updateAdminApiKeys(keys: {
   gemini?: string;
   openai?: string;
   groq?: string;
@@ -701,101 +1101,108 @@ export async function updateAdminApiKeys(payload: {
   anthropic?: string;
   deepseek?: string;
 }): Promise<AdminSettings> {
-  const db = readDb();
-  if (!db.settings.aiEngine) {
-    db.settings.aiEngine = {
-      activeProvider: 'heuristic',
-      modelName: 'gemini-1.5-flash',
-      temperature: 0.7,
-      maxTokens: 8192,
-      systemPromptOverride: '',
-      fallbackEnabled: true,
-    };
-  }
-  if (!db.settings.aiEngine.apiKeys) {
-    db.settings.aiEngine.apiKeys = {};
-  }
-
-  if (payload.activeProvider) {
-    db.settings.aiEngine.activeProvider = payload.activeProvider;
-  }
-  if (payload.gemini !== undefined) {
-    db.settings.aiEngine.apiKeys.gemini = payload.gemini;
-  }
-  if (payload.openai !== undefined) {
-    db.settings.aiEngine.apiKeys.openai = payload.openai;
-  }
-  if (payload.groq !== undefined) {
-    db.settings.aiEngine.apiKeys.groq = payload.groq;
-  }
-  if (payload.qwen !== undefined) {
-    db.settings.aiEngine.apiKeys.qwen = payload.qwen;
-  }
-  if (payload.anthropic !== undefined) {
-    db.settings.aiEngine.apiKeys.anthropic = payload.anthropic;
-  }
-  if (payload.deepseek !== undefined) {
-    db.settings.aiEngine.apiKeys.deepseek = payload.deepseek;
-  }
-
-  writeDb(db);
-  return db.settings;
+  const current = await getAdminSettings();
+  const updatedEngine = {
+    ...current.aiEngine,
+    apiKeys: {
+      ...(current.aiEngine.apiKeys || {}),
+      ...keys,
+    },
+  };
+  return await updateAdminSettings({ aiEngine: updatedEngine });
 }
 
-// ─────────────────────────────────────────────────────────────
-// Auth Audit & Password Reset Operations
-// ─────────────────────────────────────────────────────────────
-export async function logAuthEvent(event: Omit<AuthAuditLog, 'id' | 'timestamp'>): Promise<void> {
+export async function logAuthEvent(event: {
+  userId?: string;
+  email: string;
+  action: AuthAuditLog['action'];
+  ip?: string;
+  userAgent?: string;
+  metadata?: Record<string, any>;
+}): Promise<void> {
+  const logId = `audit-${crypto.randomUUID().slice(0, 8)}`;
+  const now = new Date().toISOString();
+
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        INSERT INTO auth_audit_logs (id, user_id, email, action, ip, user_agent, metadata, timestamp)
+        VALUES (
+          ${logId},
+          ${event.userId || null},
+          ${event.email},
+          ${event.action},
+          ${event.ip || null},
+          ${event.userAgent || null},
+          ${event.metadata ? JSON.stringify(event.metadata) : null},
+          ${now}
+        );
+      `;
+    } catch (err) {
+      console.error('Neon logAuthEvent error:', err);
+    }
+  }
+
   const db = readDb();
-  if (!db.authAuditLogs) {
-    db.authAuditLogs = [];
-  }
-  const log: AuthAuditLog = {
-    ...event,
-    id: `audit-${crypto.randomUUID().slice(0, 8)}`,
-    timestamp: new Date().toISOString(),
-  };
-  db.authAuditLogs.unshift(log);
-  // Keep last 1000 logs
-  if (db.authAuditLogs.length > 1000) {
-    db.authAuditLogs = db.authAuditLogs.slice(0, 1000);
-  }
+  if (!db.authAuditLogs) db.authAuditLogs = [];
+  db.authAuditLogs.unshift({
+    id: logId,
+    userId: event.userId,
+    email: event.email,
+    action: event.action,
+    ip: event.ip,
+    userAgent: event.userAgent,
+    metadata: event.metadata,
+    timestamp: now,
+  });
+  if (db.authAuditLogs.length > 1000) db.authAuditLogs = db.authAuditLogs.slice(0, 1000);
   writeDb(db);
 }
 
 export async function getAuthAuditLogs(limit = 100): Promise<AuthAuditLog[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", email, action, ip, user_agent as "userAgent", metadata, timestamp
+        FROM auth_audit_logs
+        ORDER BY timestamp DESC
+        LIMIT ${limit};
+      `;
+      return rows as AuthAuditLog[];
+    } catch (err) {
+      console.error('Neon getAuthAuditLogs error:', err);
+    }
+  }
+
   const db = readDb();
   return (db.authAuditLogs || []).slice(0, limit);
 }
 
+// ─────────────────────────────────────────────────────────────
+// Password Recovery Flow
+// ─────────────────────────────────────────────────────────────
 export async function createPasswordResetToken(email: string): Promise<{ token: string; expiresAt: string; user: User }> {
-  const db = readDb();
   const cleanEmail = email.toLowerCase().trim();
-  const user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+  const user = await getUserByEmail(cleanEmail);
   if (!user) {
     throw new Error('No account found with this email address.');
   }
 
   const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour from now
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
-  user.resetToken = {
-    token,
-    expiresAt,
-  };
-
-  writeDb(db);
+  await updateUser(user.id, {
+    resetToken: { token, expiresAt },
+  });
 
   await logAuthEvent({
     userId: user.id,
     email: user.email,
     action: 'password_reset_requested',
-    metadata: {
-      expiresAt,
-    },
+    metadata: { expiresAt },
   });
 
-  return { token, expiresAt, user };
+  return { token, expiresAt, user: { ...user, resetToken: { token, expiresAt } } };
 }
 
 export async function verifyAndConsumeResetToken(
@@ -807,8 +1214,28 @@ export async function verifyAndConsumeResetToken(
   }
 
   const cleanToken = token.trim();
-  const db = readDb();
-  const user = db.users.find(u => u.resetToken && u.resetToken.token === cleanToken);
+  let user: User | null = null;
+
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, email, password_hash as "passwordHash", full_name as "fullName",
+               matric_number as "matricNumber", institution, plan, credits,
+               status, role, reset_token as "resetToken", created_at as "createdAt"
+        FROM users
+        WHERE reset_token->>'token' = ${cleanToken}
+        LIMIT 1;
+      `;
+      if (rows && rows.length > 0) user = rows[0] as User;
+    } catch (err) {
+      console.error('Neon verifyAndConsumeResetToken error:', err);
+    }
+  }
+
+  if (!user) {
+    const db = readDb();
+    user = db.users.find(u => u.resetToken && u.resetToken.token === cleanToken) || null;
+  }
 
   if (!user || !user.resetToken) {
     return { success: false, error: 'Invalid or expired password reset token.' };
@@ -816,14 +1243,15 @@ export async function verifyAndConsumeResetToken(
 
   const expiresAtTime = new Date(user.resetToken.expiresAt).getTime();
   if (isNaN(expiresAtTime) || expiresAtTime <= Date.now()) {
-    delete user.resetToken;
-    writeDb(db);
+    await updateUser(user.id, { resetToken: undefined });
     return { success: false, error: 'Password reset token has expired. Please request a new one.' };
   }
 
-  user.passwordHash = hashPassword(newPassword);
-  delete user.resetToken;
-  writeDb(db);
+  const newHash = hashPassword(newPassword);
+  const updatedUser = await updateUser(user.id, {
+    passwordHash: newHash,
+    resetToken: undefined,
+  });
 
   await logAuthEvent({
     userId: user.id,
@@ -831,5 +1259,5 @@ export async function verifyAndConsumeResetToken(
     action: 'password_reset_success',
   });
 
-  return { success: true, user };
+  return { success: true, user: updatedUser || user };
 }
