@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { validateApiKey, logApiUsage, deductUserCredits, getUserById, ApiKey, User, ToolKey } from './db';
+import { checkRateLimit } from './rateLimiter';
 
 export interface ApiAuthSuccess {
   authorized: true;
@@ -8,6 +9,11 @@ export interface ApiAuthSuccess {
   apiKey: ApiKey;
   isTest: boolean;
   requestId: string;
+  rateLimitInfo: {
+    limit: number;
+    remaining: number;
+    resetTime: number;
+  };
 }
 
 export interface ApiAuthFailure {
@@ -72,12 +78,52 @@ export async function authenticateDeveloperRequest(req: NextRequest): Promise<Ap
     };
   }
 
+  // Rate Limiting & Domain Verification
+  const origin = req.headers.get('origin') || req.headers.get('referer') || '';
+  const rateLimit = await checkRateLimit({
+    keyId: validation.keyRecord.id,
+    limitPerMinute: validation.keyRecord.rateLimitPerMin || 60,
+    origin,
+    allowedDomains: validation.keyRecord.allowedDomains,
+  });
+
+  if (!rateLimit.allowed) {
+    return {
+      authorized: false,
+      requestId,
+      response: NextResponse.json(
+        {
+          error: {
+            code: 'rate_limit_exceeded',
+            message: rateLimit.error || 'Rate limit exceeded.',
+            request_id: requestId,
+          },
+        },
+        {
+          status: 429,
+          headers: {
+            'X-CodeThesis-Request-Id': requestId,
+            'Retry-After': String(rateLimit.retryAfter),
+            'X-RateLimit-Limit': String(rateLimit.limit),
+            'X-RateLimit-Remaining': String(rateLimit.remaining),
+            'X-RateLimit-Reset': String(rateLimit.resetTime),
+          },
+        }
+      ),
+    };
+  }
+
   return {
     authorized: true,
     user: validation.user,
     apiKey: validation.keyRecord,
     isTest: validation.keyRecord.keyPrefix === 'ct_test_',
     requestId,
+    rateLimitInfo: {
+      limit: rateLimit.limit,
+      remaining: rateLimit.remaining,
+      resetTime: rateLimit.resetTime,
+    },
   };
 }
 
@@ -158,6 +204,7 @@ export async function finalizeDeveloperResponse(params: {
   // Set platform headers
   params.response.headers.set('X-CodeThesis-Request-Id', params.requestId);
   params.response.headers.set('X-CodeThesis-Credits-Charged', String(params.creditsCharged));
+  params.response.headers.set('X-RateLimit-Limit', String(params.apiKey.rateLimitPerMin || 60));
   if (params.remainingCredits !== undefined) {
     params.response.headers.set('X-CodeThesis-Credits-Remaining', String(params.remainingCredits));
   }

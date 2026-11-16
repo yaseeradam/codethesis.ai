@@ -38,6 +38,46 @@
   "transactions": [],
   "creditLogs": [
     {
+      "id": "log-f586f518",
+      "userId": "usr-81f054a4",
+      "amount": -3,
+      "type": "tool_usage",
+      "toolId": "thesis",
+      "balanceAfter": 34,
+      "description": "Used thesis tool (3 credits)",
+      "createdAt": "2026-11-16T05:55:37.095Z"
+    },
+    {
+      "id": "log-9a740bd0",
+      "userId": "usr-81f054a4",
+      "amount": -3,
+      "type": "tool_usage",
+      "toolId": "thesis",
+      "balanceAfter": 37,
+      "description": "Used thesis tool (3 credits)",
+      "createdAt": "2026-11-16T05:55:29.697Z"
+    },
+    {
+      "id": "log-21020e17",
+      "userId": "usr-81f054a4",
+      "amount": -3,
+      "type": "tool_usage",
+      "toolId": "thesis",
+      "balanceAfter": 40,
+      "description": "Used thesis tool (3 credits)",
+      "createdAt": "2026-11-16T05:53:45.895Z"
+    },
+    {
+      "id": "log-408fd633",
+      "userId": "usr-81f054a4",
+      "amount": -3,
+      "type": "tool_usage",
+      "toolId": "thesis",
+      "balanceAfter": 43,
+      "description": "Used thesis tool (3 credits)",
+      "createdAt": "2026-11-16T05:53:34.237Z"
+    },
+    {
       "id": "log-e8dd9d8f",
       "userId": "usr-81f054a4",
       "amount": -1,
@@ -88,7 +128,21 @@
     }
   ],
   "vivaSessions": [],
-  "authAuditLogs": [],
+  "authAuditLogs": [
+    {
+      "id": "audit-fec73c0e",
+      "userId": "usr-81f054a4",
+      "email": "princeykarg@gmail.com",
+      "action": "signin_success",
+      "metadata": {
+        "action": "INSTITUTIONAL_STUDENT_VERIFIED",
+        "institution": "Federal University of Technology, Minna",
+        "matric": "U/20/CS/2049",
+        "allocatedCredits": 30
+      },
+      "timestamp": "2026-11-16T05:56:09.367Z"
+    }
+  ],
   "settings": {
     "defaultSignupCredits": 15,
     "toolCreditCosts": {

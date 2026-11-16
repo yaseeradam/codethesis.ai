@@ -15,6 +15,10 @@ export async function POST(req: NextRequest) {
       complete: 15000,
       'fyp-complete': 15000,
       faculty: 35000,
+      'dev-hacker': 5000,
+      'dev-growth': 25000,
+      'dev-startup': 80000,
+      'dev-enterprise': 250000,
     };
 
     const effectivePlanId = planId || 'standard';

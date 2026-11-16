@@ -7,6 +7,10 @@ const PLAN_CREDITS: Record<string, number> = {
   standard: 35,
   complete: 100,
   faculty: 500,
+  'dev-hacker': 100,
+  'dev-growth': 750,
+  'dev-startup': 3000,
+  'dev-enterprise': 12000,
 };
 
 export async function POST(req: NextRequest) {

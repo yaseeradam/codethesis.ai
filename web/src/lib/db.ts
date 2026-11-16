@@ -3,6 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { sql, isNeonConfigured } from './postgres';
+export { sql, isNeonConfigured };
 
 export interface UserPreferences {
   citationFormat?: 'apa7' | 'harvard' | 'ieee';
@@ -103,6 +104,9 @@ export interface ApiKey {
   maskedKey: string;
   rateLimitPerMin: number;
   status: 'active' | 'revoked';
+  isInstitutional?: boolean;
+  institutionName?: string;
+  allowedDomains?: string;
   lastUsedAt?: string;
   createdAt: string;
 }
@@ -118,6 +122,34 @@ export interface ApiUsageLog {
   responseTimeMs: number;
   ipAddress?: string;
   createdAt: string;
+}
+
+export interface ApiWebhook {
+  id: string;
+  userId: string;
+  url: string;
+  secret: string;
+  events: string[];
+  status: 'active' | 'inactive';
+  description?: string;
+  createdAt: string;
+  lastTriggeredAt?: string;
+}
+
+export interface ApiJob {
+  id: string;
+  userId: string;
+  keyId?: string;
+  jobType: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress: number;
+  inputPayload?: any;
+  resultPayload?: any;
+  errorMessage?: string;
+  webhookUrl?: string;
+  creditsBilled: number;
+  createdAt: string;
+  completedAt?: string;
 }
 
 export interface VivaTurn {
@@ -194,6 +226,8 @@ interface DatabaseSchema {
   notifications?: Notification[];
   apiKeys?: ApiKey[];
   apiUsageLogs?: ApiUsageLog[];
+  apiWebhooks?: ApiWebhook[];
+  apiJobs?: ApiJob[];
   vivaSessions?: VivaSession[];
   authAuditLogs?: AuthAuditLog[];
   settings: AdminSettings;
@@ -1509,7 +1543,13 @@ export function hashApiKey(rawKey: string): string {
 export async function generateApiKey(
   userId: string,
   name: string,
-  isTest = false
+  isTest = false,
+  options?: {
+    isInstitutional?: boolean;
+    institutionName?: string;
+    allowedDomains?: string;
+    rateLimitPerMin?: number;
+  }
 ): Promise<{ rawKey: string; keyRecord: ApiKey }> {
   const prefix = isTest ? 'ct_test_' : 'ct_live_';
   const randomBytes = crypto.randomBytes(32).toString('hex');
@@ -1518,13 +1558,17 @@ export async function generateApiKey(
   const maskedKey = `${prefix}••••••••${rawKey.slice(-4)}`;
   const id = `key-${crypto.randomUUID().slice(0, 8)}`;
   const now = new Date().toISOString();
+  const rateLimit = options?.rateLimitPerMin || (options?.isInstitutional ? 300 : 60);
+  const isInstitutional = options?.isInstitutional || false;
+  const institutionName = options?.institutionName || null;
+  const allowedDomains = options?.allowedDomains || '*';
 
   if (isNeonConfigured()) {
     try {
       const rows = await sql`
-        INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, masked_key, rate_limit_per_min, status, created_at)
-        VALUES (${id}, ${userId}, ${name}, ${keyHash}, ${prefix}, ${maskedKey}, 60, 'active', ${now})
-        RETURNING id, user_id as "userId", name, key_hash as "keyHash", key_prefix as "keyPrefix", masked_key as "maskedKey", rate_limit_per_min as "rateLimitPerMin", status, last_used_at as "lastUsedAt", created_at as "createdAt";
+        INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, masked_key, rate_limit_per_min, status, is_institutional, institution_name, allowed_domains, created_at)
+        VALUES (${id}, ${userId}, ${name}, ${keyHash}, ${prefix}, ${maskedKey}, ${rateLimit}, 'active', ${isInstitutional}, ${institutionName}, ${allowedDomains}, ${now})
+        RETURNING id, user_id as "userId", name, key_hash as "keyHash", key_prefix as "keyPrefix", masked_key as "maskedKey", rate_limit_per_min as "rateLimitPerMin", status, is_institutional as "isInstitutional", institution_name as "institutionName", allowed_domains as "allowedDomains", last_used_at as "lastUsedAt", created_at as "createdAt";
       `;
       if (rows && rows.length > 0) {
         return { rawKey, keyRecord: rows[0] as ApiKey };
@@ -1543,8 +1587,11 @@ export async function generateApiKey(
     keyHash,
     keyPrefix: prefix,
     maskedKey,
-    rateLimitPerMin: 60,
+    rateLimitPerMin: rateLimit,
     status: 'active',
+    isInstitutional,
+    institutionName: institutionName || undefined,
+    allowedDomains,
     createdAt: now,
   };
   db.apiKeys.unshift(keyRecord);
@@ -1556,7 +1603,7 @@ export async function getApiKeysByUserId(userId: string): Promise<ApiKey[]> {
   if (isNeonConfigured()) {
     try {
       const rows = await sql`
-        SELECT id, user_id as "userId", name, key_hash as "keyHash", key_prefix as "keyPrefix", masked_key as "maskedKey", rate_limit_per_min as "rateLimitPerMin", status, last_used_at as "lastUsedAt", created_at as "createdAt"
+        SELECT id, user_id as "userId", name, key_hash as "keyHash", key_prefix as "keyPrefix", masked_key as "maskedKey", rate_limit_per_min as "rateLimitPerMin", status, is_institutional as "isInstitutional", institution_name as "institutionName", allowed_domains as "allowedDomains", last_used_at as "lastUsedAt", created_at as "createdAt"
         FROM api_keys
         WHERE user_id = ${userId}
         ORDER BY created_at DESC;
@@ -1617,7 +1664,7 @@ export async function validateApiKey(rawKey: string): Promise<{
   if (isNeonConfigured()) {
     try {
       const rows = await sql`
-        SELECT id, user_id as "userId", name, key_hash as "keyHash", key_prefix as "keyPrefix", masked_key as "maskedKey", rate_limit_per_min as "rateLimitPerMin", status, last_used_at as "lastUsedAt", created_at as "createdAt"
+        SELECT id, user_id as "userId", name, key_hash as "keyHash", key_prefix as "keyPrefix", masked_key as "maskedKey", rate_limit_per_min as "rateLimitPerMin", status, is_institutional as "isInstitutional", institution_name as "institutionName", allowed_domains as "allowedDomains", last_used_at as "lastUsedAt", created_at as "createdAt"
         FROM api_keys
         WHERE key_hash = ${keyHash}
         LIMIT 1;
@@ -1779,4 +1826,235 @@ export async function getApiUsageStats(userId: string): Promise<{
   const successful = logs.filter(l => l.statusCode >= 200 && l.statusCode < 300).length;
   const rate = Math.round((successful / total) * 1000) / 10;
   return { totalRequests: total, totalCreditsCharged: credits, avgLatencyMs: latency, successRate: rate };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Developer Webhooks Management
+// ─────────────────────────────────────────────────────────────
+export async function getWebhooksByUserId(userId: string): Promise<ApiWebhook[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", url, secret, events, status, description, created_at as "createdAt", last_triggered_at as "lastTriggeredAt"
+        FROM api_webhooks
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC;
+      `;
+      return rows as ApiWebhook[];
+    } catch (err) {
+      console.error('Neon getWebhooksByUserId error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.apiWebhooks || []).filter(w => w.userId === userId);
+}
+
+export async function createWebhook(data: {
+  userId: string;
+  url: string;
+  secret?: string;
+  events?: string[];
+  description?: string;
+}): Promise<ApiWebhook> {
+  const id = `whk-${crypto.randomUUID().slice(0, 8)}`;
+  const secret = data.secret || `whsec_${crypto.randomBytes(24).toString('hex')}`;
+  const events = data.events && data.events.length > 0 ? data.events : ['*'];
+  const now = new Date().toISOString();
+
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        INSERT INTO api_webhooks (id, user_id, url, secret, events, status, description, created_at)
+        VALUES (${id}, ${data.userId}, ${data.url}, ${secret}, ${JSON.stringify(events)}::jsonb, 'active', ${data.description || null}, ${now})
+        RETURNING id, user_id as "userId", url, secret, events, status, description, created_at as "createdAt", last_triggered_at as "lastTriggeredAt";
+      `;
+      if (rows && rows.length > 0) {
+        return rows[0] as ApiWebhook;
+      }
+    } catch (err) {
+      console.error('Neon createWebhook error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.apiWebhooks) db.apiWebhooks = [];
+  const webhook: ApiWebhook = {
+    id,
+    userId: data.userId,
+    url: data.url,
+    secret,
+    events,
+    status: 'active',
+    description: data.description,
+    createdAt: now,
+  };
+  db.apiWebhooks.unshift(webhook);
+  writeDb(db);
+  return webhook;
+}
+
+export async function deleteWebhook(id: string, userId: string): Promise<boolean> {
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        DELETE FROM api_webhooks
+        WHERE id = ${id} AND user_id = ${userId};
+      `;
+      return true;
+    } catch (err) {
+      console.error('Neon deleteWebhook error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.apiWebhooks) return false;
+  const initialLen = db.apiWebhooks.length;
+  db.apiWebhooks = db.apiWebhooks.filter(w => !(w.id === id && w.userId === userId));
+  if (db.apiWebhooks.length !== initialLen) {
+    writeDb(db);
+    return true;
+  }
+  return false;
+}
+
+export async function updateWebhookLastTriggered(id: string): Promise<void> {
+  const now = new Date().toISOString();
+  if (isNeonConfigured()) {
+    try {
+      await sql`UPDATE api_webhooks SET last_triggered_at = ${now} WHERE id = ${id};`;
+      return;
+    } catch {}
+  }
+  const db = readDb();
+  const wh = (db.apiWebhooks || []).find(w => w.id === id);
+  if (wh) {
+    wh.lastTriggeredAt = now;
+    writeDb(db);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Developer Asynchronous Jobs System
+// ─────────────────────────────────────────────────────────────
+export async function createApiJob(data: {
+  userId: string;
+  keyId?: string;
+  jobType: string;
+  inputPayload?: any;
+  webhookUrl?: string;
+  creditsBilled?: number;
+}): Promise<ApiJob> {
+  const id = `job_${crypto.randomUUID().slice(0, 12)}`;
+  const now = new Date().toISOString();
+  const creditsBilled = data.creditsBilled ?? 1;
+
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        INSERT INTO api_jobs (id, user_id, key_id, job_type, status, progress, input_payload, webhook_url, credits_billed, created_at)
+        VALUES (${id}, ${data.userId}, ${data.keyId || null}, ${data.jobType}, 'processing', 10, ${JSON.stringify(data.inputPayload || {})}::jsonb, ${data.webhookUrl || null}, ${creditsBilled}, ${now})
+        RETURNING id, user_id as "userId", key_id as "keyId", job_type as "jobType", status, progress, input_payload as "inputPayload", result_payload as "resultPayload", error_message as "errorMessage", webhook_url as "webhookUrl", credits_billed as "creditsBilled", created_at as "createdAt", completed_at as "completedAt";
+      `;
+      if (rows && rows.length > 0) {
+        return rows[0] as ApiJob;
+      }
+    } catch (err) {
+      console.error('Neon createApiJob error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.apiJobs) db.apiJobs = [];
+  const job: ApiJob = {
+    id,
+    userId: data.userId,
+    keyId: data.keyId,
+    jobType: data.jobType,
+    status: 'processing',
+    progress: 10,
+    inputPayload: data.inputPayload,
+    webhookUrl: data.webhookUrl,
+    creditsBilled,
+    createdAt: now,
+  };
+  db.apiJobs.unshift(job);
+  writeDb(db);
+  return job;
+}
+
+export async function getApiJobById(id: string): Promise<ApiJob | null> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", key_id as "keyId", job_type as "jobType", status, progress, input_payload as "inputPayload", result_payload as "resultPayload", error_message as "errorMessage", webhook_url as "webhookUrl", credits_billed as "creditsBilled", created_at as "createdAt", completed_at as "completedAt"
+        FROM api_jobs
+        WHERE id = ${id}
+        LIMIT 1;
+      `;
+      if (rows && rows.length > 0) {
+        return rows[0] as ApiJob;
+      }
+    } catch (err) {
+      console.error('Neon getApiJobById error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.apiJobs || []).find(j => j.id === id) || null;
+}
+
+export async function updateApiJob(id: string, updates: Partial<ApiJob>): Promise<ApiJob | null> {
+  const now = new Date().toISOString();
+  const completedAt = updates.status === 'completed' || updates.status === 'failed' ? now : null;
+
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        UPDATE api_jobs
+        SET 
+          status = COALESCE(${updates.status || null}, status),
+          progress = COALESCE(${updates.progress ?? null}, progress),
+          result_payload = CASE WHEN ${updates.resultPayload !== undefined} THEN ${JSON.stringify(updates.resultPayload)}::jsonb ELSE result_payload END,
+          error_message = COALESCE(${updates.errorMessage || null}, error_message),
+          completed_at = COALESCE(${completedAt}, completed_at)
+        WHERE id = ${id}
+        RETURNING id, user_id as "userId", key_id as "keyId", job_type as "jobType", status, progress, input_payload as "inputPayload", result_payload as "resultPayload", error_message as "errorMessage", webhook_url as "webhookUrl", credits_billed as "creditsBilled", created_at as "createdAt", completed_at as "completedAt";
+      `;
+      if (rows && rows.length > 0) {
+        return rows[0] as ApiJob;
+      }
+    } catch (err) {
+      console.error('Neon updateApiJob error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.apiJobs) return null;
+  const job = db.apiJobs.find(j => j.id === id);
+  if (!job) return null;
+  Object.assign(job, updates);
+  if (completedAt) job.completedAt = completedAt;
+  writeDb(db);
+  return job;
+}
+
+export async function getApiJobsByUserId(userId: string, limit = 50): Promise<ApiJob[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", key_id as "keyId", job_type as "jobType", status, progress, input_payload as "inputPayload", result_payload as "resultPayload", error_message as "errorMessage", webhook_url as "webhookUrl", credits_billed as "creditsBilled", created_at as "createdAt", completed_at as "completedAt"
+        FROM api_jobs
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC
+        LIMIT ${limit};
+      `;
+      return rows as ApiJob[];
+    } catch (err) {
+      console.error('Neon getApiJobsByUserId error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.apiJobs || []).filter(j => j.userId === userId).slice(0, limit);
 }
