@@ -52,10 +52,6 @@ interface NavItem {
   desc?: string;
 }
 
-interface NavSection {
-  title: string;
-  items: NavItem[];
-}
 
 export default function AppLayout({
   children,
@@ -83,37 +79,17 @@ export default function AppLayout({
   const userCredits = user?.credits ?? 15;
   const studentName = user?.fullName || 'Student Scholar';
 
-  const navSections: NavSection[] = [
-    {
-      title: 'Workspace',
-      items: [
-        { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-sky-400' },
-        { id: 'studio', label: 'Academic Studio', href: '/studio', icon: GraduationCap, color: 'text-cyan-400', badge: 'All-in-One' },
-      ],
-    },
-    {
-      title: 'Capstone Generators',
-      items: [
-        { id: 'thesis', label: 'Thesis Generator', href: '/tool/thesis', icon: FileText, color: 'text-amber-400', desc: 'Chapters 1-5' },
-        { id: 'software-builder', label: 'Software Builder', href: '/tool/software-builder', icon: Code2, color: 'text-emerald-400', desc: 'Code & DB' },
-        { id: 'uml-diagrams', label: 'UML Diagrams', href: '/tool/uml-diagrams', icon: GitFork, color: 'text-purple-400', desc: 'Architecture' },
-      ],
-    },
-    {
-      title: 'Defense & SIWES',
-      items: [
-        { id: 'viva-presentation', label: 'Viva Slide Deck', href: '/tool/viva-presentation', icon: Presentation, color: 'text-blue-400', desc: '15 Slides' },
-        { id: 'viva-simulator', label: 'Viva Oral Simulator', href: '/tool/viva-simulator', icon: Mic, color: 'text-yellow-400', desc: 'Mock Q&A' },
-        { id: 'siwes-logbook', label: 'SIWES Logbook', href: '/tool/siwes-logbook', icon: BookOpen, color: 'text-teal-400', desc: 'Weekly Logs' },
-        { id: 'itf-report', label: 'ITF Technical Report', href: '/tool/itf-report', icon: FileCheck, color: 'text-fuchsia-400', desc: 'Defense Report' },
-      ],
-    },
-    {
-      title: 'Coursework',
-      items: [
-        { id: 'assignment-solver', label: 'Assignment Solver', href: '/tool/assignment-solver', icon: Calculator, color: 'text-sky-400', desc: 'Step-by-step' },
-      ],
-    },
+  const primaryNavItems: NavItem[] = [
+    { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-sky-400' },
+    { id: 'studio', label: 'Academic Studio', href: '/studio', icon: GraduationCap, color: 'text-cyan-400' },
+    { id: 'thesis', label: 'Thesis Generator', href: '/tool/thesis', icon: FileText, color: 'text-amber-400' },
+    { id: 'software-builder', label: 'Software Builder', href: '/tool/software-builder', icon: Code2, color: 'text-emerald-400' },
+    { id: 'uml-diagrams', label: 'UML Diagrams', href: '/tool/uml-diagrams', icon: GitFork, color: 'text-purple-400' },
+    { id: 'viva-presentation', label: 'Viva Presentation', href: '/tool/viva-presentation', icon: Presentation, color: 'text-blue-400' },
+    { id: 'viva-simulator', label: 'Viva Simulator', href: '/tool/viva-simulator', icon: Mic, color: 'text-yellow-400' },
+    { id: 'siwes-logbook', label: 'SIWES Logbook', href: '/tool/siwes-logbook', icon: BookOpen, color: 'text-teal-400' },
+    { id: 'itf-report', label: 'ITF Report', href: '/tool/itf-report', icon: FileCheck, color: 'text-fuchsia-400' },
+    { id: 'assignment-solver', label: 'Assignment Solver', href: '/tool/assignment-solver', icon: Calculator, color: 'text-sky-400' },
   ];
 
   const secondaryItems = [
@@ -188,50 +164,34 @@ export default function AppLayout({
             </button>
           </div>
 
-          {/* Primary Tool Navigation by Categorized Sections */}
-          <nav className="space-y-3">
-            {navSections.map((section, idx) => (
-              <div key={section.title} className="space-y-1">
-                {!isSidebarCollapsed && (
-                  <div className={`text-[10px] font-bold text-slate-400/80 uppercase tracking-wider px-3.5 ${idx > 0 ? 'pt-2' : 'pt-0.5'} pb-1`}>
-                    {section.title}
-                  </div>
-                )}
-                {section.items.map((item) => {
-                  const IconComp = item.icon;
-                  const isActive = activeItem === item.id;
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      prefetch={false}
-                      title={`${item.label}${item.desc ? ` (${item.desc})` : ''}`}
-                      className={`flex items-center rounded-xl text-sm font-medium transition-all active:scale-95 group ${
-                        isSidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3.5 py-2'
-                      } ${
-                        isActive
-                          ? 'bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] text-white font-semibold shadow-md shadow-sky-600/20'
-                          : 'text-slate-300 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <IconComp
-                          className={`w-4 h-4 flex-shrink-0 ${
-                            isActive ? 'text-white' : 'text-slate-400 group-hover:' + item.color
-                          } transition-colors`}
-                        />
-                        {!isSidebarCollapsed && <span className="truncate text-xs">{item.label}</span>}
-                      </div>
-                      {!isSidebarCollapsed && item.badge && (
-                        <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-cyan-400/15 border border-cyan-400/30 text-cyan-300">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            ))}
+          {/* Primary Tool Navigation */}
+          <nav className="space-y-1">
+            {primaryNavItems.map((item) => {
+              const IconComp = item.icon;
+              const isActive = activeItem === item.id;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  prefetch={false}
+                  title={item.label}
+                  className={`flex items-center rounded-xl text-xs font-medium transition-all active:scale-95 group ${
+                    isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+                  } ${
+                    isActive
+                      ? 'bg-[#0091FF] text-white font-semibold shadow-md shadow-blue-500/25'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <IconComp
+                    className={`w-4 h-4 flex-shrink-0 ${
+                      isActive ? 'text-white' : 'text-slate-400 group-hover:' + item.color
+                    } transition-colors`}
+                  />
+                  {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Subtle Horizontal Divider */}
@@ -408,41 +368,27 @@ export default function AppLayout({
                 </button>
               </div>
 
-              {/* Mobile Primary Nav by Categorized Sections */}
-              <nav className="space-y-3">
-                {navSections.map((section, idx) => (
-                  <div key={section.title} className="space-y-1">
-                    <div className={`text-[10px] font-bold text-slate-400/80 uppercase tracking-wider px-3 ${idx > 0 ? 'pt-2' : 'pt-0.5'} pb-1`}>
-                      {section.title}
-                    </div>
-                    {section.items.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = activeItem === item.id;
-                      return (
-                        <Link
-                          key={item.id}
-                          href={item.href}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                            isActive
-                              ? 'bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] text-white shadow-md'
-                              : 'text-slate-300 hover:text-white hover:bg-white/5'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <Icon className={`w-4 h-4 ${isActive ? 'text-white' : item.color}`} />
-                            <span className="truncate">{item.label}</span>
-                          </div>
-                          {item.badge && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-400/20 text-cyan-300">
-                              {item.badge}
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                ))}
+              {/* Mobile Primary Nav */}
+              <nav className="space-y-1">
+                {primaryNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeItem === item.id;
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                        isActive
+                          ? 'bg-[#0091FF] text-white font-semibold shadow-md'
+                          : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : item.color}`} />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
               </nav>
 
               <div className="border-t border-slate-800/80 my-3 mx-1" />
