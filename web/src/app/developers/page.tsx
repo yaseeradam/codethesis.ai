@@ -154,8 +154,26 @@ export default function DeveloperPortalPage() {
     fetchData();
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('payment') === 'success') {
-        setSuccessBanner('Payment successful! Your API credits have been funded.');
+      const reference = params.get('reference') || params.get('trxref');
+      const payment = params.get('payment');
+
+      if (reference && (payment === 'success' || payment === 'return')) {
+        fetch(`/api/payments/paystack/verify?reference=${encodeURIComponent(reference)}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              setSuccessBanner(`🎉 Payment confirmed! ${data.creditsAdded} API credits deposited to your balance.`);
+              fetchData();
+            } else {
+              alert(data.error || 'Payment verification failed. No credits were added.');
+            }
+            window.history.replaceState({}, '', window.location.pathname);
+          })
+          .catch((err) => {
+            console.error('Error verifying developer payment:', err);
+          });
+      } else if (payment === 'success') {
+        setSuccessBanner('Payment confirmed! Your API credits have been funded.');
         setTimeout(() => setSuccessBanner(null), 6000);
         window.history.replaceState({}, '', window.location.pathname);
       }
@@ -287,16 +305,15 @@ export default function DeveloperPortalPage() {
       });
 
       const data = await res.json();
-      if (data.authorization_url) {
-        window.location.href = data.authorization_url;
-      } else if (data.fallbackUrl) {
-        window.location.href = data.fallbackUrl;
-      } else {
+      if (!res.ok || !data.success || !data.authorization_url) {
         alert(data.error || 'Payment gateway initialization failed');
+        return;
       }
-    } catch (err) {
+
+      window.location.href = data.authorization_url;
+    } catch (err: any) {
       console.error('Credit purchase error:', err);
-      alert('Error connecting to payment provider');
+      alert(err.message || 'Error connecting to payment provider');
     } finally {
       setIsProcessingPayment(false);
     }

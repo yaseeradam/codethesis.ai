@@ -70,6 +70,7 @@ export interface Transaction {
   status: 'pending' | 'success' | 'failed';
   planId: string;
   channel?: string;
+  credits?: number;
   paidAt?: string;
   createdAt: string;
 }
@@ -1194,6 +1195,7 @@ export async function createTransaction(txData: {
   status?: 'pending' | 'success' | 'failed';
   planId: string;
   channel?: string;
+  credits?: number;
 }): Promise<Transaction> {
   const id = `tx-${crypto.randomUUID().slice(0, 8)}`;
   const createdAt = new Date().toISOString();
@@ -1207,7 +1209,7 @@ export async function createTransaction(txData: {
         VALUES (${id}, ${txData.userId}, ${txData.reference}, ${txData.amount}, ${currency}, ${status}, ${txData.planId}, ${txData.channel || null}, ${createdAt})
         RETURNING id, user_id as "userId", reference, amount, currency, status, plan_id as "planId", channel, paid_at as "paidAt", created_at as "createdAt";
       `;
-      if (rows && rows.length > 0) return rows[0] as Transaction;
+      if (rows && rows.length > 0) return { ...(rows[0] as Transaction), credits: txData.credits };
     } catch (err) {
       console.error('Neon createTransaction error:', err);
     }
@@ -1223,6 +1225,7 @@ export async function createTransaction(txData: {
     status,
     planId: txData.planId,
     channel: txData.channel,
+    credits: txData.credits,
     createdAt,
   };
   db.transactions.unshift(newTx);

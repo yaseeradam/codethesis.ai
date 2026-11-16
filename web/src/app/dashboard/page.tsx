@@ -332,7 +332,7 @@ function DashboardMain() {
             setDemoBanner(`Payment confirmed! ${data.creditsAdded || 15} academic generation credits added to your account.`);
             if (refreshUser) refreshUser();
           } else {
-            setDemoBanner(`Payment status: ${data.message || 'Payment reference processed.'}`);
+            setDemoBanner(`Payment status: ${data.error || data.message || 'Payment could not be verified.'}`);
           }
           if (typeof window !== 'undefined') {
             const url = new URL(window.location.href);

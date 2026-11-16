@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -15,6 +15,7 @@ import {
   Plus,
   CheckCircle2,
   AlertCircle,
+  Loader2,
   X,
   Send,
   School,
@@ -28,7 +29,49 @@ export default function PricingPage() {
   const [selectedPlan, setSelectedPlan] = useState<string>('scholar');
   const [customCredits, setCustomCredits] = useState<number>(50);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [banner, setBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [banner, setBanner] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  // Return from Paystack Redirect: Verify payment with Paystack secure API
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get('reference') || params.get('trxref');
+    const payment = params.get('payment');
+
+    if (reference && (payment === 'return' || payment === 'success')) {
+      setBanner({
+        type: 'info',
+        message: 'Verifying payment confirmation with Paystack secure network...',
+      });
+      fetch(`/api/payments/paystack/verify?reference=${encodeURIComponent(reference)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setBanner({
+              type: 'success',
+              message: `🎉 Payment Confirmed! Reference: ${reference}. ${data.creditsAdded} Academic Credits deposited to your account balance.`,
+            });
+            window.dispatchEvent(new CustomEvent('credits-updated'));
+          } else {
+            setBanner({
+              type: 'error',
+              message: data.error || 'Payment verification was unsuccessful. No credits were added to your account.',
+            });
+          }
+          const cleanUrl = new URL(window.location.href);
+          cleanUrl.searchParams.delete('reference');
+          cleanUrl.searchParams.delete('trxref');
+          cleanUrl.searchParams.delete('payment');
+          window.history.replaceState({}, '', cleanUrl.pathname);
+        })
+        .catch((err) => {
+          setBanner({
+            type: 'error',
+            message: `Verification network error: ${err.message}`,
+          });
+        });
+    }
+  }, []);
 
   // Institutional Quote Modal State
   const [showInstitutionalModal, setShowInstitutionalModal] = useState(false);
@@ -132,7 +175,7 @@ export default function PricingPage() {
     }
   ];
 
-  async function handlePay(planName: string, amountNGN: number, credits: number) {
+  async function handlePay(planId: string, requestedCredits?: number) {
     if (!user?.email) {
       window.location.href = '/auth/login?returnTo=/pricing';
       return;
@@ -140,14 +183,14 @@ export default function PricingPage() {
 
     try {
       setIsProcessing(true);
-      const userEmail = user.email;
+      setBanner(null);
       const res = await fetch('/api/payments/paystack/initialize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: userEmail,
-          amount: amountNGN,
-          planId: planName.toLowerCase().includes('scholar') ? 'complete' : planName.toLowerCase().includes('postgrad') ? 'faculty' : 'standard',
+          planId,
+          requestedCredits,
+          callbackUrl: `${window.location.origin}/pricing?payment=return`,
         }),
       });
 
@@ -156,37 +199,23 @@ export default function PricingPage() {
         throw new Error(data.error || 'Payment gateway initialization failed');
       }
 
-      if (data.mode === 'live' && data.authorization_url) {
+      if (data.authorization_url) {
         window.location.href = data.authorization_url;
         return;
       }
 
-      // In sandbox/simulation mode: verify immediately
-      const verifyRes = await fetch(`/api/payments/paystack/verify?reference=${data.reference}`);
-      const verifyData = await verifyRes.json();
-
-      setIsProcessing(false);
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('credits-updated'));
-      }
-      setBanner({
-        type: 'success',
-        message: `🎉 Payment Successful! Reference: ${data.reference}. ₦${amountNGN.toLocaleString()} received via Paystack. ${credits} Academic Credits added to your account!`
-      });
-      setTimeout(() => setBanner(null), 6000);
+      throw new Error('Payment authorization URL was not provided by Paystack.');
     } catch (err: any) {
       setIsProcessing(false);
       setBanner({
         type: 'error',
-        message: `Payment error: ${err.message}`
+        message: err.message || 'Payment initialization error',
       });
-      setTimeout(() => setBanner(null), 6000);
     }
   }
 
   function handleCustomTopup() {
-    const costNGN = customCredits * 95;
-    handlePay('Custom Topup', costNGN, customCredits);
+    handlePay('custom', customCredits);
   }
 
   return (
@@ -237,12 +266,16 @@ export default function PricingPage() {
             className={`p-4 rounded-2xl text-xs flex items-center justify-between shadow-xs animate-in fade-in duration-200 ${
               banner.type === 'success'
                 ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+                : banner.type === 'info'
+                ? 'bg-blue-50 border border-blue-200 text-blue-900'
                 : 'bg-rose-50 border border-rose-200 text-rose-900'
             }`}
           >
             <div className="flex items-center gap-2.5">
               {banner.type === 'success' ? (
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              ) : banner.type === 'info' ? (
+                <Loader2 className="w-5 h-5 text-blue-600 animate-spin flex-shrink-0" />
               ) : (
                 <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
               )}
@@ -307,7 +340,7 @@ export default function PricingPage() {
 
               <div className="pt-6 mt-6 border-t border-slate-100">
                 <button
-                  onClick={() => handlePay(tier.name, tier.priceNGN, tier.credits)}
+                  onClick={() => handlePay(tier.id, tier.credits)}
                   disabled={isProcessing}
                   className={`w-full py-3 px-4 rounded-xl text-xs font-black shadow-xs active:scale-95 transition-all flex items-center justify-center gap-2 ${
                     tier.popular
