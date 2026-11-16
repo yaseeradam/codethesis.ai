@@ -90,7 +90,7 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="min-h-screen relative text-slate-900 flex items-center justify-center p-4 sm:p-6 font-sans overflow-hidden">
+    <div className="min-h-screen relative text-slate-900 flex items-center justify-center p-4 sm:p-6 font-sans overflow-y-auto py-8">
       {/* Background Image with Cinematic Ambient Tint */}
       <div className="fixed inset-0 -z-10">
         <Image

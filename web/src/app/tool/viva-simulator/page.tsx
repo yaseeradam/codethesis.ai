@@ -132,7 +132,8 @@ export default function VivaSimulatorPage() {
       }
     }
     initSession();
-  }, [department, researchTopic]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [department]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -528,7 +529,19 @@ export default function VivaSimulatorPage() {
                 </button>
 
                 <button
-                  onClick={() => setTranscript([transcript[0]])}
+                  onClick={() => {
+                    if (transcript.length > 0 && transcript[0]) {
+                      setTranscript([transcript[0]]);
+                    } else {
+                      setTranscript([{
+                        sender: 'panelist',
+                        panelistName: 'Prof. K. A. Balogun',
+                        text: 'Welcome candidate. Please present your problem statement and justify the technical gap your research addresses.',
+                        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      }]);
+                    }
+                    setOverallScore(null);
+                  }}
                   className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs"
                   title="Reset Simulation"
                 >

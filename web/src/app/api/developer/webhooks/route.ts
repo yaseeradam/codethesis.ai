@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { getWebhooksByUserId, createWebhook, deleteWebhook } from '@/lib/db';
+import { validateWebhookUrl } from '@/lib/ssrfValidator';
 
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
@@ -29,9 +30,10 @@ export async function POST(req: NextRequest) {
   const description = (body.description || '').trim();
   const events = Array.isArray(body.events) && body.events.length > 0 ? body.events : ['*'];
 
-  if (!url || (!url.startsWith('https://') && !url.startsWith('http://localhost'))) {
+  const urlValidation = validateWebhookUrl(url);
+  if (!urlValidation.valid) {
     return NextResponse.json(
-      { error: 'A valid HTTPS URL (or http://localhost for local development) is required.' },
+      { error: urlValidation.error || 'Invalid webhook destination URL' },
       { status: 400 }
     );
   }

@@ -10,7 +10,8 @@ export async function GET(req: NextRequest) {
     }
 
     const url = new URL(req.url);
-    const limit = parseInt(url.searchParams.get('limit') || '50', 10);
+    const rawLimit = parseInt(url.searchParams.get('limit') || '50', 10);
+    const limit = isNaN(rawLimit) ? 50 : Math.min(Math.max(rawLimit, 1), 100);
 
     const [stats, logs] = await Promise.all([
       getApiUsageStats(user.id),

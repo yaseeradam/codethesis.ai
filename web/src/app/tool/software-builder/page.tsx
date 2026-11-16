@@ -284,9 +284,9 @@ export default function SoftwareBuilderPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-12 min-h-[500px]">
+          <div className="grid grid-cols-1 md:grid-cols-12 min-h-[500px]">
             {/* File Sidebar */}
-            <div className="col-span-4 bg-[#070E24] p-3 border-r border-slate-800 space-y-1 font-mono text-xs">
+            <div className="col-span-1 md:col-span-4 bg-[#070E24] p-3 border-b md:border-b-0 md:border-r border-slate-800 space-y-1 font-mono text-xs">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2 py-1">Source Repository</p>
               {Object.keys(FILES).map(fileName => (
                 <button
@@ -303,7 +303,7 @@ export default function SoftwareBuilderPage() {
             </div>
 
             {/* Code Body */}
-            <div className="col-span-8 p-4 overflow-x-auto font-mono text-xs text-slate-200 bg-[#09122C] leading-relaxed">
+            <div className="col-span-1 md:col-span-8 p-4 overflow-x-auto font-mono text-xs text-slate-200 bg-[#09122C] leading-relaxed">
               <pre>{FILES[selectedFile]}</pre>
             </div>
           </div>

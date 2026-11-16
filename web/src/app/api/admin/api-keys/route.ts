@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminSettings, updateAdminApiKeys } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth';
 
 function maskKey(key?: string): string {
   if (!key || key.trim() === '') return '';
@@ -10,6 +11,11 @@ function maskKey(key?: string): string {
 
 export async function GET(req: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user || user.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Forbidden. Admin privileges required.' }, { status: 403 });
+    }
+
     const settings = await getAdminSettings();
     const aiEngine = settings.aiEngine || ({} as any);
     const keys = aiEngine.apiKeys || {};
@@ -57,6 +63,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user || user.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Forbidden. Admin privileges required.' }, { status: 403 });
+    }
+
     let body = {};
     try {
       body = await req.json();

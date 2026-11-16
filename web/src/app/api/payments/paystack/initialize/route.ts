@@ -21,8 +21,9 @@ export async function POST(req: NextRequest) {
       'dev-enterprise': 250000,
     };
 
-    const effectivePlanId = planId || 'standard';
-    const effectiveAmount = amount ? Number(amount) : (PLAN_PRICES[effectivePlanId] || 8500);
+    const effectivePlanId = planId in PLAN_PRICES ? planId : 'standard';
+    // Amount is strictly server-authoritative to prevent client-side price tampering
+    const effectiveAmount = PLAN_PRICES[effectivePlanId] || 8500;
     const effectiveEmail = email || user?.email;
 
     if (!effectiveEmail || !user) {

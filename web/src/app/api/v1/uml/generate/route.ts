@@ -3,6 +3,7 @@ import {
   authenticateDeveloperRequest,
   chargeDeveloperCredits,
   finalizeDeveloperResponse,
+  refundDeveloperCredits,
 } from '@/lib/apiKeyAuth';
 import { generateMermaidDiagram } from '@/lib/ai';
 
@@ -100,6 +101,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: any) {
     console.error('Developer UML API error:', err);
+    if (!isTest) {
+      await refundDeveloperCredits(user.id, 1, isTest);
+    }
     const errorResponse = NextResponse.json(
       {
         error: {

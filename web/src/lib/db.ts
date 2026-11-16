@@ -571,24 +571,55 @@ export async function deductUserCredits(
   userId: string,
   toolType: keyof AdminSettings['toolCreditCosts']
 ): Promise<{ success: boolean; remainingCredits: number; message: string }> {
-  const user = await getUserById(userId);
-  if (!user) {
-    return { success: false, remainingCredits: 0, message: 'User not found' };
-  }
-
   const settings = await getAdminSettings();
   const cost = settings.toolCreditCosts?.[toolType] ?? 1;
+  let newBalance = 0;
 
-  if (user.credits < cost) {
-    return {
-      success: false,
-      remainingCredits: user.credits,
-      message: `Insufficient credits. This tool requires ${cost} credit(s), but you have ${user.credits}.`
-    };
+  if (isNeonConfigured()) {
+    try {
+      // Atomic conditional update prevents race conditions & negative balances
+      const rows = await sql`
+        UPDATE users
+        SET credits = credits - ${cost}
+        WHERE id = ${userId} AND credits >= ${cost}
+        RETURNING credits;
+      `;
+
+      if (!rows || rows.length === 0) {
+        const latestUser = await getUserById(userId);
+        if (!latestUser) {
+          return { success: false, remainingCredits: 0, message: 'User not found' };
+        }
+        return {
+          success: false,
+          remainingCredits: latestUser.credits,
+          message: `Insufficient credits. This tool requires ${cost} credit(s), but you have ${latestUser.credits}.`
+        };
+      }
+
+      newBalance = Number(rows[0].credits);
+    } catch (err) {
+      console.error('Neon atomic deductUserCredits error, falling back to local store:', err);
+    }
   }
 
-  const newBalance = user.credits - cost;
-  await updateUser(userId, { credits: newBalance });
+  if (!isNeonConfigured() || newBalance === 0) {
+    const user = await getUserById(userId);
+    if (!user) {
+      return { success: false, remainingCredits: 0, message: 'User not found' };
+    }
+
+    if (user.credits < cost) {
+      return {
+        success: false,
+        remainingCredits: user.credits,
+        message: `Insufficient credits. This tool requires ${cost} credit(s), but you have ${user.credits}.`
+      };
+    }
+
+    newBalance = user.credits - cost;
+    await updateUser(userId, { credits: newBalance });
+  }
 
   const logId = `log-${crypto.randomUUID().slice(0, 8)}`;
   const description = `Used ${toolType} tool (${cost} credit${cost > 1 ? 's' : ''})`;

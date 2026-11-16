@@ -499,7 +499,7 @@ export default function VivaPresentationPage() {
 
             {/* 16:9 Simulated Slide Frame */}
             <div className="p-6 bg-slate-900 flex items-center justify-center">
-              <div className="w-full aspect-[16/9] max-w-[760px] bg-white rounded-xl shadow-2xl p-7 flex flex-col justify-between border border-slate-300 relative overflow-hidden">
+              <div className="w-full min-h-[300px] sm:aspect-[16/9] max-w-[760px] bg-white rounded-xl shadow-2xl p-5 sm:p-7 flex flex-col justify-between border border-slate-300 relative overflow-hidden">
                 {/* Decorative Top Accent Bar */}
                 <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${activeSlide.accent}`} />
 

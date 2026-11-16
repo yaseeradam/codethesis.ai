@@ -7,6 +7,7 @@ import {
 import { createApiJob, updateApiJob } from '@/lib/db';
 import { generateAcademicAI } from '@/lib/ai';
 import { dispatchWebhookEvent } from '@/lib/webhookDispatcher';
+import { validateWebhookUrl } from '@/lib/ssrfValidator';
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
@@ -53,6 +54,33 @@ export async function POST(req: NextRequest) {
       startTime,
       requestId,
     });
+  }
+
+  if (webhookUrl) {
+    const urlValidation = validateWebhookUrl(webhookUrl);
+    if (!urlValidation.valid) {
+      const errorResponse = NextResponse.json(
+        {
+          error: {
+            code: 'invalid_webhook_url',
+            message: urlValidation.error || 'The provided webhook_url is invalid or targets a restricted host.',
+            request_id: requestId,
+          },
+        },
+        { status: 400 }
+      );
+      return await finalizeDeveloperResponse({
+        response: errorResponse,
+        apiKey,
+        userId: user.id,
+        endpoint: '/api/v1/jobs/thesis',
+        method: 'POST',
+        statusCode: 400,
+        creditsCharged: 0,
+        startTime,
+        requestId,
+      });
+    }
   }
 
   // Deduct 1 credit for the job

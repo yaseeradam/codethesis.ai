@@ -10,26 +10,55 @@ const PROTECTED_PREFIXES = [
   '/admin',
 ];
 
-function decodeSessionPayload(token: string): { role?: string; [key: string]: any } | null {
+const SESSION_SECRET = process.env.JWT_SECRET || 'codethesis_super_secure_session_secret_2026';
+
+async function verifySessionTokenEdge(token: string): Promise<{ role?: string; exp?: number; [key: string]: any } | null> {
   try {
     const parts = token.split('.');
     if (parts.length !== 2) return null;
-    const base64Url = parts[0];
-    if (typeof Buffer !== 'undefined') {
-      return JSON.parse(Buffer.from(base64Url, 'base64url').toString('utf-8'));
+    const [base64Url, signature] = parts;
+
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      enc.encode(SESSION_SECRET),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    const sigBuf = await crypto.subtle.sign('HMAC', key, enc.encode(base64Url));
+    // Base64url encode without padding
+    const bytes = new Uint8Array(sigBuf);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
     }
+    const expectedSig = btoa(binary)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    if (signature !== expectedSig) return null;
+
+    // Decode base64url payload
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=');
-    return JSON.parse(atob(padded));
+    const payload = JSON.parse(atob(padded));
+
+    if (payload.exp && Date.now() > payload.exp) return null;
+    return payload;
   } catch {
     return null;
   }
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   const sessionCookie = request.cookies.get('codethesis_session');
-  const isAuthenticated = Boolean(sessionCookie?.value);
+  const token = sessionCookie?.value;
+  const payload = token ? await verifySessionTokenEdge(token) : null;
+  const isAuthenticated = Boolean(payload);
 
   // Allow unauthenticated access to password recovery routes
   if (pathname.startsWith('/auth/forgot-password') || pathname.startsWith('/auth/reset-password')) {
@@ -47,24 +76,25 @@ export function middleware(request: NextRequest) {
 
   // Role-Based Access Control: Protect /admin and /api/admin routes
   if (pathname.startsWith('/api/admin')) {
-    if (!isAuthenticated || !sessionCookie?.value) {
+    if (!isAuthenticated || !payload) {
       return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
-    const payload = decodeSessionPayload(sessionCookie.value);
-    if (!payload || payload.role !== 'admin') {
+    if (payload.role !== 'admin') {
       return NextResponse.json({ success: false, error: 'Forbidden. Admin privileges required.' }, { status: 403 });
     }
     return NextResponse.next();
   }
 
   if (pathname.startsWith('/admin')) {
-    if (isAuthenticated && sessionCookie?.value) {
-      const payload = decodeSessionPayload(sessionCookie.value);
-      if (!payload || payload.role !== 'admin') {
-        const dashUrl = new URL('/dashboard', request.url);
-        dashUrl.searchParams.set('error', 'unauthorized');
-        return NextResponse.redirect(dashUrl);
-      }
+    if (!isAuthenticated || !payload) {
+      const loginUrl = new URL('/auth/login', request.url);
+      loginUrl.searchParams.set('from', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    if (payload.role !== 'admin') {
+      const dashUrl = new URL('/dashboard', request.url);
+      dashUrl.searchParams.set('error', 'unauthorized');
+      return NextResponse.redirect(dashUrl);
     }
   }
 

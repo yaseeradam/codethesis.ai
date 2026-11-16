@@ -3,6 +3,7 @@ import {
   authenticateDeveloperRequest,
   chargeDeveloperCredits,
   finalizeDeveloperResponse,
+  refundDeveloperCredits,
 } from '@/lib/apiKeyAuth';
 import { generateAcademicAI } from '@/lib/ai';
 
@@ -113,6 +114,9 @@ Chapter: ${chapterNumber}`;
     });
   } catch (err: any) {
     console.error('Developer thesis API error:', err);
+    if (!isTest) {
+      await refundDeveloperCredits(user.id, 1, isTest);
+    }
     const errorResponse = NextResponse.json(
       {
         error: {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { validateApiKey, logApiUsage, deductUserCredits, getUserById, ApiKey, User, ToolKey } from './db';
+import { validateApiKey, logApiUsage, deductUserCredits, getUserById, updateUser, ApiKey, User, ToolKey } from './db';
 import { checkRateLimit } from './rateLimiter';
 
 export interface ApiAuthSuccess {
@@ -88,22 +88,26 @@ export async function authenticateDeveloperRequest(req: NextRequest): Promise<Ap
   });
 
   if (!rateLimit.allowed) {
+    const isDomainRejection = rateLimit.error?.includes('not authorized') || rateLimit.error?.includes('require a valid Origin header');
+    const statusCode = isDomainRejection ? 403 : 429;
+    const errorCode = isDomainRejection ? 'forbidden_origin' : 'rate_limit_exceeded';
+
     return {
       authorized: false,
       requestId,
       response: NextResponse.json(
         {
           error: {
-            code: 'rate_limit_exceeded',
+            code: errorCode,
             message: rateLimit.error || 'Rate limit exceeded.',
             request_id: requestId,
           },
         },
         {
-          status: 429,
+          status: statusCode,
           headers: {
             'X-CodeThesis-Request-Id': requestId,
-            'Retry-After': String(rateLimit.retryAfter),
+            ...(statusCode === 429 ? { 'Retry-After': String(rateLimit.retryAfter) } : {}),
             'X-RateLimit-Limit': String(rateLimit.limit),
             'X-RateLimit-Remaining': String(rateLimit.remaining),
             'X-RateLimit-Reset': String(rateLimit.resetTime),
@@ -181,6 +185,24 @@ export async function chargeDeveloperCredits(
   }
 
   return { allowed: true, remainingCredits: result.remainingCredits };
+}
+
+/**
+ * Refunds deducted developer credits when a downstream operation fails.
+ */
+export async function refundDeveloperCredits(
+  userId: string,
+  creditsToRefund: number,
+  isTest = false
+): Promise<void> {
+  if (isTest || creditsToRefund <= 0) return;
+  try {
+    const user = await getUserById(userId);
+    if (!user) return;
+    await updateUser(userId, { credits: (user.credits || 0) + creditsToRefund });
+  } catch (err) {
+    console.error('Failed to refund developer credits:', err);
+  }
 }
 
 /**

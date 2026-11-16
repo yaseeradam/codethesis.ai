@@ -44,7 +44,9 @@ export function verifySessionToken(token: string): SessionPayload | null {
       .update(payloadBase64)
       .digest('base64url');
 
-    if (signature !== expectedSig) return null;
+    const sigBuf = Buffer.from(signature, 'utf-8');
+    const expBuf = Buffer.from(expectedSig, 'utf-8');
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) return null;
 
     const payload: SessionPayload = JSON.parse(
       Buffer.from(payloadBase64, 'base64url').toString('utf-8')
@@ -106,7 +108,9 @@ export function verifyPasswordResetToken(token: string): PasswordResetPayload | 
       .update(`pwd_reset:${payloadBase64}`)
       .digest('base64url');
 
-    if (signature !== expectedSig) return null;
+    const sigBuf = Buffer.from(signature, 'utf-8');
+    const expBuf = Buffer.from(expectedSig, 'utf-8');
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) return null;
 
     const payload: PasswordResetPayload = JSON.parse(
       Buffer.from(payloadBase64, 'base64url').toString('utf-8')

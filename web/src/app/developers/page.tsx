@@ -152,6 +152,14 @@ export default function DeveloperPortalPage() {
 
   useEffect(() => {
     fetchData();
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('payment') === 'success') {
+        setSuccessBanner('Payment successful! Your API credits have been funded.');
+        setTimeout(() => setSuccessBanner(null), 6000);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
   }, []);
 
   const handleGenerateKey = async (e: React.FormEvent) => {
@@ -295,8 +303,9 @@ export default function DeveloperPortalPage() {
   };
 
   const copyToClipboard = (text: string, identifier: string) => {
-    navigator.clipboard.writeText(text);
-    if (identifier === 'snippet') {
+    if (!navigator?.clipboard) return;
+    navigator.clipboard.writeText(text).catch(() => {});
+    if (identifier === 'snippet' || identifier === 'sdk-snippet') {
       setCopiedSnippet(true);
       setTimeout(() => setCopiedSnippet(false), 2000);
     } else {
@@ -955,7 +964,7 @@ print(f"Next Examiner Question: {viva['next_question']}")`,
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
               {/* Hacker Pack */}
               <div className="border border-slate-200 rounded-2xl p-5 hover:border-indigo-400 transition-all flex flex-col justify-between">
                 <div>

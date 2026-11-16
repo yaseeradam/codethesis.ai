@@ -19,7 +19,8 @@ import {
   ArrowRight,
   ShieldCheck,
   Cpu,
-  Loader2
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 interface ProblemPreset {
@@ -153,6 +154,7 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
   const [studentName, setStudentName] = useState(user?.fullName?.toUpperCase() || '');
   const [matricNo, setMatricNo] = useState(user?.matricNumber || '');
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
+  const [errorBanner, setErrorBanner] = useState<string | null>(null);
 
   const [activeSolution, setActiveSolution] = useState<{
     title: string;
@@ -225,7 +227,7 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
         }),
       });
       const data = await res.json();
-      if (data.success && data.steps) {
+      if (res.ok && data.success && data.steps) {
         setActiveSolution({
           title: data.title || 'Analytical Mathematical Derivation',
           question: questionToSolve,
@@ -234,14 +236,23 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
           provider: data.provider,
         });
         setSuccessBanner(`Mathematical derivation synthesized by ${data.provider || 'AI Engine'}!`);
+        setErrorBanner(null);
+        if (typeof data.remainingCredits === 'number' && typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('credits-updated', { detail: { credits: data.remainingCredits } }));
+        }
       } else {
-        setSuccessBanner('Derivation synthesized using standard analytical proofs.');
+        setErrorBanner(data.error || 'Failed to synthesize derivation. Please check your credit balance.');
+        setSuccessBanner(null);
       }
     } catch {
-      setSuccessBanner('Derivation synthesized using standard analytical proofs.');
+      setErrorBanner('Network error while synthesizing proof derivation.');
+      setSuccessBanner(null);
     } finally {
       setIsSolving(false);
-      setTimeout(() => setSuccessBanner(null), 5000);
+      setTimeout(() => {
+        setSuccessBanner(null);
+        setErrorBanner(null);
+      }, 6000);
     }
   }
 
@@ -274,6 +285,22 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
           <button
             onClick={() => setSuccessBanner(null)}
             className="text-sky-500 hover:text-sky-700 font-bold ml-2 text-xs"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
+      {/* Dynamic Error Banner */}
+      {errorBanner && (
+        <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-950 px-4 py-3 rounded-2xl text-xs flex items-center justify-between shadow-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+            <span className="font-semibold">{errorBanner}</span>
+          </div>
+          <button
+            onClick={() => setErrorBanner(null)}
+            className="text-rose-500 hover:text-rose-700 font-bold ml-2 text-xs"
           >
             &times;
           </button>

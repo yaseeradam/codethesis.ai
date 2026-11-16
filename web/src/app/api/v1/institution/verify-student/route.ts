@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
   const studentEmail = (body.student_email || body.studentEmail || '').trim().toLowerCase();
   const studentName = (body.student_name || body.studentName || 'Student Scholar').trim();
   const department = (body.department || 'Computer Science').trim();
-  const allocatedCredits = Number(body.allocated_credits || body.allocatedCredits || 25);
+  const rawCredits = parseInt(String(body.allocated_credits || body.allocatedCredits || '25'), 10);
+  const allocatedCredits = isNaN(rawCredits) ? 25 : Math.min(Math.max(1, rawCredits), 200);
 
   if (!matricNumber) {
     const errorResponse = NextResponse.json(

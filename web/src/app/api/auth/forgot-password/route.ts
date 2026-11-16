@@ -46,14 +46,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: emailDispatch.success
-        ? `Password reset instructions have been dispatched to ${cleanEmail}.`
-        : 'Password reset link generated.',
+      message: 'Password reset instructions have been dispatched to your email address.',
       emailSent: emailDispatch.success,
-      emailError: emailDispatch.error,
-      token: resetData.token,
-      resetUrl: `/auth/reset-password?token=${resetData.token}`,
-      absoluteResetUrl,
     });
   } catch (error: any) {
     console.error('Forgot password API error:', error);

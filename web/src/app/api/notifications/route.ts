@@ -13,11 +13,7 @@ import {
 export async function GET(req: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const url = new URL(req.url);
-    const queryUserId = url.searchParams.get('userId');
-
-    const effectiveUserId = user?.id || queryUserId;
-    if (!effectiveUserId) {
+    if (!user) {
       return NextResponse.json({
         success: true,
         notifications: [],
@@ -25,9 +21,10 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    const url = new URL(req.url);
     const limit = parseInt(url.searchParams.get('limit') || '30', 10);
-    const notifications = await getNotificationsByUserId(effectiveUserId, limit);
-    const unreadCount = await getUnreadNotificationCount(effectiveUserId);
+    const notifications = await getNotificationsByUserId(user.id, limit);
+    const unreadCount = await getUnreadNotificationCount(user.id);
 
     return NextResponse.json({
       success: true,
@@ -46,16 +43,14 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const body = await req.json();
-
-    const effectiveUserId = user?.id || body.userId;
-    if (!effectiveUserId) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
+    const body = await req.json();
     const { title, message, type, link } = body;
     if (!title || !message) {
       return NextResponse.json(
@@ -65,7 +60,7 @@ export async function POST(req: NextRequest) {
     }
 
     const notification = await createNotification({
-      userId: effectiveUserId,
+      userId: user.id,
       title,
       message,
       type: type || 'info',
@@ -88,20 +83,18 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const body = await req.json().catch(() => ({}));
-
-    const effectiveUserId = user?.id || body.userId;
-    if (!effectiveUserId) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
+    const body = await req.json().catch(() => ({}));
     const { id, markAll } = body;
 
     if (markAll) {
-      const updatedCount = await markAllNotificationsAsRead(effectiveUserId);
+      const updatedCount = await markAllNotificationsAsRead(user.id);
       return NextResponse.json({
         success: true,
         markedCount: updatedCount,
@@ -109,7 +102,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (id) {
-      const success = await markNotificationAsRead(id, effectiveUserId);
+      const success = await markNotificationAsRead(id, user.id);
       return NextResponse.json({
         success,
       });
@@ -131,25 +124,24 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const url = new URL(req.url);
-    const queryId = url.searchParams.get('id');
-    const queryClearAll = url.searchParams.get('clearAll') === 'true';
-
-    const effectiveUserId = user?.id || url.searchParams.get('userId');
-    if (!effectiveUserId) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
+    const url = new URL(req.url);
+    const queryId = url.searchParams.get('id');
+    const queryClearAll = url.searchParams.get('clearAll') === 'true';
+
     if (queryClearAll) {
-      const cleared = await clearAllNotifications(effectiveUserId);
+      const cleared = await clearAllNotifications(user.id);
       return NextResponse.json({ success: cleared });
     }
 
     if (queryId) {
-      const deleted = await deleteNotification(queryId, effectiveUserId);
+      const deleted = await deleteNotification(queryId, user.id);
       return NextResponse.json({ success: deleted });
     }
 

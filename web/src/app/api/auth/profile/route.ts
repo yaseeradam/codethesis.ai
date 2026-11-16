@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { updateUser, getUserById, hashPassword, createNotification } from '@/lib/db';
+import { updateUser, getUserById, hashPassword, verifyPassword, createNotification } from '@/lib/db';
 
 export async function GET() {
   try {
@@ -101,7 +101,6 @@ export async function PUT(req: NextRequest) {
     if (phone !== undefined) updates.phone = phone.trim();
     if (degreeLevel !== undefined) updates.degreeLevel = degreeLevel.trim();
     if (graduationYear !== undefined) updates.graduationYear = graduationYear.trim();
-    if (plan !== undefined) updates.plan = plan;
 
     if (preferences !== undefined) {
       updates.preferences = {
@@ -118,8 +117,7 @@ export async function PUT(req: NextRequest) {
           { status: 400 }
         );
       }
-      const currentHashed = hashPassword(currentPassword);
-      if (user.passwordHash !== currentHashed) {
+      if (!verifyPassword(currentPassword, user.passwordHash)) {
         return NextResponse.json(
           { success: false, error: 'Incorrect current password' },
           { status: 401 }

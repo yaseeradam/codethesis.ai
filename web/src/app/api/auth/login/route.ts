@@ -22,12 +22,27 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || undefined;
     const userAgent = req.headers.get('user-agent') || undefined;
 
-    // Handle 1-Click Fast Demo Login
+    // Handle 1-Click Fast Demo Login (Development / Demo sandbox only)
     if (demo && typeof demo === 'string') {
-      const candidates = DEMO_EMAILS[demo.toLowerCase()] || [demo];
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Demo logins are disabled in production mode.' },
+          { status: 403 }
+        );
+      }
+
+      const demoKey = demo.toLowerCase().trim();
+      const candidates = DEMO_EMAILS[demoKey];
+      if (!candidates) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized demo account selection.' },
+          { status: 400 }
+        );
+      }
+
       let user = null;
-      for (const email of candidates) {
-        user = await getUserByEmail(email);
+      for (const candidateEmail of candidates) {
+        user = await getUserByEmail(candidateEmail);
         if (user) break;
       }
       const demoEmail = user?.email || candidates[0];
@@ -69,7 +84,7 @@ export async function POST(req: NextRequest) {
         name: COOKIE_NAME,
         value: token,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: (process.env.NODE_ENV as string) === 'production',
         sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24 * 30, // 30 days

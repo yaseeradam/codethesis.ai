@@ -33,10 +33,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const name = (body.name || 'Default Secret Key').trim();
     const isTest = Boolean(body.isTest);
-    const isInstitutional = Boolean(body.isInstitutional);
-    const institutionName = (body.institutionName || '').trim();
+    const isAllowedInstitutional = user.role === 'admin' || user.plan === 'faculty';
+    const isInstitutional = isAllowedInstitutional && Boolean(body.isInstitutional);
+    const institutionName = isInstitutional ? (body.institutionName || user.institution || '').trim() : undefined;
     const allowedDomains = (body.allowedDomains || '*').trim();
-    const rateLimitPerMin = body.rateLimitPerMin ? Number(body.rateLimitPerMin) : undefined;
+
+    const maxRateLimit = user.role === 'admin' ? 1000 : user.plan === 'faculty' ? 300 : user.plan === 'complete' ? 120 : 60;
+    const requestedLimit = body.rateLimitPerMin ? Number(body.rateLimitPerMin) : (isInstitutional ? 300 : 60);
+    const rateLimitPerMin = Math.min(Math.max(10, requestedLimit), maxRateLimit);
 
     const { rawKey, keyRecord } = await generateApiKey(user.id, name, isTest, {
       isInstitutional,

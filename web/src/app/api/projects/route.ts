@@ -5,15 +5,11 @@ import { getProjectsByUserId, saveProject, deleteProject } from '@/lib/db';
 export async function GET(req: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const url = new URL(req.url);
-    const queryUserId = url.searchParams.get('userId');
-
-    const effectiveUserId = user?.id || queryUserId;
-    if (!effectiveUserId) {
-      return NextResponse.json({ success: true, projects: [] });
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-    const projects = await getProjectsByUserId(effectiveUserId);
 
+    const projects = await getProjectsByUserId(user.id);
     return NextResponse.json({ success: true, projects });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to fetch projects' }, { status: 500 });
@@ -23,13 +19,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const body = await req.json();
-
-    const effectiveUserId = user?.id || body.userId;
-    if (!effectiveUserId) {
+    if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
+    const body = await req.json();
     const { toolId, title, course, institution, summary, fileType, metadata } = body;
 
     if (!title || !toolId) {
@@ -37,7 +31,7 @@ export async function POST(req: NextRequest) {
     }
 
     const newProject = await saveProject({
-      userId: effectiveUserId,
+      userId: user.id,
       toolId,
       title,
       course: course || 'General Studies',
@@ -56,6 +50,10 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const url = new URL(req.url);
     const projectId = url.searchParams.get('id');
 
@@ -63,11 +61,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
 
-    const effectiveUserId = user?.id || url.searchParams.get('userId');
-    if (!effectiveUserId) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
-    const deleted = await deleteProject(projectId, effectiveUserId);
+    const deleted = await deleteProject(projectId, user.id);
 
     if (!deleted) {
       return NextResponse.json({ error: 'Project not found or unauthorized' }, { status: 404 });

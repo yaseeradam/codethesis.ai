@@ -24,14 +24,31 @@ export async function checkRateLimit(params: {
   const { keyId, limitPerMinute, origin, allowedDomains } = params;
 
   // 1. Origin / Domain Security Check (Institutional Scoping)
-  if (allowedDomains && allowedDomains.trim() !== '*' && origin) {
-    const cleanOrigin = origin.replace(/^https?:\/\//i, '').split(':')[0].toLowerCase();
+  if (allowedDomains && allowedDomains.trim() !== '*') {
+    if (!origin || !origin.trim()) {
+      return {
+        allowed: false,
+        limit: limitPerMinute,
+        remaining: 0,
+        resetTime: Math.ceil(Date.now() / 1000) + 60,
+        retryAfter: 60,
+        error: `Institutional API keys require a valid Origin header matching: ${allowedDomains}`,
+      };
+    }
+
+    let originHost = '';
+    try {
+      originHost = new URL(origin.startsWith('http') ? origin : `https://${origin}`).hostname.toLowerCase();
+    } catch {
+      originHost = origin.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0].toLowerCase();
+    }
+
     const allowedList = allowedDomains.split(',').map(d => d.trim().toLowerCase());
     const isDomainAllowed = allowedList.some(pattern => {
-      if (pattern === '*' || pattern === cleanOrigin) return true;
+      if (pattern === '*' || pattern === originHost) return true;
       if (pattern.startsWith('*.')) {
         const root = pattern.slice(2);
-        return cleanOrigin.endsWith(root);
+        return originHost === root || originHost.endsWith('.' + root);
       }
       return false;
     });
@@ -43,7 +60,7 @@ export async function checkRateLimit(params: {
         remaining: 0,
         resetTime: Math.ceil(Date.now() / 1000) + 60,
         retryAfter: 60,
-        error: `Origin domain "${origin}" is not authorized for this institutional API key. Allowed: ${allowedDomains}`,
+        error: `Origin domain "${originHost}" is not authorized for this institutional API key. Allowed: ${allowedDomains}`,
       };
     }
   }
@@ -52,6 +69,11 @@ export async function checkRateLimit(params: {
   const windowMinute = Math.floor(nowMs / 60000);
   const resetEpochSeconds = (windowMinute + 1) * 60;
   const retryAfter = Math.max(1, resetEpochSeconds - Math.floor(nowMs / 1000));
+
+  // Prune rate limits older than 10 minutes probabilistically (1% of requests)
+  if (isNeonConfigured() && Math.random() < 0.01) {
+    sql`DELETE FROM api_rate_limits WHERE window_start < ${windowMinute - 10};`.catch(() => {});
+  }
 
   // 2. Neon PostgreSQL Atomic Rate Limit Increment
   if (isNeonConfigured()) {
@@ -94,9 +116,9 @@ export async function checkRateLimit(params: {
   }
 
   // Garbage collect old in-memory entries periodically
-  if (inMemoryRateLimits.size > 5000) {
+  if (inMemoryRateLimits.size > 2000) {
     for (const [k, v] of inMemoryRateLimits.entries()) {
-      if (v.windowStart < windowMinute - 1) inMemoryRateLimits.delete(k);
+      if (v.windowStart < windowMinute - 2) inMemoryRateLimits.delete(k);
     }
   }
 

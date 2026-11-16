@@ -166,6 +166,34 @@ Pin 7: White/Brown   Pin 8: Brown
     }
   ]);
 
+  useEffect(() => {
+    const totalWeeks = parseInt(durationWeeks, 10) || 24;
+    const generateWeekData = (weekNum: number, dept: string): WeekLog => ({
+      weekNumber: weekNum,
+      dateRange: `Week ${weekNum} Technical Schedule`,
+      department: dept || 'Engineering Operations',
+      weeklySummary: `Routine operational tasks, system diagnostics, and hardware maintenance executed during Week ${weekNum}.`,
+      schematicTitle: `Figure ${weekNum}.1: Week ${weekNum} System Blueprint`,
+      schematicDiagram: `[Facility Workstation Week ${weekNum}] --> [Local Switch / Diagnostic Port] --> [Enterprise Network Core]`,
+      supervisorRemark: 'Task executed systematically in compliance with departmental safety and operational directives.',
+      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((day, idx) => ({
+        day,
+        date: `Day ${idx + 1}`,
+        taskTitle: `Operational Task & Diagnostic Evaluation (${day})`,
+        description: `Conducted technical maintenance, routine inspection, and system verification under mentor supervision.`,
+        toolsUsed: 'Digital Multimeter, Cable Tester, Diagnostic Suite, Safety Kit'
+      }))
+    });
+
+    setSampleWeeks(prev => {
+      const result: WeekLog[] = [...prev];
+      for (let i = result.length + 1; i <= totalWeeks; i++) {
+        result.push(generateWeekData(i, companyDepartment || course));
+      }
+      return result.slice(0, totalWeeks);
+    });
+  }, [durationWeeks, companyDepartment, course]);
+
   const [isDownloading, setIsDownloading] = useState(false);
   const activeWeekData = sampleWeeks[currentWeek - 1] || sampleWeeks[0];
 

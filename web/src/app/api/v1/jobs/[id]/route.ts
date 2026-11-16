@@ -3,7 +3,7 @@ import {
   authenticateDeveloperRequest,
   finalizeDeveloperResponse,
 } from '@/lib/apiKeyAuth';
-import { getApiJobById } from '@/lib/db';
+import { getApiJobById, updateApiJob } from '@/lib/db';
 
 export async function GET(
   req: NextRequest,
@@ -65,6 +65,16 @@ export async function GET(
       creditsCharged: 0,
       startTime,
       requestId,
+    });
+  }
+
+  // Check for expired / orphaned processing job (5-minute threshold)
+  if (job.status === 'processing' && Date.now() - new Date(job.createdAt).getTime() > 5 * 60 * 1000) {
+    job.status = 'failed';
+    job.errorMessage = 'Execution timed out (300s limit exceeded).';
+    await updateApiJob(job.id, {
+      status: 'failed',
+      errorMessage: job.errorMessage,
     });
   }
 
