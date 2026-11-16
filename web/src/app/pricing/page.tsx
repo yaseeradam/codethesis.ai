@@ -14,7 +14,12 @@ import {
   ArrowRight,
   Plus,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  X,
+  Send,
+  School,
+  Users,
+  FileText
 } from 'lucide-react';
 
 export default function PricingPage() {
@@ -24,6 +29,52 @@ export default function PricingPage() {
   const [customCredits, setCustomCredits] = useState<number>(50);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [banner, setBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Institutional Quote Modal State
+  const [showInstitutionalModal, setShowInstitutionalModal] = useState(false);
+  const [instForm, setInstForm] = useState({
+    institutionName: '',
+    facultyName: '',
+    departmentName: '',
+    contactName: '',
+    contactEmail: '',
+    contactPhone: '',
+    estimatedStudents: 150,
+    tier: 'departmental',
+    customRequirements: '',
+  });
+  const [quoteSubmitting, setQuoteSubmitting] = useState(false);
+  const [quoteSuccessMsg, setQuoteSuccessMsg] = useState<string | null>(null);
+
+  async function handleSubmitQuote(e: React.FormEvent) {
+    e.preventDefault();
+    if (!instForm.institutionName.trim() || !instForm.departmentName.trim() || !instForm.contactName.trim() || !instForm.contactEmail.trim()) {
+      alert('Please fill in University name, Department, Coordinator Name, and official Email.');
+      return;
+    }
+    setQuoteSubmitting(true);
+    try {
+      const res = await fetch('/api/institutional/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(instForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setQuoteSuccessMsg(data.message);
+        setTimeout(() => {
+          setShowInstitutionalModal(false);
+          setQuoteSuccessMsg(null);
+        }, 4000);
+      } else {
+        alert(data.error || 'Failed to submit quote.');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Error submitting quote request.');
+    } finally {
+      setQuoteSubmitting(false);
+    }
+  }
 
   const tiers = [
     {
@@ -329,14 +380,205 @@ export default function PricingPage() {
             </p>
           </div>
 
-          <a
-            href="mailto:partnerships@codethesis.com?subject=CodeThesis%20Institutional%20License%20Inquiry"
-            className="px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black rounded-xl text-xs transition-all flex items-center gap-2 flex-shrink-0"
+          <button
+            onClick={() => setShowInstitutionalModal(true)}
+            className="px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black rounded-xl text-xs transition-all flex items-center gap-2 flex-shrink-0 cursor-pointer shadow-md hover:shadow-cyan-500/20 active:scale-95"
           >
             <Building className="w-4 h-4" />
             <span>Request Institutional Quote</span>
-          </a>
+          </button>
         </div>
+
+        {/* Institutional Departmental License Quotation Modal */}
+        {showInstitutionalModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-y-auto">
+              <button
+                onClick={() => {
+                  setShowInstitutionalModal(false);
+                  setQuoteSuccessMsg(null);
+                }}
+                className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="space-y-2 mb-6">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 text-[11px] font-bold">
+                  <Building className="w-3.5 h-3.5 text-cyan-700" />
+                  <span>Campus Site & Departmental Licensing</span>
+                </div>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                  Request Official Departmental Quotation
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Provide your academic faculty and departmental requirements. An institutional account executive will generate your formal invoice and provision your departmental license key.
+                </p>
+              </div>
+
+              {quoteSuccessMsg ? (
+                <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-3">
+                  <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
+                  <h4 className="text-base font-bold text-emerald-900">Quotation Request Dispatched</h4>
+                  <p className="text-xs text-emerald-700 max-w-md mx-auto">{quoteSuccessMsg}</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmitQuote} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">Institution / University Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Federal University of Technology, Akure"
+                        value={instForm.institutionName}
+                        onChange={e => setInstForm(prev => ({ ...prev, institutionName: e.target.value }))}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">Faculty / School</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. School of Computing"
+                        value={instForm.facultyName}
+                        onChange={e => setInstForm(prev => ({ ...prev, facultyName: e.target.value }))}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">Department Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Department of Computer Science"
+                        value={instForm.departmentName}
+                        onChange={e => setInstForm(prev => ({ ...prev, departmentName: e.target.value }))}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">Coordinator / HOD Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Prof. B. O. Akindele (HOD)"
+                        value={instForm.contactName}
+                        onChange={e => setInstForm(prev => ({ ...prev, contactName: e.target.value }))}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">Official Institutional Email *</label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="e.g. hod.csc@futa.edu.ng"
+                        value={instForm.contactEmail}
+                        onChange={e => setInstForm(prev => ({ ...prev, contactEmail: e.target.value }))}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">Phone / WhatsApp Number</label>
+                      <input
+                        type="tel"
+                        placeholder="e.g. +234 803 123 4567"
+                        value={instForm.contactPhone}
+                        onChange={e => setInstForm(prev => ({ ...prev, contactPhone: e.target.value }))}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">License Tier</label>
+                      <select
+                        value={instForm.tier}
+                        onChange={e => setInstForm(prev => ({ ...prev, tier: e.target.value }))}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                      >
+                        <option value="departmental">Departmental Site License (₦2,000 / student)</option>
+                        <option value="faculty">Faculty Wide License (₦2,500 / student with VIP API)</option>
+                        <option value="campus_wide">Full University Campus License (Custom)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Estimated Final-Year Students ({instForm.estimatedStudents})
+                      </label>
+                      <input
+                        type="number"
+                        min="25"
+                        max="2000"
+                        step="10"
+                        value={instForm.estimatedStudents}
+                        onChange={e => setInstForm(prev => ({ ...prev, estimatedStudents: Number(e.target.value) }))}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl flex items-center justify-between text-xs">
+                    <div>
+                      <p className="font-bold text-blue-900">Estimated Annual Department Investment</p>
+                      <p className="text-[11px] text-blue-700">
+                        {instForm.estimatedStudents} student seats &bull; 50 credits/student &bull; Turnitin pre-screening
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-base font-black text-blue-900">
+                        ₦{((instForm.tier === 'faculty' ? 2500 : 2000) * instForm.estimatedStudents).toLocaleString()}
+                      </p>
+                      <p className="text-[10px] text-blue-600 font-semibold">Per Academic Session</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700">Special Formatting or Custom SIWES Requirements</label>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g. FUTA School of Computing thesis chapter format, custom supervisor grading sheets, specific lab report schemas..."
+                      value={instForm.customRequirements}
+                      onChange={e => setInstForm(prev => ({ ...prev, customRequirements: e.target.value }))}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                    />
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowInstitutionalModal(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={quoteSubmitting}
+                      className="px-6 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-cyan-600/20 flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{quoteSubmitting ? 'Submitting...' : 'Submit Institutional Request'}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </AppLayout>
   );

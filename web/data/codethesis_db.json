@@ -27,6 +27,15 @@
   "transactions": [],
   "creditLogs": [
     {
+      "id": "log-8dcbf0a0",
+      "userId": "usr-81f054a4",
+      "amount": 100,
+      "type": "payment_topup",
+      "balanceAfter": 212,
+      "description": "Payment topup: COMPLETE package (+100 credits)",
+      "createdAt": "2026-11-16T08:15:47.453Z"
+    },
+    {
       "id": "log-df5b9732",
       "userId": "usr-54194169",
       "amount": 15,
@@ -222,5 +231,7 @@
   },
   "notifications": [],
   "apiKeys": [],
-  "apiUsageLogs": []
+  "apiUsageLogs": [],
+  "institutionalLicenses": [],
+  "institutionalQuotes": []
 }

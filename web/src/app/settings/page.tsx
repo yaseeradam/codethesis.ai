@@ -20,7 +20,10 @@ import {
   BookOpen,
   Sun,
   Lock,
-  AlertCircle
+  AlertCircle,
+  Building,
+  CheckCircle2,
+  Award
 } from 'lucide-react';
 
 const NIGERIAN_UNIVERSITIES = [
@@ -44,7 +47,41 @@ const NIGERIAN_UNIVERSITIES = [
 
 export default function SettingsPage() {
   const { user, updateProfile, refreshUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'security' | 'formatting' | 'ai-keys' | 'appearance'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'license' | 'security' | 'formatting' | 'ai-keys' | 'appearance'>('profile');
+
+  // Departmental License Redemption State
+  const [licenseCode, setLicenseCode] = useState('');
+  const [redeemingLicense, setRedeemingLicense] = useState(false);
+  const [licenseMessage, setLicenseMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  async function handleRedeemLicense(e: React.FormEvent) {
+    e.preventDefault();
+    if (!licenseCode.trim()) {
+      setLicenseMessage({ type: 'error', text: 'Please enter your departmental license code.' });
+      return;
+    }
+    setRedeemingLicense(true);
+    setLicenseMessage(null);
+    try {
+      const res = await fetch('/api/institutional/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: licenseCode.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLicenseMessage({ type: 'success', text: data.message });
+        setLicenseCode('');
+        if (refreshUser) refreshUser().catch(() => {});
+      } else {
+        setLicenseMessage({ type: 'error', text: data.error || 'Failed to redeem license.' });
+      }
+    } catch (err: any) {
+      setLicenseMessage({ type: 'error', text: err.message || 'Error redeeming license.' });
+    } finally {
+      setRedeemingLicense(false);
+    }
+  }
 
   // Profile state initialized with current session user
   const [fullName, setFullName] = useState(user?.fullName || '');
@@ -169,6 +206,7 @@ export default function SettingsPage() {
             {[
               { id: 'profile', label: 'Student Profile', icon: User, desc: 'Name, Matric No. & Contact' },
               { id: 'academic', label: 'Institutional Standards', icon: GraduationCap, desc: 'University, Degree & Department' },
+              { id: 'license', label: 'Departmental License', icon: Building, desc: 'HOD Code & Campus Verification' },
               { id: 'security', label: 'Security & Password', icon: Lock, desc: 'Password & Authentication' },
               { id: 'formatting', label: 'Format & Citation Rules', icon: BookOpen, desc: 'APA 7th, Margins & Python Stack' },
               { id: 'ai-keys', label: 'Custom AI Keys (BYOK)', icon: Key, desc: 'Bring Your Own API Keys' },
@@ -324,6 +362,135 @@ export default function SettingsPage() {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB: Institutional Departmental License */}
+            {activeTab === 'license' && (
+              <div className="space-y-6">
+                <div className="border-b border-slate-200 pb-3 flex items-start justify-between flex-wrap gap-2">
+                  <div>
+                    <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                      <Building className="w-4 h-4 text-cyan-600" />
+                      <span>Institutional Departmental License Verification</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Verify your tertiary department to unlock faculty tier tools, Turnitin pre-screening, and pooled research credits.
+                    </p>
+                  </div>
+
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                    user?.plan === 'faculty'
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-slate-100 text-slate-600 border border-slate-200'
+                  }`}>
+                    {user?.plan === 'faculty' ? 'Faculty License Active' : 'Individual Account'}
+                  </span>
+                </div>
+
+                {/* Active License Badge Banner */}
+                {user?.plan === 'faculty' ? (
+                  <div className="rounded-2xl p-5 bg-gradient-to-r from-emerald-950 via-slate-900 to-cyan-950 border border-emerald-500/40 text-white shadow-sm space-y-3">
+                    <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <span>Verified Departmental Scholar</span>
+                    </div>
+                    <h4 className="text-base font-black text-white">
+                      {user.department || 'Department of Computer Science'} &bull; {user.institution || 'Accredited Tertiary Institution'}
+                    </h4>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Your scholar profile is linked to an authorized departmental site license. You have elevated access to the 18,000-word Capstone Studio, Supervisor Logbook sign-offs, and Developer API keys.
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-[11px] text-emerald-300 font-medium">
+                      <div className="bg-white/5 rounded-lg p-2 border border-white/10 text-center">
+                        <span className="block text-slate-400 text-[10px]">Tier</span>
+                        <strong className="text-white">Faculty / Campus</strong>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-2 border border-white/10 text-center">
+                        <span className="block text-slate-400 text-[10px]">Turnitin Pre-check</span>
+                        <strong className="text-emerald-400">Included (Free)</strong>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-2 border border-white/10 text-center">
+                        <span className="block text-slate-400 text-[10px]">API Rate Limit</span>
+                        <strong className="text-cyan-400">300 req/min</strong>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-2 border border-white/10 text-center">
+                        <span className="block text-slate-400 text-[10px]">Credits Remaining</span>
+                        <strong className="text-amber-300">{user.credits} pts</strong>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl p-5 bg-slate-50 border border-slate-200 space-y-4">
+                    <div className="flex items-start gap-3">
+                      <Award className="w-5 h-5 text-cyan-600 flex-shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-bold text-slate-900">Have a Departmental License Code?</h4>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                          If your department coordinator, HOD, or dean purchased a CodeThesis campus license, enter the license key below to claim your complimentary faculty-tier research credits.
+                        </p>
+                      </div>
+                    </div>
+
+                    {licenseMessage && (
+                      <div className={`p-3.5 rounded-xl text-xs flex items-center gap-2 ${
+                        licenseMessage.type === 'success'
+                          ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                          : 'bg-rose-50 border border-rose-200 text-rose-800'
+                      }`}>
+                        {licenseMessage.type === 'success' ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                        )}
+                        <span className="font-semibold">{licenseMessage.text}</span>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Departmental License Code
+                      </label>
+                      <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                        <input
+                          type="text"
+                          placeholder="e.g. INST-FUTA-CSC-2026-X89K"
+                          value={licenseCode}
+                          onChange={e => setLicenseCode(e.target.value.toUpperCase())}
+                          className="w-full sm:flex-1 bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-mono font-bold text-slate-900 uppercase placeholder:normal-case placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRedeemLicense}
+                          disabled={redeemingLicense}
+                          className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-bold rounded-xl text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 flex-shrink-0 disabled:opacity-50 active:scale-95"
+                        >
+                          <Building className="w-3.5 h-3.5" />
+                          <span>{redeemingLicense ? 'Validating...' : 'Activate License'}</span>
+                        </button>
+                      </div>
+                      <p className="text-[10.5px] text-slate-400">
+                        License keys are issued per university department by CodeThesis AI Academic Partnerships.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* HOD & Faculty Quote Guidance Box */}
+                <div className="p-4 rounded-2xl bg-cyan-50/60 border border-cyan-200/80 flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
+                  <div>
+                    <h5 className="text-xs font-bold text-cyan-950">Are you a Lecturer, HOD or SIWES Director?</h5>
+                    <p className="text-[11px] text-cyan-800 mt-0.5">
+                      Request a departmental site license for your 2025/2026 graduating class or SIWES cohort.
+                    </p>
+                  </div>
+                  <a
+                    href="/pricing"
+                    className="px-4 py-2 bg-cyan-700 hover:bg-cyan-800 text-white font-bold rounded-xl text-xs transition-colors whitespace-nowrap flex-shrink-0"
+                  >
+                    View Institutional Pricing &rarr;
+                  </a>
                 </div>
               </div>
             )}

@@ -30,6 +30,7 @@ export interface User {
   credits: number;
   status?: 'active' | 'flagged' | 'suspended';
   role?: 'student' | 'admin';
+  licenseId?: string;
   resetToken?: { token: string; expiresAt: string };
   createdAt: string;
 }
@@ -216,6 +217,44 @@ export interface AdminSettings {
   };
 }
 
+export interface InstitutionalLicense {
+  id: string;
+  licenseCode: string;
+  institutionName: string;
+  facultyName?: string;
+  departmentName: string;
+  coordinatorName: string;
+  coordinatorEmail: string;
+  coordinatorPhone?: string;
+  planTier: 'departmental' | 'faculty' | 'campus_wide';
+  totalSeats: number;
+  usedSeats: number;
+  creditsPerStudent: number;
+  pooledCredits: number;
+  remainingPooledCredits: number;
+  features: string[];
+  academicSession: string;
+  status: 'active' | 'suspended' | 'expired';
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface InstitutionalQuote {
+  id: string;
+  institutionName: string;
+  facultyName?: string;
+  departmentName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  estimatedStudents: number;
+  tier: string;
+  customRequirements?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  estimatedAmountNgn: number;
+  createdAt: string;
+}
+
 export type ToolKey = keyof AdminSettings['toolCreditCosts'];
 
 interface DatabaseSchema {
@@ -230,6 +269,8 @@ interface DatabaseSchema {
   apiJobs?: ApiJob[];
   vivaSessions?: VivaSession[];
   authAuditLogs?: AuthAuditLog[];
+  institutionalLicenses?: InstitutionalLicense[];
+  institutionalQuotes?: InstitutionalQuote[];
   settings: AdminSettings;
 }
 
@@ -320,6 +361,8 @@ export function readDb(): DatabaseSchema {
     if (!data.apiUsageLogs) data.apiUsageLogs = [];
     if (!data.vivaSessions) data.vivaSessions = [];
     if (!data.authAuditLogs) data.authAuditLogs = [];
+    if (!data.institutionalLicenses) data.institutionalLicenses = [];
+    if (!data.institutionalQuotes) data.institutionalQuotes = [];
     return data;
   } catch (err) {
     return {
@@ -332,6 +375,8 @@ export function readDb(): DatabaseSchema {
       apiUsageLogs: [],
       vivaSessions: [],
       authAuditLogs: [],
+      institutionalLicenses: [],
+      institutionalQuotes: [],
       settings: DEFAULT_SETTINGS,
     };
   }
@@ -360,7 +405,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
                matric_number as "matricNumber", institution, department, phone,
                degree_level as "degreeLevel", graduation_year as "graduationYear",
                preferences, plan, credits,
-               status, role, reset_token as "resetToken", created_at as "createdAt"
+               status, role, license_id as "licenseId", reset_token as "resetToken", created_at as "createdAt"
         FROM users
         WHERE LOWER(email) = ${cleanEmail}
         LIMIT 1;
@@ -386,7 +431,7 @@ export async function getUserById(id: string): Promise<User | null> {
                matric_number as "matricNumber", institution, department, phone,
                degree_level as "degreeLevel", graduation_year as "graduationYear",
                preferences, plan, credits,
-               status, role, reset_token as "resetToken", created_at as "createdAt"
+               status, role, license_id as "licenseId", reset_token as "resetToken", created_at as "createdAt"
         FROM users
         WHERE id = ${id}
         LIMIT 1;
@@ -507,13 +552,14 @@ export async function updateUser(id: string, updates: Partial<User>): Promise<Us
           credits = ${merged.credits},
           status = ${merged.status || 'active'},
           role = ${merged.role || 'student'},
+          license_id = ${merged.licenseId || null},
           reset_token = ${merged.resetToken ? JSON.stringify(merged.resetToken) : null}
         WHERE id = ${id}
         RETURNING id, email, password_hash as "passwordHash", full_name as "fullName",
                   matric_number as "matricNumber", institution, department, phone,
                   degree_level as "degreeLevel", graduation_year as "graduationYear",
                   preferences, plan, credits,
-                  status, role, reset_token as "resetToken", created_at as "createdAt";
+                  status, role, license_id as "licenseId", reset_token as "resetToken", created_at as "createdAt";
       `;
       if (rows && rows.length > 0) {
         return rows[0] as User;
@@ -532,13 +578,32 @@ export async function updateUser(id: string, updates: Partial<User>): Promise<Us
   return db.users[index];
 }
 
+export async function deleteUser(id: string): Promise<boolean> {
+  if (isNeonConfigured()) {
+    try {
+      await sql`DELETE FROM users WHERE id = ${id};`;
+      return true;
+    } catch (err) {
+      console.error('Neon deleteUser error:', err);
+    }
+  }
+
+  const db = readDb();
+  const initial = db.users.length;
+  db.users = db.users.filter(u => u.id !== id);
+  writeDb(db);
+  return db.users.length < initial;
+}
+
 export async function getAllUsers(): Promise<User[]> {
   if (isNeonConfigured()) {
     try {
       const rows = await sql`
         SELECT id, email, password_hash as "passwordHash", full_name as "fullName",
-               matric_number as "matricNumber", institution, plan, credits,
-               status, role, reset_token as "resetToken", created_at as "createdAt"
+               matric_number as "matricNumber", institution, department, phone,
+               degree_level as "degreeLevel", graduation_year as "graduationYear",
+               preferences, plan, credits, status, role, license_id as "licenseId",
+               reset_token as "resetToken", created_at as "createdAt"
         FROM users
         ORDER BY created_at DESC;
       `;
@@ -1215,22 +1280,31 @@ export async function updateTransaction(reference: string, updates: Partial<Tran
   return db.transactions[index];
 }
 
-export async function getAllTransactions(): Promise<Transaction[]> {
+export async function getAllTransactions(): Promise<any[]> {
   if (isNeonConfigured()) {
     try {
       const rows = await sql`
-        SELECT id, user_id as "userId", reference, amount, currency, status, plan_id as "planId", channel, paid_at as "paidAt", created_at as "createdAt"
-        FROM transactions
-        ORDER BY created_at DESC;
+        SELECT t.id, t.user_id as "userId", t.reference, t.amount, t.currency, t.status, t.plan_id as "planId", t.channel, t.paid_at as "paidAt", t.created_at as "createdAt",
+               u.email as "userEmail", u.full_name as "userFullName"
+        FROM transactions t
+        LEFT JOIN users u ON t.user_id = u.id
+        ORDER BY t.created_at DESC;
       `;
-      return rows as Transaction[];
+      return rows;
     } catch (err) {
       console.error('Neon getAllTransactions error:', err);
     }
   }
 
   const db = readDb();
-  return db.transactions;
+  return (db.transactions || []).map(t => {
+    const user = (db.users || []).find(u => u.id === t.userId);
+    return {
+      ...t,
+      userEmail: user?.email || 'N/A',
+      userFullName: user?.fullName || 'Scholar',
+    };
+  });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1662,6 +1736,61 @@ export async function revokeApiKey(keyId: string, userId: string): Promise<boole
   return false;
 }
 
+export async function getAllApiKeys(): Promise<any[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT k.id, k.user_id as "userId", k.name, k.key_prefix as "keyPrefix", k.masked_key as "maskedKey",
+               k.rate_limit_per_min as "rateLimitPerMin", k.status, k.is_institutional as "isInstitutional",
+               k.institution_name as "institutionName", k.allowed_domains as "allowedDomains",
+               k.last_used_at as "lastUsedAt", k.created_at as "createdAt",
+               u.email as "userEmail", u.full_name as "userFullName"
+        FROM api_keys k
+        LEFT JOIN users u ON k.user_id = u.id
+        ORDER BY k.created_at DESC;
+      `;
+      return rows;
+    } catch (err) {
+      console.error('Neon getAllApiKeys error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.apiKeys || []).map(k => {
+    const user = (db.users || []).find(u => u.id === k.userId);
+    return {
+      ...k,
+      userEmail: user?.email || 'N/A',
+      userFullName: user?.fullName || 'Scholar',
+    };
+  });
+}
+
+export async function adminToggleApiKeyStatus(keyId: string, status: 'active' | 'revoked'): Promise<boolean> {
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        UPDATE api_keys
+        SET status = ${status}
+        WHERE id = ${keyId};
+      `;
+      return true;
+    } catch (err) {
+      console.error('Neon adminToggleApiKeyStatus error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.apiKeys) return false;
+  const key = db.apiKeys.find(k => k.id === keyId);
+  if (key) {
+    key.status = status;
+    writeDb(db);
+    return true;
+  }
+  return false;
+}
+
 export async function validateApiKey(rawKey: string): Promise<{
   valid: boolean;
   keyRecord?: ApiKey;
@@ -2076,4 +2205,486 @@ export async function getApiJobsByUserId(userId: string, limit = 50): Promise<Ap
 
   const db = readDb();
   return (db.apiJobs || []).filter(j => j.userId === userId).slice(0, limit);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Institutional Departmental License Operations
+// ─────────────────────────────────────────────────────────────
+export async function getInstitutionalLicenses(): Promise<InstitutionalLicense[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, license_code as "licenseCode", institution_name as "institutionName",
+               faculty_name as "facultyName", department_name as "departmentName",
+               coordinator_name as "coordinatorName", coordinator_email as "coordinatorEmail",
+               coordinator_phone as "coordinatorPhone", plan_tier as "planTier",
+               total_seats as "totalSeats", used_seats as "usedSeats",
+               credits_per_student as "creditsPerStudent", pooled_credits as "pooledCredits",
+               remaining_pooled_credits as "remainingPooledCredits", features,
+               academic_session as "academicSession", status,
+               expires_at as "expiresAt", created_at as "createdAt"
+        FROM institutional_licenses
+        ORDER BY created_at DESC;
+      `;
+      return rows as InstitutionalLicense[];
+    } catch (err) {
+      console.error('Neon getInstitutionalLicenses error:', err);
+    }
+  }
+
+  const db = readDb();
+  return db.institutionalLicenses || [];
+}
+
+export async function getInstitutionalLicenseById(id: string): Promise<InstitutionalLicense | null> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, license_code as "licenseCode", institution_name as "institutionName",
+               faculty_name as "facultyName", department_name as "departmentName",
+               coordinator_name as "coordinatorName", coordinator_email as "coordinatorEmail",
+               coordinator_phone as "coordinatorPhone", plan_tier as "planTier",
+               total_seats as "totalSeats", used_seats as "usedSeats",
+               credits_per_student as "creditsPerStudent", pooled_credits as "pooledCredits",
+               remaining_pooled_credits as "remainingPooledCredits", features,
+               academic_session as "academicSession", status,
+               expires_at as "expiresAt", created_at as "createdAt"
+        FROM institutional_licenses
+        WHERE id = ${id}
+        LIMIT 1;
+      `;
+      if (rows && rows.length > 0) return rows[0] as InstitutionalLicense;
+      return null;
+    } catch (err) {
+      console.error('Neon getInstitutionalLicenseById error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.institutionalLicenses || []).find(l => l.id === id) || null;
+}
+
+export async function getInstitutionalLicenseByCode(code: string): Promise<InstitutionalLicense | null> {
+  const cleanCode = code.trim().toUpperCase();
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, license_code as "licenseCode", institution_name as "institutionName",
+               faculty_name as "facultyName", department_name as "departmentName",
+               coordinator_name as "coordinatorName", coordinator_email as "coordinatorEmail",
+               coordinator_phone as "coordinatorPhone", plan_tier as "planTier",
+               total_seats as "totalSeats", used_seats as "usedSeats",
+               credits_per_student as "creditsPerStudent", pooled_credits as "pooledCredits",
+               remaining_pooled_credits as "remainingPooledCredits", features,
+               academic_session as "academicSession", status,
+               expires_at as "expiresAt", created_at as "createdAt"
+        FROM institutional_licenses
+        WHERE UPPER(license_code) = ${cleanCode}
+        LIMIT 1;
+      `;
+      if (rows && rows.length > 0) return rows[0] as InstitutionalLicense;
+      return null;
+    } catch (err) {
+      console.error('Neon getInstitutionalLicenseByCode error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.institutionalLicenses || []).find(l => l.licenseCode.toUpperCase() === cleanCode) || null;
+}
+
+export async function createInstitutionalLicense(data: {
+  licenseCode?: string;
+  institutionName: string;
+  facultyName?: string;
+  departmentName: string;
+  coordinatorName: string;
+  coordinatorEmail: string;
+  coordinatorPhone?: string;
+  planTier?: 'departmental' | 'faculty' | 'campus_wide';
+  totalSeats?: number;
+  creditsPerStudent?: number;
+  pooledCredits?: number;
+  features?: string[];
+  academicSession?: string;
+  expiresAt: string;
+}): Promise<InstitutionalLicense> {
+  const id = `lic-${crypto.randomUUID().slice(0, 8)}`;
+  
+  // Auto-generate code if omitted
+  const institutionName = (data.institutionName || 'Unknown Institution').trim();
+  const departmentName = (data.departmentName || (data as any).department || 'General Department').trim();
+  const coordinatorName = (data.coordinatorName || (data as any).contactName || 'Department Coordinator').trim();
+  const coordinatorEmail = (data.coordinatorEmail || (data as any).contactEmail || 'coordinator@institution.edu').trim().toLowerCase();
+  const coordinatorPhone = (data.coordinatorPhone || (data as any).contactPhone || '').trim();
+  const expiresAt = data.expiresAt || (data as any).validUntil || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+
+  let licenseCode = data.licenseCode?.trim().toUpperCase();
+  if (!licenseCode) {
+    const instAcronym = institutionName
+      .replace(/Federal|University|of|Technology|State|Polytechnic|College|Education/gi, '')
+      .trim()
+      .split(/\s+/)
+      .map((w: string) => w[0])
+      .join('')
+      .toUpperCase() || 'CAMPUS';
+    const deptAcronym = departmentName
+      .replace(/Department|of|and|&/gi, '')
+      .trim()
+      .split(/\s+/)
+      .map((w: string) => w[0])
+      .join('')
+      .toUpperCase() || 'DEPT';
+    const rand = crypto.randomBytes(3).toString('hex').toUpperCase();
+    licenseCode = `INST-${instAcronym}-${deptAcronym}-2026-${rand}`;
+  }
+
+  const totalSeats = Number(data.totalSeats) || 150;
+  const creditsPerStudent = Number(data.creditsPerStudent) || 50;
+  const pooledCredits = Number(data.pooledCredits) || totalSeats * creditsPerStudent;
+  const planTier = data.planTier || 'departmental';
+  const features = data.features || [
+    'turnitin_screening',
+    'custom_templates',
+    'supervisor_portal',
+    'developer_api',
+    'unlimited_viva'
+  ];
+  const academicSession = data.academicSession || '2025/2026';
+  const now = new Date().toISOString();
+
+  const newLicense: InstitutionalLicense = {
+    id,
+    licenseCode,
+    institutionName,
+    facultyName: data.facultyName?.trim() || '',
+    departmentName,
+    coordinatorName,
+    coordinatorEmail,
+    coordinatorPhone,
+    planTier,
+    totalSeats,
+    usedSeats: 0,
+    creditsPerStudent,
+    pooledCredits,
+    remainingPooledCredits: pooledCredits,
+    features,
+    academicSession,
+    status: 'active',
+    expiresAt,
+    createdAt: now,
+  };
+
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        INSERT INTO institutional_licenses (
+          id, license_code, institution_name, faculty_name, department_name,
+          coordinator_name, coordinator_email, coordinator_phone, plan_tier,
+          total_seats, used_seats, credits_per_student, pooled_credits,
+          remaining_pooled_credits, features, academic_session, status,
+          expires_at, created_at
+        ) VALUES (
+          ${newLicense.id}, ${newLicense.licenseCode}, ${newLicense.institutionName}, ${newLicense.facultyName || null}, ${newLicense.departmentName},
+          ${newLicense.coordinatorName}, ${newLicense.coordinatorEmail}, ${newLicense.coordinatorPhone || null}, ${newLicense.planTier},
+          ${newLicense.totalSeats}, 0, ${newLicense.creditsPerStudent}, ${newLicense.pooledCredits},
+          ${newLicense.remainingPooledCredits}, ${JSON.stringify(newLicense.features)}::jsonb, ${newLicense.academicSession}, 'active',
+          ${newLicense.expiresAt}, ${now}
+        )
+        RETURNING id, license_code as "licenseCode", institution_name as "institutionName",
+                  faculty_name as "facultyName", department_name as "departmentName",
+                  coordinator_name as "coordinatorName", coordinator_email as "coordinatorEmail",
+                  coordinator_phone as "coordinatorPhone", plan_tier as "planTier",
+                  total_seats as "totalSeats", used_seats as "usedSeats",
+                  credits_per_student as "creditsPerStudent", pooled_credits as "pooledCredits",
+                  remaining_pooled_credits as "remainingPooledCredits", features,
+                  academic_session as "academicSession", status,
+                  expires_at as "expiresAt", created_at as "createdAt";
+      `;
+      if (rows && rows.length > 0) return rows[0] as InstitutionalLicense;
+    } catch (err) {
+      console.error('Neon createInstitutionalLicense error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.institutionalLicenses) db.institutionalLicenses = [];
+  db.institutionalLicenses.unshift(newLicense);
+  writeDb(db);
+  return newLicense;
+}
+
+export async function updateInstitutionalLicense(id: string, updates: Partial<InstitutionalLicense>): Promise<InstitutionalLicense | null> {
+  if (isNeonConfigured()) {
+    try {
+      const current = await getInstitutionalLicenseById(id);
+      if (!current) return null;
+      const merged = { ...current, ...updates };
+
+      const rows = await sql`
+        UPDATE institutional_licenses
+        SET
+          institution_name = ${merged.institutionName},
+          faculty_name = ${merged.facultyName || null},
+          department_name = ${merged.departmentName},
+          coordinator_name = ${merged.coordinatorName},
+          coordinator_email = ${merged.coordinatorEmail},
+          coordinator_phone = ${merged.coordinatorPhone || null},
+          plan_tier = ${merged.planTier},
+          total_seats = ${merged.totalSeats},
+          used_seats = ${merged.usedSeats},
+          credits_per_student = ${merged.creditsPerStudent},
+          pooled_credits = ${merged.pooledCredits},
+          remaining_pooled_credits = ${merged.remainingPooledCredits},
+          features = ${JSON.stringify(merged.features)}::jsonb,
+          academic_session = ${merged.academicSession},
+          status = ${merged.status},
+          expires_at = ${merged.expiresAt}
+        WHERE id = ${id}
+        RETURNING id, license_code as "licenseCode", institution_name as "institutionName",
+                  faculty_name as "facultyName", department_name as "departmentName",
+                  coordinator_name as "coordinatorName", coordinator_email as "coordinatorEmail",
+                  coordinator_phone as "coordinatorPhone", plan_tier as "planTier",
+                  total_seats as "totalSeats", used_seats as "usedSeats",
+                  credits_per_student as "creditsPerStudent", pooled_credits as "pooledCredits",
+                  remaining_pooled_credits as "remainingPooledCredits", features,
+                  academic_session as "academicSession", status,
+                  expires_at as "expiresAt", created_at as "createdAt";
+      `;
+      if (rows && rows.length > 0) return rows[0] as InstitutionalLicense;
+    } catch (err) {
+      console.error('Neon updateInstitutionalLicense error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.institutionalLicenses) return null;
+  const index = db.institutionalLicenses.findIndex(l => l.id === id);
+  if (index === -1) return null;
+  db.institutionalLicenses[index] = { ...db.institutionalLicenses[index], ...updates };
+  writeDb(db);
+  return db.institutionalLicenses[index];
+}
+
+export async function deleteInstitutionalLicense(id: string): Promise<boolean> {
+  if (isNeonConfigured()) {
+    try {
+      await sql`DELETE FROM institutional_licenses WHERE id = ${id};`;
+      return true;
+    } catch (err) {
+      console.error('Neon deleteInstitutionalLicense error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.institutionalLicenses) return false;
+  const initial = db.institutionalLicenses.length;
+  db.institutionalLicenses = db.institutionalLicenses.filter(l => l.id !== id);
+  writeDb(db);
+  return db.institutionalLicenses.length < initial;
+}
+
+export async function redeemInstitutionalLicense(userId: string, code: string): Promise<{
+  success: boolean;
+  message: string;
+  license?: InstitutionalLicense;
+  user?: User;
+}> {
+  const license = await getInstitutionalLicenseByCode(code);
+  if (!license) {
+    return { success: false, message: 'Invalid Institutional License Code. Please verify with your HOD or Project Coordinator.' };
+  }
+
+  if (license.status !== 'active') {
+    return { success: false, message: `This institutional license is currently ${license.status}. Please contact your departmental coordinator.` };
+  }
+
+  const expiry = new Date(license.expiresAt).getTime();
+  if (Date.now() > expiry) {
+    return { success: false, message: 'This departmental license has expired for the selected academic session.' };
+  }
+
+  const user = await getUserById(userId);
+  if (!user) {
+    return { success: false, message: 'Student account not found.' };
+  }
+
+  if (user.licenseId === license.id) {
+    return { success: true, message: `You are already verified under this ${license.departmentName} departmental license.`, license, user };
+  }
+
+  if (license.usedSeats >= license.totalSeats) {
+    return { success: false, message: 'All student seats for this departmental license have been claimed. Please ask your HOD to expand seat capacity.' };
+  }
+
+  // Increment seats and deduct from pool
+  const newUsedSeats = license.usedSeats + 1;
+  const newRemainingPool = Math.max(0, license.remainingPooledCredits - license.creditsPerStudent);
+  await updateInstitutionalLicense(license.id, {
+    usedSeats: newUsedSeats,
+    remainingPooledCredits: newRemainingPool,
+  });
+
+  // Upgrade student
+  const updatedUser = await updateUser(userId, {
+    plan: 'faculty',
+    licenseId: license.id,
+    institution: license.institutionName,
+    department: license.departmentName,
+    credits: user.credits + license.creditsPerStudent,
+  });
+
+  // Log credit addition
+  await logCreditEntry({
+    userId,
+    amount: license.creditsPerStudent,
+    type: 'admin_grant',
+    balanceAfter: (user.credits || 0) + license.creditsPerStudent,
+    description: `Departmental License Activated (${license.licenseCode}) - ${license.departmentName}, ${license.institutionName}`,
+  });
+
+  // Create notifications
+  await createNotification({
+    userId,
+    title: 'Departmental License Activated! 🎓',
+    message: `You now have full Faculty tier access with ${license.creditsPerStudent} complimentary research credits under ${license.departmentName}.`,
+    type: 'system',
+    link: '/dashboard',
+  });
+
+  return {
+    success: true,
+    message: `Congratulations! ${license.departmentName} Departmental License activated. ${license.creditsPerStudent} research credits credited to your account.`,
+    license,
+    user: updatedUser || undefined,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Institutional Quotes & Inquiries
+// ─────────────────────────────────────────────────────────────
+export async function getInstitutionalQuotes(): Promise<InstitutionalQuote[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, institution_name as "institutionName", faculty_name as "facultyName",
+               department_name as "departmentName", contact_name as "contactName",
+               contact_email as "contactEmail", contact_phone as "contactPhone",
+               estimated_students as "estimatedStudents", tier,
+               custom_requirements as "customRequirements", status,
+               estimated_amount_ngn as "estimatedAmountNgn", created_at as "createdAt"
+        FROM institutional_quotes
+        ORDER BY created_at DESC;
+      `;
+      return rows as InstitutionalQuote[];
+    } catch (err) {
+      console.error('Neon getInstitutionalQuotes error:', err);
+    }
+  }
+
+  const db = readDb();
+  return db.institutionalQuotes || [];
+}
+
+export async function createInstitutionalQuote(data: {
+  institutionName: string;
+  facultyName?: string;
+  departmentName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  estimatedStudents: number;
+  tier?: string;
+  customRequirements?: string;
+  estimatedAmountNgn?: number;
+}): Promise<InstitutionalQuote> {
+  const id = `quote-${crypto.randomUUID().slice(0, 8)}`;
+  const students = Number(data.estimatedStudents) || 100;
+  const tier = (data.tier || (data as any).requestedPlan || 'departmental') as any;
+  const estimatedAmount = data.estimatedAmountNgn || (tier === 'faculty' ? students * 2500 : students * 2000);
+  const now = new Date().toISOString();
+
+  const institutionName = (data.institutionName || 'Unknown Institution').trim();
+  const departmentName = (data.departmentName || (data as any).department || 'General Department').trim();
+  const contactName = (data.contactName || 'Department Representative').trim();
+  const contactEmail = (data.contactEmail || 'contact@institution.edu').trim().toLowerCase();
+  const contactPhone = (data.contactPhone || '').trim();
+  const customRequirements = (data.customRequirements || (data as any).notes || '').trim();
+
+  const newQuote: InstitutionalQuote = {
+    id,
+    institutionName,
+    facultyName: data.facultyName?.trim() || '',
+    departmentName,
+    contactName,
+    contactEmail,
+    contactPhone,
+    estimatedStudents: students,
+    tier,
+    customRequirements,
+    status: 'pending',
+    estimatedAmountNgn: estimatedAmount,
+    createdAt: now,
+  };
+
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        INSERT INTO institutional_quotes (
+          id, institution_name, faculty_name, department_name,
+          contact_name, contact_email, contact_phone, estimated_students,
+          tier, custom_requirements, status, estimated_amount_ngn, created_at
+        ) VALUES (
+          ${newQuote.id}, ${newQuote.institutionName}, ${newQuote.facultyName || null}, ${newQuote.departmentName},
+          ${newQuote.contactName}, ${newQuote.contactEmail}, ${newQuote.contactPhone || null}, ${newQuote.estimatedStudents},
+          ${newQuote.tier}, ${newQuote.customRequirements || null}, 'pending', ${newQuote.estimatedAmountNgn}, ${now}
+        )
+        RETURNING id, institution_name as "institutionName", faculty_name as "facultyName",
+                  department_name as "departmentName", contact_name as "contactName",
+                  contact_email as "contactEmail", contact_phone as "contactPhone",
+                  estimated_students as "estimatedStudents", tier,
+                  custom_requirements as "customRequirements", status,
+                  estimated_amount_ngn as "estimatedAmountNgn", created_at as "createdAt";
+      `;
+      if (rows && rows.length > 0) return rows[0] as InstitutionalQuote;
+    } catch (err) {
+      console.error('Neon createInstitutionalQuote error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.institutionalQuotes) db.institutionalQuotes = [];
+  db.institutionalQuotes.unshift(newQuote);
+  writeDb(db);
+  return newQuote;
+}
+
+export async function updateInstitutionalQuote(id: string, updates: Partial<InstitutionalQuote>): Promise<InstitutionalQuote | null> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        UPDATE institutional_quotes
+        SET
+          status = COALESCE(${updates.status || null}, status)
+        WHERE id = ${id}
+        RETURNING id, institution_name as "institutionName", faculty_name as "facultyName",
+                  department_name as "departmentName", contact_name as "contactName",
+                  contact_email as "contactEmail", contact_phone as "contactPhone",
+                  estimated_students as "estimatedStudents", tier,
+                  custom_requirements as "customRequirements", status,
+                  estimated_amount_ngn as "estimatedAmountNgn", created_at as "createdAt";
+      `;
+      if (rows && rows.length > 0) return rows[0] as InstitutionalQuote;
+    } catch (err) {
+      console.error('Neon updateInstitutionalQuote error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.institutionalQuotes) return null;
+  const quote = db.institutionalQuotes.find(q => q.id === id);
+  if (!quote) return null;
+  Object.assign(quote, updates);
+  writeDb(db);
+  return quote;
 }
