@@ -24,12 +24,12 @@ export async function POST(req: NextRequest) {
       body = {};
     }
     const {
-      studentName = "CHIDI EZE",
-      matricNumber = "FUTA/CSC/20/4182",
+      studentName = "STUDENT FULL NAME",
+      matricNumber = "MATRIC NUMBER",
       course = "Computer Science",
-      institution = "Federal University of Technology, Akure",
-      company = "MainOne Cable Company (An Equinix Company)",
-      department = "Network Infrastructure, Data Center & Systems Engineering Unit",
+      institution = "Tertiary Institution",
+      company = "Industrial Attachment Organization",
+      department = "Engineering & Systems Unit",
       duration = "24 Weeks (6 Months)",
       session = "2025/2026",
     } = body;

@@ -38,11 +38,11 @@ interface Chapter {
 export default function ItfReportPage() {
   const { user } = useAuth();
   const [activeChapterIndex, setActiveChapterIndex] = useState(0);
-  const [companyName, setCompanyName] = useState('MainOne Cable Company (An Equinix Company)');
-  const [studentName, setStudentName] = useState('ADEBAYO TUNDE');
-  const [matricNumber, setMatricNumber] = useState('FUTA/CSC/20/4182');
-  const [institution, setInstitution] = useState('Federal University of Technology, Akure');
-  const [department, setDepartment] = useState('Computer Science');
+  const [companyName, setCompanyName] = useState('');
+  const [studentName, setStudentName] = useState(user?.fullName?.toUpperCase() || '');
+  const [matricNumber, setMatricNumber] = useState(user?.matricNumber || '');
+  const [institution, setInstitution] = useState(user?.institution || '');
+  const [department, setDepartment] = useState(user?.department || '');
   const [duration, setDuration] = useState('6 Months (24 Weeks)');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -58,24 +58,26 @@ export default function ItfReportPage() {
     }
   }, [user]);
 
+  const effectiveCompany = companyName.trim() || 'the Industrial Training Establishment';
+
   const chapters: Chapter[] = [
     {
       number: 1,
       title: 'Introduction & Profile of the Establishment',
       wordCount: '2,840 words',
-      summary: 'Organizational background, mission statement, Tier III datacenter infrastructure, and company organogram.',
+      summary: `Organizational background, mission statement, core infrastructure, and organogram for ${effectiveCompany}.`,
       subsections: [
         {
-          heading: '1.1 Historical Background of MainOne',
-          content: 'MainOne, an Equinix Company, was established in 2010 to bridge the West African digital divide by deploying the first privately funded 7,000-kilometer submarine cable connecting Portugal to Nigeria and Ghana. The enterprise operates West Africa’s premier carrier-neutral Tier III certified Data Center (MDX-i), delivering 99.982% enterprise SLA uptime to banks, telecommunications operators, and government institutions.'
+          heading: `1.1 Historical Background & Mandate of ${effectiveCompany}`,
+          content: `${effectiveCompany} was established to drive operational excellence, enterprise infrastructure modernization, and technological capacity building. The enterprise operates tier-grade certified infrastructure, delivering high-availability SLA uptime to corporate, governmental, and industrial institutions across the federation.`
         },
         {
-          heading: '1.2 Organizational Organogram & Governance',
-          content: 'The operational hierarchy is led by the Chief Executive Officer, followed by the Chief Technical Officer (CTO), Director of Network Operations, and Departmental Heads across Network Infrastructure, Cloud Virtualization, Enterprise Security, and Technical Support. Interns were placed under the direct supervision of Senior Systems Engineers in the NOC.'
+          heading: '1.2 Organizational Organogram & Operational Governance',
+          content: 'The operational hierarchy is led by Executive Management, followed by the Chief Operations Officer, Director of Technical Services, and Departmental Heads across Network Operations, Systems Engineering, Security, and Quality Assurance. Students on industrial attachment are placed under certified mentor engineers.'
         },
         {
           heading: '1.3 Objectives of SIWES in Tertiary Technical Education',
-          content: 'The Students Industrial Work Experience Scheme (SIWES) was initiated by the Industrial Training Fund (ITF) in 1973 to address the critical discrepancy between theoretical engineering curricula taught in tertiary institutions and real-world industrial practice. It prepares students for post-graduation employability by imparting hands-on competency in industrial setups.'
+          content: 'The Students Industrial Work Experience Scheme (SIWES) was initiated by the Industrial Training Fund (ITF) in 1973 to bridge the discrepancy between theoretical curricula in Nigerian tertiary institutions and real-world industrial practice, ensuring post-graduation competency.'
         }
       ]
     },
@@ -240,6 +242,7 @@ export default function ItfReportPage() {
                 type="text"
                 value={companyName}
                 onChange={e => setCompanyName(e.target.value)}
+                placeholder="e.g. Shell Petroleum / MainOne Cable Company"
                 className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-fuchsia-500 focus:ring-4 focus:ring-fuchsia-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all shadow-xs"
               />
             </div>
@@ -250,6 +253,7 @@ export default function ItfReportPage() {
                 type="text"
                 value={studentName}
                 onChange={e => setStudentName(e.target.value)}
+                placeholder="e.g. SURNAME FIRSTNAME"
                 className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-fuchsia-500 focus:ring-4 focus:ring-fuchsia-500/10 rounded-xl p-2.5 text-xs text-slate-800 outline-none transition-all shadow-xs"
               />
             </div>
@@ -274,6 +278,7 @@ export default function ItfReportPage() {
                   type="text"
                   value={matricNumber}
                   onChange={e => setMatricNumber(e.target.value)}
+                  placeholder="e.g. MATRIC/REG/0001"
                   className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-fuchsia-500 focus:ring-4 focus:ring-fuchsia-500/10 rounded-xl p-2 text-xs text-slate-800 outline-none transition-all shadow-xs"
                 />
               </div>
@@ -283,6 +288,7 @@ export default function ItfReportPage() {
                   type="text"
                   value={duration}
                   onChange={e => setDuration(e.target.value)}
+                  placeholder="e.g. 6 Months (24 Weeks)"
                   className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-fuchsia-500 focus:ring-4 focus:ring-fuchsia-500/10 rounded-xl p-2 text-xs text-slate-800 outline-none transition-all shadow-xs"
                 />
               </div>

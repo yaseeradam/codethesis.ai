@@ -148,10 +148,10 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
 
   const { user } = useAuth();
   const [isDownloading, setIsDownloading] = useState(false);
-  const [department, setDepartment] = useState('Computer Science');
-  const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
-  const [studentName, setStudentName] = useState('ADEBAYO TUNDE');
-  const [matricNo, setMatricNo] = useState('FUTA/CSC/20/4182');
+  const [department, setDepartment] = useState(user?.department || '');
+  const [institution, setInstitution] = useState(user?.institution || '');
+  const [studentName, setStudentName] = useState(user?.fullName?.toUpperCase() || '');
+  const [matricNo, setMatricNo] = useState(user?.matricNumber || '');
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   const [activeSolution, setActiveSolution] = useState<{
@@ -345,6 +345,7 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
                   type="text"
                   value={studentName}
                   onChange={e => setStudentName(e.target.value.toUpperCase())}
+                  placeholder="e.g. SURNAME FIRSTNAME"
                   className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-bold uppercase outline-none transition-all shadow-xs"
                 />
               </div>
@@ -354,6 +355,7 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
                   type="text"
                   value={matricNo}
                   onChange={e => setMatricNo(e.target.value)}
+                  placeholder="e.g. MATRIC/REG/0001"
                   className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-mono outline-none transition-all shadow-xs"
                 />
               </div>

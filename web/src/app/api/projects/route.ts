@@ -8,7 +8,10 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const queryUserId = url.searchParams.get('userId');
 
-    const effectiveUserId = user?.id || queryUserId || 'demo-student-001';
+    const effectiveUserId = user?.id || queryUserId;
+    if (!effectiveUserId) {
+      return NextResponse.json({ success: true, projects: [] });
+    }
     const projects = await getProjectsByUserId(effectiveUserId);
 
     return NextResponse.json({ success: true, projects });
@@ -22,7 +25,10 @@ export async function POST(req: NextRequest) {
     const user = await getCurrentUser();
     const body = await req.json();
 
-    const effectiveUserId = user?.id || body.userId || 'demo-student-001';
+    const effectiveUserId = user?.id || body.userId;
+    if (!effectiveUserId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
 
     const { toolId, title, course, institution, summary, fileType, metadata } = body;
 
@@ -57,7 +63,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
 
-    const effectiveUserId = user?.id || url.searchParams.get('userId') || 'demo-student-001';
+    const effectiveUserId = user?.id || url.searchParams.get('userId');
+    if (!effectiveUserId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
     const deleted = await deleteProject(projectId, effectiveUserId);
 
     if (!deleted) {

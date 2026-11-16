@@ -24,12 +24,12 @@ import InstitutionSelect from '@/components/ui/InstitutionSelect';
 
 export default function ThesisToolPage() {
   const { user } = useAuth();
-  const [topic, setTopic] = useState('Design and Implementation of an Automated Hostel Allocation and Facility Management System');
-  const [course, setCourse] = useState('Computer Science');
-  const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
-  const [caseStudy, setCaseStudy] = useState('University Student Affairs Division');
-  const [studentName, setStudentName] = useState('ADEBAYO TUNDE');
-  const [matricNumber, setMatricNumber] = useState('FUTA/CSC/20/4182');
+  const [topic, setTopic] = useState('');
+  const [course, setCourse] = useState(user?.department || '');
+  const [institution, setInstitution] = useState(user?.institution || '');
+  const [caseStudy, setCaseStudy] = useState('');
+  const [studentName, setStudentName] = useState(user?.fullName?.toUpperCase() || '');
+  const [matricNumber, setMatricNumber] = useState(user?.matricNumber || '');
   const [session, setSession] = useState('2025/2026');
 
   // Auto-populate from logged-in user profile
@@ -47,6 +47,10 @@ export default function ThesisToolPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  const effectiveTopic = topic.trim() || 'Design and Implementation of an Automated System';
+  const effectiveInstitution = institution.trim() || 'Tertiary Institution';
+  const effectiveCaseStudy = caseStudy.trim() || 'the Designated Organization';
 
   async function handleDownloadDocx() {
     setIsDownloading(true);
@@ -104,6 +108,7 @@ export default function ThesisToolPage() {
                 rows={2}
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
+                placeholder="e.g. Design and Implementation of an Automated Hostel Allocation System"
                 className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all shadow-xs"
               />
             </div>
@@ -128,6 +133,7 @@ export default function ThesisToolPage() {
                   type="text"
                   value={studentName}
                   onChange={e => setStudentName(e.target.value.toUpperCase())}
+                  placeholder="e.g. SURNAME FIRSTNAME"
                   className="w-full h-10 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-2.5 text-xs font-bold uppercase text-slate-800 outline-none transition-all shadow-xs"
                 />
               </div>
@@ -137,6 +143,7 @@ export default function ThesisToolPage() {
                   type="text"
                   value={matricNumber}
                   onChange={e => setMatricNumber(e.target.value)}
+                  placeholder="e.g. MATRIC/REG/0001"
                   className="w-full h-10 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-2.5 text-xs font-mono text-slate-800 outline-none transition-all shadow-xs"
                 />
               </div>
@@ -227,15 +234,15 @@ export default function ThesisToolPage() {
               <div className="space-y-4">
                 <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">1.1 Background of the Study</h3>
                 <p className="text-justify indent-8">
-                  In modern tertiary educational institutions such as {institution}, the administration of student hostel accommodation represents one of the most critical auxiliary services impacting student welfare, academic focus, and overall campus security. Historically, residential hall administration has relied extensively on manual registration cards, physical queue allocation registries, and manual verification ledgers. These conventional methods are inherently susceptible to human transcription discrepancies, unauthorized room reservations, duplication of allocations, and severe administrative bottlenecks.
+                  In modern tertiary educational institutions such as {effectiveInstitution}, the administration of student hostel accommodation represents one of the most critical auxiliary services impacting student welfare, academic focus, and overall campus security. Historically, residential hall administration has relied extensively on manual registration cards, physical queue allocation registries, and manual verification ledgers. These conventional methods are inherently susceptible to human transcription discrepancies, unauthorized room reservations, duplication of allocations, and severe administrative bottlenecks.
                 </p>
                 <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">1.2 Statement of the Problem</h3>
                 <p className="text-justify indent-8">
-                  The manual hostel accommodation allocation framework in tertiary universities is plagued by fundamental structural inefficiencies. Students are frequently subjected to arduous physical queues spanning multiple academic departments and administrative offices. The absence of a real-time synchronized repository creates acute challenges: room over-allocation, inaccurate vacancy status tracking, and lack of transparency. This study proposes the design and implementation of an automated allocation system for {caseStudy} to completely eliminate manual bottlenecks.
+                  The manual hostel accommodation allocation framework in tertiary universities is plagued by fundamental structural inefficiencies. Students are frequently subjected to arduous physical queues spanning multiple academic departments and administrative offices. The absence of a real-time synchronized repository creates acute challenges: room over-allocation, inaccurate vacancy status tracking, and lack of transparency. This study proposes the design and implementation of an automated allocation system for {effectiveCaseStudy} to completely eliminate manual bottlenecks.
                 </p>
                 <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">1.3 Aim and Objectives of the Study</h3>
                 <p className="text-justify indent-8">
-                  The overarching aim of this research is to design and implement an automated hostel allocation system for {institution}. To fulfill this primary aim, the specific objectives are:
+                  The overarching aim of this research is to design and implement an automated hostel allocation system for {effectiveInstitution}. To fulfill this primary aim, the specific objectives are:
                 </p>
                 <ol className="list-decimal pl-10 space-y-1 font-sans text-xs">
                   <li>To critically examine and analyze the bottlenecks associated with the existing manual hostel allocation workflows.</li>
@@ -294,7 +301,7 @@ export default function ThesisToolPage() {
                 </p>
                 <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">5.2 Recommendations & Future Work</h3>
                 <p className="text-justify indent-8">
-                  It is recommended that institutional authorities at {institution} fully integrate this automated system into the central university portal. Future extensions include mobile application deployment and biometric identity verification at residential hall checkpoints.
+                  It is recommended that institutional authorities at {effectiveInstitution} fully integrate this automated system into the central university portal. Future extensions include mobile application deployment and biometric identity verification at residential hall checkpoints.
                 </p>
               </div>
             )}

@@ -55,14 +55,22 @@ function StudioMain() {
   const [activeChapter, setActiveChapter] = useState('ch1');
 
   // Project Setup State
-  const [topic, setTopic] = useState('Design and Implementation of an Automated Hostel Allocation and Facility Management System');
-  const [course, setCourse] = useState('Computer Science');
-  const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
-  const [caseStudy, setCaseStudy] = useState('University Student Affairs Division');
+  const [topic, setTopic] = useState('');
+  const [course, setCourse] = useState(user?.department || '');
+  const [institution, setInstitution] = useState(user?.institution || '');
+  const [caseStudy, setCaseStudy] = useState('');
   const [session, setSession] = useState('2025/2026');
-  const [studentName, setStudentName] = useState('ADEBAYO TUNDE');
-  const [matricNumber, setMatricNumber] = useState('FUTA/CSC/20/4182');
-  const [supervisor, setSupervisor] = useState('Prof. O. A. Babatunde');
+  const [studentName, setStudentName] = useState(user?.fullName?.toUpperCase() || '');
+  const [matricNumber, setMatricNumber] = useState(user?.matricNumber || '');
+  const [supervisor, setSupervisor] = useState('');
+
+  const effectiveTopic = topic.trim() || 'Automated Systems Architecture and Engineering Suite';
+  const effectiveCourse = course.trim() || 'Computer Science';
+  const effectiveInstitution = institution.trim() || 'Tertiary Educational Institution';
+  const effectiveCaseStudy = caseStudy.trim() || 'Institutional Operations Division';
+  const effectiveStudentName = studentName.trim() || 'STUDENT CANDIDATE';
+  const effectiveMatricNumber = matricNumber.trim() || 'MATRIC NUMBER';
+  const effectiveSupervisor = supervisor.trim() || 'Project Supervisor';
 
   // Auto-populate from authenticated user profile
   useEffect(() => {
@@ -244,7 +252,7 @@ function StudioMain() {
   const sampleFiles: Record<string, string> = {
     'app.py': `# ==============================================================================
 # CodeThesis AI — Turnkey Python & SQLite Application
-# Project: Hostel Allocation and Facility Management System
+# Project: ${effectiveTopic}
 # Zero-configuration, zero-pip terminal anxiety
 # ==============================================================================
 
@@ -252,7 +260,7 @@ import sqlite3
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import json
 
-DATABASE_FILE = "hostel_management.db"
+DATABASE_FILE = "academic_project.db"
 
 def init_db():
     conn = sqlite3.connect(DATABASE_FILE)
@@ -334,7 +342,7 @@ CREATE TABLE allocations (
     'run_project.bat': `@echo off
 echo ========================================================
 echo CodeThesis AI: 1-Click Turnkey Offline Runner
-echo Project: Hostel Allocation System
+echo Project: ${effectiveTopic}
 echo ========================================================
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
@@ -350,12 +358,12 @@ python -m http.server 8000
 pause
 `,
     'README.md': `# Academic Defense Documentation
-**Project**: Automated Hostel Allocation & Facility Management System  
-**Institution**: Federal University of Technology, Akure (FUTA)  
-**Student**: ADEBAYO TUNDE (FUTA/CSC/20/4182)  
+**Project**: ${effectiveTopic}  
+**Institution**: ${effectiveInstitution}  
+**Student**: ${effectiveStudentName} (${effectiveMatricNumber})  
 
 ## 1. Quickstart Instructions
-Double-click \`run_project.bat\` on Windows. The launcher will automatically verify Python, seed the database with 50+ records, and open your web browser to \`http://localhost:8000\`.
+Double-click \`run_project.bat\` on Windows. The launcher will automatically verify Python, seed the database with verified academic records, and open your web browser to \`http://localhost:8000\`.
 `
   };
 
@@ -453,6 +461,7 @@ Double-click \`run_project.bat\` on Windows. The launcher will automatically ver
                   rows={2}
                   value={topic}
                   onChange={e => setTopic(e.target.value)}
+                  placeholder="e.g. Design and Implementation of an Automated Hostel Allocation System"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
@@ -479,6 +488,7 @@ Double-click \`run_project.bat\` on Windows. The launcher will automatically ver
                     type="text"
                     value={studentName}
                     onChange={e => setStudentName(e.target.value.toUpperCase())}
+                    placeholder="e.g. SURNAME FIRSTNAME"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-bold uppercase focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   />
                 </div>
@@ -488,6 +498,7 @@ Double-click \`run_project.bat\` on Windows. The launcher will automatically ver
                     type="text"
                     value={matricNumber}
                     onChange={e => setMatricNumber(e.target.value)}
+                    placeholder="e.g. MATRIC/REG/0001"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   />
                 </div>
@@ -660,19 +671,19 @@ Double-click \`run_project.bat\` on Windows. The launcher will automatically ver
                 {/* Institutional Header Clearance */}
                 <div className="text-center pb-8 border-b border-slate-300 mb-8">
                   <p className="uppercase text-xs font-bold tracking-widest text-slate-500 mb-1">
-                    {institution}
+                    {effectiveInstitution}
                   </p>
                   <p className="uppercase text-[11px] font-semibold text-slate-600 mb-4">
-                    Department of {course}
+                    Department of {effectiveCourse}
                   </p>
                   <h1 className="text-lg md:text-xl font-bold uppercase tracking-tight text-slate-900 max-w-xl mx-auto leading-snug">
-                    {topic}
+                    {effectiveTopic}
                   </h1>
-                  <p className="text-xs text-slate-600 italic mt-3">A Case Study of {caseStudy}</p>
+                  <p className="text-xs text-slate-600 italic mt-3">A Case Study of {effectiveCaseStudy}</p>
                   <div className="mt-4 pt-4 border-t border-slate-200 text-xs">
-                    <p className="font-bold text-slate-900">{studentName}</p>
-                    <p className="text-slate-500 font-mono text-[11px]">{matricNumber}</p>
-                    <p className="text-slate-500 mt-1">Supervisor: {supervisor}</p>
+                    <p className="font-bold text-slate-900">{effectiveStudentName}</p>
+                    <p className="text-slate-500 font-mono text-[11px]">{effectiveMatricNumber}</p>
+                    <p className="text-slate-500 mt-1">Supervisor: {effectiveSupervisor}</p>
                     <p className="text-slate-500 text-[10px] uppercase font-bold mt-2">
                       Academic Session: {session}
                     </p>
@@ -687,11 +698,11 @@ Double-click \`run_project.bat\` on Windows. The launcher will automatically ver
                     </h2>
                     <h3 className="text-sm font-bold text-slate-800">1.1 Background of the Study</h3>
                     <p className="text-justify text-xs md:text-sm text-slate-700 leading-relaxed">
-                      Tertiary institutions across Africa, notably {institution}, continue to experience monumental growth in student enrolment figures. However, the administrative machinery designated for room allocation, bed-space tracking, and facility maintenance remains entrenched in manual ledger entries or unoptimized spreadsheet workflows. This operational friction results in rampant double-allocation race conditions, uncoordinated emergency dispatch, and opaque revenue audits.
+                      Tertiary institutions across Africa, notably {effectiveInstitution}, continue to experience monumental growth in student enrolment figures. However, the administrative machinery designated for room allocation, bed-space tracking, and facility maintenance remains entrenched in manual ledger entries or unoptimized spreadsheet workflows. This operational friction results in rampant double-allocation race conditions, uncoordinated emergency dispatch, and opaque revenue audits.
                     </p>
                     <h3 className="text-sm font-bold text-slate-800 mt-4">1.2 Statement of the Problem</h3>
                     <p className="text-justify text-xs md:text-sm text-slate-700 leading-relaxed">
-                      The core failure mode observed within {caseStudy} is the lack of concurrency serialization during the peak 48-hour matriculation portal window. When over 4,000 undergraduate students simultaneously attempt bed-space reservation, relational database locks fail in non-transactional systems, generating inconsistent states and human disputes.
+                      The core failure mode observed within {effectiveCaseStudy} is the lack of concurrency serialization during the peak 48-hour matriculation portal window. When over 4,000 undergraduate students simultaneously attempt bed-space reservation, relational database locks fail in non-transactional systems, generating inconsistent states and human disputes.
                     </p>
                     <h3 className="text-sm font-bold text-slate-800 mt-4">1.3 Aim and Objectives of the Study</h3>
                     <p className="text-xs md:text-sm text-slate-700">

@@ -19,7 +19,14 @@ export async function POST(req: NextRequest) {
 
     const effectivePlanId = planId || 'standard';
     const effectiveAmount = amount ? Number(amount) : (PLAN_PRICES[effectivePlanId] || 8500);
-    const effectiveEmail = email || user?.email || 'student@futa.edu.ng';
+    const effectiveEmail = email || user?.email;
+
+    if (!effectiveEmail || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required to initialize payment' },
+        { status: 401 }
+      );
+    }
 
     const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
     const isLiveKey = Boolean(
@@ -29,7 +36,7 @@ export async function POST(req: NextRequest) {
       paystackSecret.startsWith('sk_')
     );
     const reference = `CT-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
-    const effectiveUserId = user?.id || 'demo-student-001';
+    const effectiveUserId = user.id;
 
     // Record pending transaction in our persistence layer
     await createTransaction({

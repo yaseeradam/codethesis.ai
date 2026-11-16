@@ -51,8 +51,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [matricNumber, setMatricNumber] = useState('');
-  const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
-  const [course, setCourse] = useState('Computer Science');
+  const [institution, setInstitution] = useState('');
+  const [course, setCourse] = useState('');
 
   // Field-level error states
   const [fullNameError, setFullNameError] = useState('');
@@ -132,7 +132,7 @@ export default function RegisterPage() {
         fullName: fullName.trim(),
         email: email.trim().toLowerCase(),
         password,
-        matricNumber: matricNumber.trim() || 'FUTA/CSC/20/4182',
+        matricNumber: matricNumber.trim(),
         institution: institution.trim(),
         course: course.trim(),
       });
@@ -464,7 +464,7 @@ export default function RegisterPage() {
                   type="text"
                   value={matricNumber}
                   onChange={e => setMatricNumber(e.target.value)}
-                  placeholder="e.g. FUTA/CSC/20/4182"
+                  placeholder="e.g. MATRIC/REG/0001"
                   className="w-full h-10 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-xs"
                 />
               </div>

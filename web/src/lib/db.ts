@@ -224,46 +224,7 @@ function ensureDb() {
     const initialData: DatabaseSchema = {
       users: [
         {
-          id: 'demo-student-001',
-          email: 'student@codethesis.ai',
-          passwordHash: hashPassword('student123'),
-          fullName: 'Adebayo Tunde',
-          matricNumber: 'FUTA/CSC/20/4182',
-          institution: 'Federal University of Technology, Akure',
-          plan: 'standard',
-          credits: 25,
-          role: 'student',
-          status: 'active',
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: 'demo-student-002',
-          email: 'imusa@futa.edu.ng',
-          passwordHash: hashPassword('password123'),
-          fullName: 'Ibrahim Musa',
-          matricNumber: 'FUTA/CSC/20/5091',
-          institution: 'Federal University of Technology, Akure',
-          plan: 'complete',
-          credits: 40,
-          role: 'student',
-          status: 'active',
-          createdAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString(),
-        },
-        {
-          id: 'demo-student-003',
-          email: 'cokeke@unilag.edu.ng',
-          passwordHash: hashPassword('password123'),
-          fullName: 'Chioma Okeke',
-          matricNumber: 'UNILAG/ENG/21/0844',
-          institution: 'University of Lagos',
-          plan: 'starter',
-          credits: 8,
-          role: 'student',
-          status: 'active',
-          createdAt: new Date(Date.now() - 3600000 * 24 * 7).toISOString(),
-        },
-        {
-          id: 'demo-admin-001',
+          id: 'admin-001',
           email: 'admin@codethesis.ai',
           passwordHash: hashPassword('admin123'),
           fullName: 'System Administrator',
@@ -395,12 +356,12 @@ export async function createUser(userData: {
   const cleanEmail = userData.email.toLowerCase().trim();
   const passwordHash = hashPassword(userData.password);
   const fullName = userData.fullName.trim();
-  const matricNumber = userData.matricNumber?.trim() || 'FUTA/CSC/20/4182';
-  const institution = userData.institution?.trim() || 'Federal University of Technology, Akure';
-  const department = userData.department?.trim() || 'Computer Science';
+  const matricNumber = userData.matricNumber?.trim() || '';
+  const institution = userData.institution?.trim() || '';
+  const department = userData.department?.trim() || '';
   const phone = userData.phone?.trim() || '';
   const degreeLevel = userData.degreeLevel?.trim() || 'B.Sc';
-  const graduationYear = userData.graduationYear?.trim() || '2026';
+  const graduationYear = userData.graduationYear?.trim() || '';
   const preferences = userData.preferences || {
     citationFormat: 'apa7',
     lineSpacing: '1.5',

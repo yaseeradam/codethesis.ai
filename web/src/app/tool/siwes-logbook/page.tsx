@@ -46,11 +46,11 @@ interface WeekLog {
 export default function SiwesLogbookPage() {
   const { user } = useAuth();
   const [durationWeeks, setDurationWeeks] = useState<'12' | '24'>('24');
-  const [companyName, setCompanyName] = useState('MainOne Cable Company / Equinix Tier III Data Centre');
-  const [companyDepartment, setCompanyDepartment] = useState('Network Operations Centre (NOC) & Systems Infrastructure');
-  const [industrySupervisor, setIndustrySupervisor] = useState('Engr. Babatunde Sanusi (MNSE, COREN Reg.)');
-  const [institution, setInstitution] = useState('Federal University of Technology, Akure');
-  const [course, setCourse] = useState('Computer Engineering / Computer Science');
+  const [companyName, setCompanyName] = useState('');
+  const [companyDepartment, setCompanyDepartment] = useState('');
+  const [industrySupervisor, setIndustrySupervisor] = useState('');
+  const [institution, setInstitution] = useState(user?.institution || '');
+  const [course, setCourse] = useState(user?.department || '');
   const [currentWeek, setCurrentWeek] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
@@ -67,7 +67,7 @@ export default function SiwesLogbookPage() {
     {
       weekNumber: 1,
       dateRange: 'Monday, 2nd June - Friday, 6th June',
-      department: 'Enterprise Datacenter Operations',
+      department: companyDepartment || 'Enterprise Engineering Operations',
       weeklySummary: 'Completed company HSE safety induction, structured cabling overview, and Cat6 UTP termination according to ANSI/TIA-568-B standard.',
       schematicTitle: 'Figure 1.1: T568B RJ-45 Color Code Wiring Sequence',
       schematicDiagram: `Pin 1: White/Orange  Pin 2: Orange
@@ -75,7 +75,7 @@ Pin 3: White/Green   Pin 4: Blue
 Pin 5: White/Blue    Pin 6: Green
 Pin 7: White/Brown   Pin 8: Brown
 [Modular 8P8C Gold-Plated Crimp Handshake Verified via Fluke Cable Analyzer]`,
-      supervisorRemark: 'Tunde showed commendable precision during modular crimping with 0% pair crossover errors.',
+      supervisorRemark: 'The student intern showed commendable precision during modular crimping with 0% pair crossover errors.',
       days: [
         {
           day: 'Monday',
@@ -279,6 +279,7 @@ Pin 7: White/Brown   Pin 8: Brown
                 type="text"
                 value={companyName}
                 onChange={e => setCompanyName(e.target.value)}
+                placeholder="e.g. Shell Petroleum / MainOne Cable Company"
                 className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all shadow-xs"
               />
             </div>
@@ -289,6 +290,7 @@ Pin 7: White/Brown   Pin 8: Brown
                 type="text"
                 value={companyDepartment}
                 onChange={e => setCompanyDepartment(e.target.value)}
+                placeholder="e.g. Network Operations Centre (NOC)"
                 className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl p-2.5 text-xs text-slate-800 outline-none transition-all shadow-xs"
               />
             </div>
@@ -299,6 +301,7 @@ Pin 7: White/Brown   Pin 8: Brown
                 type="text"
                 value={industrySupervisor}
                 onChange={e => setIndustrySupervisor(e.target.value)}
+                placeholder="e.g. Engr. B. Sanusi (MNSE, COREN)"
                 className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl p-2.5 text-xs text-slate-800 outline-none transition-all shadow-xs"
               />
             </div>

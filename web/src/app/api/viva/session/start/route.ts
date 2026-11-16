@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     }
 
     const {
-      topic = 'Design and Implementation of an Automated Hostel Allocation and Facility Management System',
+      topic = 'Academic Research Dissertation',
       course = 'Computer Science',
       examinerPersona = 'strict',
     } = body as {
@@ -41,7 +41,10 @@ export async function POST(req: NextRequest) {
     };
 
     const sessionUser = await getCurrentUser();
-    const userId = sessionUser?.id || 'demo-student-001';
+    if (!sessionUser) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = sessionUser.id;
 
     const persona = EXAMINER_PROFILES[examinerPersona] || EXAMINER_PROFILES.strict;
     const sessionId = `viva-${crypto.randomUUID().slice(0, 8)}`;

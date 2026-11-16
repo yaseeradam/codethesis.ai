@@ -20,7 +20,18 @@ export async function authorizeAndDeductCredits(
   options?: { skipDeduction?: boolean }
 ): Promise<CreditCheckResult> {
   const sessionUser = await getCurrentUser();
-  const userId = sessionUser?.id || 'demo-student-001';
+  if (!sessionUser) {
+    const settings = await getAdminSettings();
+    const cost = settings.toolCreditCosts?.[toolKey] ?? 1;
+    return {
+      allowed: false,
+      userId: '',
+      remainingCredits: 0,
+      cost,
+      errorMessage: 'Authentication required. Please sign in to generate or export academic projects.',
+    };
+  }
+  const userId = sessionUser.id;
 
   const settings = await getAdminSettings();
   const cost = settings.toolCreditCosts?.[toolKey] ?? 1;

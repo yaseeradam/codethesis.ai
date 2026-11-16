@@ -163,11 +163,10 @@ CREATE TABLE maintenance_tickets (
     zip.file("database/schema.sql", schemaSql);
 
     // 4. Seed Data: database/seed_data.sql
-    const seedSql = `-- Pre-seeded Mock Records for Defense
+    const seedSql = `-- Initial Schema Seed Records
 INSERT INTO users (matric_number, full_name, email, password, gender, level, role) VALUES
-('ADMIN/001', 'Hostel Hall Master', 'admin@codethesis.edu', 'admin123', 'Male', 500, 'admin'),
-('FUTA/CSC/20/4182', 'Chidi Eze', 'chidi@codethesis.edu', 'student123', 'Male', 400, 'student'),
-('FUTA/CSC/20/1943', 'Amina Yusuf', 'amina@codethesis.edu', 'student123', 'Female', 400, 'student');
+('ADMIN/001', 'System Administrator', 'admin@codethesis.edu', 'admin123', 'Male', 500, 'admin'),
+('STD/2026/001', 'Candidate Student', 'student@codethesis.edu', 'student123', 'Male', 400, 'student');
 
 INSERT INTO hostels (name, gender_designation, total_capacity) VALUES
 ('Hall 1 (Jaja Hall)', 'Male', 120),

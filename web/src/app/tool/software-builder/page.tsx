@@ -92,14 +92,12 @@ INSERT INTO rooms (room_number, block_name, capacity, occupied) VALUES
 ('A-202', 'Block A (Female)', 4, 4);
 
 INSERT INTO allocations (student_name, matric_number, room_id) VALUES
-('ADEBAYO TUNDE', 'FUTA/CSC/20/4182', 1),
-('IBRAHIM MUSA', 'FUTA/CSC/20/5091', 1),
-('CHIOMA OKEKE', 'FUTA/CSC/20/3811', 2);
+('Student Candidate', 'MATRIC/REG/001', 1);
 `,
   'run_project.bat': `@echo off
 echo ====================================================================
 echo CodeThesis AI: 1-Click Defense Launcher (Zero-Pip, Zero-Terminal)
-echo Project: Automated Hostel Allocation & Facility Management System
+echo Application Backend Runner
 echo ====================================================================
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
@@ -109,20 +107,19 @@ if %errorlevel% neq 0 (
 )
 echo [1/3] Initializing SQLite database and executing schema.sql...
 python -c "import app; app.init_db()"
-echo [2/3] Seeding 50+ realistic university records into hostel.db...
+echo [2/3] Seeding initial database records into application database...
 echo [3/3] Opening your default web browser to http://localhost:8000...
 start http://localhost:8000
 python app.py
 pause
 `,
   'README.md': `# Supervisor & Panelist Defense Guide
-**System**: Automated Hostel Allocation & Facility Management  
 **Stack**: Python 3.9+, SQLite 3, HTML5/Tailwind, REST API  
 
 ## Defense Checklist:
 1. Double-click \`run_project.bat\` on Windows.
-2. The launcher will automatically verify Python runtime, instantiate \`hostel.db\`, and launch the web interface.
-3. Test the ACID Concurrency Lock by attempting concurrent allocations on a full room (zero collision guaranteed).
+2. The launcher will automatically verify Python runtime, instantiate database, and launch the web interface.
+3. Test the ACID Concurrency Lock by attempting concurrent allocations (zero collision guaranteed).
 `
 };
 
@@ -131,9 +128,9 @@ export default function SoftwareBuilderPage() {
   const [selectedFile, setSelectedFile] = useState('app.py');
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [topic, setTopic] = useState('Automated Hostel Allocation System');
-  const [course, setCourse] = useState('Computer Science');
-  const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
+  const [topic, setTopic] = useState('');
+  const [course, setCourse] = useState(user?.department || '');
+  const [institution, setInstitution] = useState(user?.institution || '');
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   // Auto-populate from authenticated user profile
@@ -159,13 +156,13 @@ export default function SoftwareBuilderPage() {
     await downloadAcademicFile(
       '/api/generate-software-zip',
       {
-        topic,
-        course,
-        institution,
+        topic: topic.trim() || 'Academic Software Application',
+        course: course || 'Computer Science',
+        institution: institution || 'Tertiary Institution',
         author: user?.fullName || 'Candidate',
-        matricNo: user?.matricNumber || 'FUTA/CSC/20/4182',
+        matricNo: user?.matricNumber || '',
       },
-      `CodeThesis_Software_${topic.replace(/\s+/g, '_')}.zip`
+      `CodeThesis_Software_${(topic || 'Project').replace(/\s+/g, '_')}.zip`
     );
     setIsDownloading(false);
     setSuccessBanner('Complete turnkey Python + SQLite .ZIP repository packaged and downloaded successfully!');

@@ -34,7 +34,10 @@ export async function PUT(
   try {
     const { id } = await params;
     const sessionUser = await getCurrentUser();
-    const userId = sessionUser?.id || 'demo-student-001';
+    if (!sessionUser) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = sessionUser.id;
 
     let body = {};
     try {
@@ -72,7 +75,10 @@ export async function DELETE(
   try {
     const { id } = await params;
     const sessionUser = await getCurrentUser();
-    const userId = sessionUser?.id || 'demo-student-001';
+    if (!sessionUser) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = sessionUser.id;
 
     const deleted = await deleteProject(id, userId);
     if (!deleted) {

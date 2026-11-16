@@ -22,7 +22,13 @@ export async function POST(req: NextRequest) {
     }
 
     const sessionUser = await getCurrentUser();
-    const userId = sessionUser?.id || 'demo-student-001';
+    if (!sessionUser) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required to deduct credits' },
+        { status: 401 }
+      );
+    }
+    const userId = sessionUser.id;
 
     const user = await getUserById(userId);
     if (!user) {

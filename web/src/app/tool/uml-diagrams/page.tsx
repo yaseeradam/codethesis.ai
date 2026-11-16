@@ -30,7 +30,7 @@ interface DiagramPreset {
 
 export default function UmlDiagramsToolPage() {
   const [selectedDiagram, setSelectedDiagram] = useState<string>('use-case');
-  const [projectTitle, setProjectTitle] = useState('Automated Hostel Allocation and Facility Management System');
+  const [projectTitle, setProjectTitle] = useState('');
   const [activeTab, setActiveTab] = useState<'visual' | 'code'>('visual');
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [copied, setCopied] = useState<boolean>(false);
@@ -566,6 +566,7 @@ export default function UmlDiagramsToolPage() {
                 rows={2}
                 value={projectTitle}
                 onChange={e => setProjectTitle(e.target.value)}
+                placeholder="e.g. Automated Hostel Allocation and Facility Management System"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20"
               />
             </div>

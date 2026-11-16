@@ -11,12 +11,12 @@ export async function POST(req: NextRequest) {
       body = {};
     }
     const {
-      topic = "DESIGN AND IMPLEMENTATION OF AN AUTOMATED HOSTEL ALLOCATION AND FACILITY MANAGEMENT SYSTEM",
+      topic = "ACADEMIC RESEARCH DISSERTATION DEFENSE",
       course = "Computer Science",
-      institution = "Federal University of Technology, Akure",
-      studentName = "CHIDI EZE",
-      matricNumber = "FUTA/CSC/20/4182",
-      supervisor = "Dr. A. O. Adebayo",
+      institution = "Tertiary Institution",
+      studentName = "STUDENT FULL NAME",
+      matricNumber = "MATRIC NUMBER",
+      supervisor = "Project Supervisor",
       session = "2025/2026",
     } = body;
 

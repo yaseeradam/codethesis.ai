@@ -54,9 +54,10 @@ export default function VivaSimulatorPage() {
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const [studentInput, setStudentInput] = useState('');
   const [isEvaluating, setIsEvaluating] = useState(false);
-  const [overallScore, setOverallScore] = useState(8.8);
-  const [rubricMetrics, setRubricMetrics] = useState({ technical: 92, poise: 88, methodology: 89 });
+  const [overallScore, setOverallScore] = useState<number | null>(null);
+  const [rubricMetrics, setRubricMetrics] = useState({ technical: 85, poise: 85, methodology: 85 });
   const [department, setDepartment] = useState('Computer Science');
+  const [researchTopic, setResearchTopic] = useState('');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [noticeBanner, setNoticeBanner] = useState<string | null>(null);
 
@@ -95,43 +96,19 @@ export default function VivaSimulatorPage() {
   ];
 
   const [activePanelist, setActivePanelist] = useState<Panelist>(panelists[0]);
-
-  const [transcript, setTranscript] = useState<Message[]>([
-    {
-      sender: 'panelist',
-      panelistName: 'Prof. K. A. Balogun',
-      text: 'Candidate, you claim your automated hostel allocation system prevents double-allocation. What specific database isolation level did you use, and how did you prevent race conditions when two students click "Apply" simultaneously?',
-      timestamp: '10:02 AM'
-    },
-    {
-      sender: 'student',
-      text: 'Thank you, respected External Examiner. We enforced ACID serializable transactions using pessimistic row-level locking with the "SELECT ... FOR UPDATE" clause. When Student A executes the query, an exclusive write lock is placed on that specific bedspace record until the payment authorization ticket is generated, safely rejecting or queuing Student B with an HTTP 409 Conflict.',
-      timestamp: '10:04 AM',
-      rubricScore: {
-        technicalAccuracy: 9.5,
-        clarity: 9.0,
-        verdict: 'Excellent technical defense! Grounded in database theory.'
-      }
-    },
-    {
-      sender: 'panelist',
-      panelistName: 'Dr. (Mrs.) N. C. Okonjo',
-      text: 'Very well answered. Now, what happens if the network suddenly drops midway through the Paystack checkout flow after the row lock has been acquired? How does your system avoid permanent orphan locks?',
-      timestamp: '10:05 AM'
-    }
-  ]);
-
+  const [transcript, setTranscript] = useState<Message[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Initialize or reset backend viva session
   useEffect(() => {
     async function initSession() {
       try {
+        const topicToUse = researchTopic.trim() || 'Undergraduate Final Year Dissertation';
         const res = await fetch('/api/viva/session/start', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            topic: 'Automated Hostel Allocation and Facility Management System',
+            topic: topicToUse,
             course: department,
             examinerPersona: 'strict'
           })
@@ -139,13 +116,23 @@ export default function VivaSimulatorPage() {
         const data = await res.json();
         if (data.success && data.sessionId) {
           setSessionId(data.sessionId);
+          const initialQuestion = data.session?.turns?.[0]?.content ||
+            `Welcome candidate. We have reviewed your dissertation draft in ${department}. Please outline your problem statement and justify the technical gap your research addresses.`;
+          setTranscript([
+            {
+              sender: 'panelist',
+              panelistName: 'Prof. K. A. Balogun',
+              text: initialQuestion,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }
+          ]);
         }
       } catch (err) {
         console.error('Failed to init viva session:', err);
       }
     }
     initSession();
-  }, [department]);
+  }, [department, researchTopic]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -297,7 +284,7 @@ export default function VivaSimulatorPage() {
             });
           }
         } else {
-          setOverallScore(prev => Math.min(9.8, Math.max(7.2, Math.round((prev * 0.7 + (rating * 0.3)) * 10) / 10)));
+          setOverallScore(prev => Math.min(9.8, Math.max(7.2, Math.round(((prev ?? 8.0) * 0.7 + (rating * 0.3)) * 10) / 10)));
         }
       } else {
         throw new Error(data.error || 'Server error');
@@ -334,10 +321,10 @@ export default function VivaSimulatorPage() {
     await downloadAcademicFile(
       '/api/generate-viva-cheatsheet-docx',
       {
-        title: 'Hostel Allocation & Concurrency Control System',
+        title: researchTopic || 'Undergraduate Research Project Dissertation',
         author: candidateName,
-        matricNo: user?.matricNumber || 'FUTA/CSC/20/4182',
-        institution: user?.institution || 'Federal University of Technology, Akure',
+        matricNo: user?.matricNumber || '',
+        institution: user?.institution || '',
         department: department || user?.department || 'Computer Science',
         examinerTone: 'Strict External Examiner',
       },
@@ -386,6 +373,17 @@ export default function VivaSimulatorPage() {
               </span>
             </div>
 
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Defense Project Topic</label>
+              <input
+                type="text"
+                value={researchTopic}
+                onChange={e => setResearchTopic(e.target.value)}
+                placeholder="e.g. Design of Automated Patient Triage System"
+                className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-yellow-500 focus:ring-4 focus:ring-yellow-500/10 rounded-xl p-2.5 text-xs text-slate-800 outline-none transition-all shadow-xs"
+              />
+            </div>
+
             <CourseSelect
               value={department}
               onChange={setDepartment}
@@ -432,8 +430,10 @@ export default function VivaSimulatorPage() {
             </div>
 
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-black text-white">{overallScore}</span>
-              <span className="text-xs text-slate-400 font-bold">/ 10.0 (First Class Grade)</span>
+              <span className="text-4xl font-black text-white">{overallScore ? overallScore.toFixed(1) : '--'}</span>
+              <span className="text-xs text-slate-400 font-bold">
+                / 10.0 {overallScore ? (overallScore >= 7.0 ? '(Pass Verified)' : '(Needs Work)') : '(Awaiting Response)'}
+              </span>
             </div>
 
             <div className="space-y-2 text-xs">

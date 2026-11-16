@@ -39,12 +39,12 @@ export default function VivaPresentationPage() {
   const { user } = useAuth();
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [topic, setTopic] = useState('Design and Implementation of an Automated Hostel Allocation System with Concurrency Control');
-  const [studentName, setStudentName] = useState('ADEBAYO TUNDE');
-  const [matricNumber, setMatricNumber] = useState('FUTA/CSC/20/4182');
-  const [supervisor, setSupervisor] = useState('Dr. O. A. Adeleke (B.Sc, M.Sc, Ph.D)');
-  const [institution, setInstitution] = useState('Federal University of Technology, Akure (FUTA)');
-  const [course, setCourse] = useState('Computer Science');
+  const [topic, setTopic] = useState('');
+  const [studentName, setStudentName] = useState(user?.fullName?.toUpperCase() || '');
+  const [matricNumber, setMatricNumber] = useState(user?.matricNumber || '');
+  const [supervisor, setSupervisor] = useState('');
+  const [institution, setInstitution] = useState(user?.institution || '');
+  const [course, setCourse] = useState(user?.department || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
@@ -59,6 +59,13 @@ export default function VivaPresentationPage() {
     }
   }, [user]);
 
+  const effectiveTopic = topic.trim() || 'Undergraduate Research Project Dissertation';
+  const effectiveCandidate = studentName.trim() || 'Candidate Name';
+  const effectiveMatric = matricNumber.trim() || 'Matric Number';
+  const effectiveSupervisor = supervisor.trim() || 'Internal Project Supervisor';
+  const effectiveCourse = course.trim() || 'Academic Department';
+  const effectiveInstitution = institution.trim() || 'Tertiary Institution';
+
   const slides: Slide[] = [
     {
       number: 1,
@@ -67,11 +74,11 @@ export default function VivaPresentationPage() {
       talkingDuration: '45 seconds',
       accent: 'from-blue-600 to-indigo-700',
       content: [
-        `Topic: ${topic}`,
-        `Candidate: ${studentName} (${matricNumber})`,
-        `Supervisor: ${supervisor}`,
-        `Department: Computer Science, School of Computing`,
-        `Institution: ${institution}`,
+        `Topic: ${effectiveTopic}`,
+        `Candidate: ${effectiveCandidate} (${effectiveMatric})`,
+        `Supervisor: ${effectiveSupervisor}`,
+        `Department: ${effectiveCourse}`,
+        `Institution: ${effectiveInstitution}`,
         `Session: 2025/2026 Academic Session`
       ],
       notes: 'State your name and matric number clearly. Greet the External Examiner, HOD, and supervisors with confidence. Do not rush.'
@@ -320,6 +327,7 @@ export default function VivaPresentationPage() {
                 rows={2}
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
+                placeholder="e.g. Design and Implementation of an Automated Hostel Allocation System"
                 className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all shadow-xs"
               />
             </div>
@@ -331,6 +339,7 @@ export default function VivaPresentationPage() {
                   type="text"
                   value={studentName}
                   onChange={e => setStudentName(e.target.value)}
+                  placeholder="e.g. SURNAME FIRSTNAME"
                   className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-lg p-2 text-xs text-slate-800 outline-none transition-all shadow-xs"
                 />
               </div>
@@ -340,6 +349,7 @@ export default function VivaPresentationPage() {
                   type="text"
                   value={matricNumber}
                   onChange={e => setMatricNumber(e.target.value)}
+                  placeholder="e.g. MATRIC/REG/0001"
                   className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-lg p-2 text-xs text-slate-800 outline-none transition-all shadow-xs"
                 />
               </div>

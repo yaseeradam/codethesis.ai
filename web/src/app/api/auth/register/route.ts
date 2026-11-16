@@ -16,9 +16,9 @@ export async function POST(req: NextRequest) {
       fullName,
       email,
       password,
-      matricNumber = 'FUTA/CSC/20/4182',
-      institution = 'Federal University of Technology, Akure',
-      course = 'Computer Science',
+      matricNumber = '',
+      institution = '',
+      course = '',
     } = body as {
       fullName?: string;
       email?: string;

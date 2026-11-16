@@ -207,42 +207,6 @@ const ACADEMIC_TOOLS: AcademicToolItem[] = [
   },
 ];
 
-const RECENT_PROJECTS: Project[] = [
-  {
-    id: 'proj-1',
-    toolId: 'thesis',
-    title: 'E-commerce Website Project',
-    fileType: 'docx',
-    date: 'Nov 13, 2025',
-    size: '2.5 MB',
-    tag: 'FYP',
-    tagColor: 'bg-blue-600 text-white',
-    href: '/studio',
-  },
-  {
-    id: 'proj-2',
-    toolId: 'viva-presentation',
-    title: 'Viva Presentation Deck',
-    fileType: 'pptx',
-    date: 'Nov 12, 2025',
-    size: '1.8 MB',
-    tag: 'PPT',
-    tagColor: 'bg-purple-600 text-white',
-    href: '/tool/viva-presentation',
-  },
-  {
-    id: 'proj-3',
-    toolId: 'software-builder',
-    title: 'Student Forum Software',
-    fileType: 'zip',
-    date: 'Nov 10, 2025',
-    size: '4.2 MB',
-    tag: 'ZIP',
-    tagColor: 'bg-emerald-600 text-white',
-    href: '/tool/software-builder',
-  },
-];
-
 const TESTIMONIALS = [
   {
     id: 1,

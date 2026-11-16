@@ -5,7 +5,13 @@ import { updateUser, getUserById, hashPassword } from '@/lib/db';
 export async function GET() {
   try {
     const sessionUser = await getCurrentUser();
-    const userId = sessionUser?.id || 'demo-student-001';
+    if (!sessionUser) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    const userId = sessionUser.id;
 
     const user = await getUserById(userId);
     if (!user) {
@@ -50,7 +56,13 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const sessionUser = await getCurrentUser();
-    const userId = sessionUser?.id || 'demo-student-001';
+    if (!sessionUser) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    const userId = sessionUser.id;
 
     let body: any = {};
     try {

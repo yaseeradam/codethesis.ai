@@ -47,12 +47,12 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'security' | 'formatting' | 'ai-keys' | 'appearance'>('profile');
 
   // Profile state initialized with current session user
-  const [fullName, setFullName] = useState(user?.fullName || 'ADEBAYO TUNDE');
-  const [matricNumber, setMatricNumber] = useState(user?.matricNumber || 'FUTA/CSC/20/4182');
-  const [email, setEmail] = useState(user?.email || 't.adebayo@student.futa.edu.ng');
-  const [phone, setPhone] = useState(user?.phone || '+234 814 555 0192');
-  const [institution, setInstitution] = useState(user?.institution || 'Federal University of Technology, Akure (FUTA)');
-  const [department, setDepartment] = useState(user?.department || 'Computer Science');
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [matricNumber, setMatricNumber] = useState(user?.matricNumber || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [institution, setInstitution] = useState(user?.institution || '');
+  const [department, setDepartment] = useState(user?.department || '');
   const [degreeLevel, setDegreeLevel] = useState(user?.degreeLevel || 'B.Sc');
   const [graduationYear, setGraduationYear] = useState(user?.graduationYear || '2026');
 
@@ -202,7 +202,7 @@ export default function SettingsPage() {
               <span>Encrypted Session Vault</span>
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              Active Session: <strong className="text-white">{user?.email || 'student@futa.edu.ng'}</strong>. All profile and thesis metadata are securely persisted.
+              Active Session: <strong className="text-white">{user?.email || 'student@institution.edu.ng'}</strong>. All profile and thesis metadata are securely persisted.
             </p>
           </div>
         </div>
@@ -232,6 +232,7 @@ export default function SettingsPage() {
                       type="text"
                       value={fullName}
                       onChange={e => setFullName(e.target.value)}
+                      placeholder="e.g. Babatunde Segun"
                       required
                       className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 font-medium shadow-xs outline-none transition-all"
                     />
@@ -243,6 +244,7 @@ export default function SettingsPage() {
                       type="text"
                       value={matricNumber}
                       onChange={e => setMatricNumber(e.target.value)}
+                      placeholder="e.g. MATRIC/REG/0001"
                       required
                       className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-slate-900 font-medium shadow-xs outline-none transition-all"
                     />
