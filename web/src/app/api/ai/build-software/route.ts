@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAcademicAI } from '@/lib/ai';
-import { detectDomainBlueprint, buildDomainSoftware } from '@/lib/domainSoftwareGenerator';
+import {
+  detectDomainBlueprint,
+  generateSchemaSql,
+  generateSeedSql,
+  generateBackendCode,
+  generateFrontendHtml,
+  generateManifestAndLaunchers,
+  DomainBlueprint
+} from '@/lib/domainSoftwareGenerator';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,38 +30,59 @@ export async function POST(req: NextRequest) {
     const cleanTopic = topic.trim();
     const effectiveStack = techStack || 'Python (Zero-Pip) + SQLite';
 
-    // 1. Detect domain blueprint and generate base domain-specific code
-    const blueprint = detectDomainBlueprint(cleanTopic, course);
-    let files = buildDomainSoftware(cleanTopic, effectiveStack, course);
+    // 1. Prepare AI prompt to architect custom domain specification
+    const specContext = spec ? `\nUSER PROPOSAL / SPECIFICATION:\n${typeof spec === 'string' ? spec : JSON.stringify(spec).slice(0, 1000)}` : '';
+    
+    const aiArchitectPrompt = `You are a Principal Software Architect synthesizing turnkey university degree software.
+PROJECT TOPIC: "${cleanTopic}"
+TARGET TECH STACK: "${effectiveStack}"
+DEPARTMENT: "${course}"
+${specContext}
 
-    // 2. Optionally enhance with live AI LLM if available and requested
-    try {
-      const aiPrompt = `You are a Principal Software Architect synthesizing turnkey university degree software.
-Topic: "${cleanTopic}"
-Department: "${course}"
-Tech Stack: "${effectiveStack}"
-Domain Classification: "${blueprint.category}"
-Primary Entity: "${blueprint.primaryEntityPlural}"
+CRITICAL ARCHITECTURE REQUIREMENT:
+Design a REAL, highly specific software blueprint specifically for "${cleanTopic}".
+Do NOT use generic names like "Record" or "Item". Use authentic domain-specific entities (e.g. if Poultry Farm: Incubators, EggBatches; if Court System: CourtCases, LegalHearings; if Blood Bank: Donors, BloodUnits; if Car Rental: Vehicles, Bookings).
 
-Analyze the project topic and return a JSON object with:
-1. "systemOverview": 2-sentence technical summary.
-2. "customFeatures": Array of 4 realistic features implemented.
-3. "extraSeedRecords": Array of 3 realistic domain records specifically for ${cleanTopic} with realistic Nigerian/international data.
-
-Respond strictly in valid JSON matching this structure:
+Respond strictly in valid JSON matching this schema:
 {
-  "systemOverview": "...",
-  "customFeatures": ["...", "...", "...", "..."],
-  "extraSeedRecords": []
+  "systemName": "Formal system title",
+  "tagline": "Clear professional summary of the software purpose",
+  "category": "Domain classification",
+  "primaryEntity": "Singular entity name (e.g. Vehicle, Patient, Case, Donor)",
+  "primaryEntityPlural": "Plural entity name (e.g. Vehicles, Patients, Cases, Donors)",
+  "secondaryEntity": "Secondary entity name (e.g. MaintenanceLog, TriageLog, HearingDocket)",
+  "kpis": [
+    {"label": "KPI 1 Label", "value": "Metric value", "change": "+12% this month", "icon": "Activity"},
+    {"label": "KPI 2 Label", "value": "Metric value", "change": "Active operations", "icon": "CheckCircle"},
+    {"label": "KPI 3 Label", "value": "Metric value", "change": "Pending items", "icon": "Clock"},
+    {"label": "KPI 4 Label", "value": "Metric value", "change": "Efficiency rating", "icon": "TrendingUp"}
+  ],
+  "schemaFields": [
+    {"name": "field_name_in_snake_case", "type": "TEXT", "label": "Field Label", "sample": "Sample Value", "required": true},
+    {"name": "category", "type": "TEXT", "label": "Category / Type", "sample": "Standard", "required": true},
+    {"name": "metric_value", "type": "REAL", "label": "Key Numeric Metric", "sample": "75.5"},
+    {"name": "assigned_to", "type": "TEXT", "label": "Responsible Person / Officer", "sample": "Officer In Charge"},
+    {"name": "status", "type": "TEXT", "label": "Status", "sample": "Active", "required": true}
+  ],
+  "categories": ["Category A", "Category B", "Category C", "Category D"],
+  "statuses": ["Active", "Completed", "Pending", "Flagged"],
+  "seedRecords": [
+    {"id": 1, "field_name_in_snake_case": "Realistic domain value 1", "category": "Category A", "metric_value": 85.0, "assigned_to": "Engr. A. T. Sulaiman", "status": "Active"},
+    {"id": 2, "field_name_in_snake_case": "Realistic domain value 2", "category": "Category B", "metric_value": 92.5, "assigned_to": "Dr. Chidi N. Okoro", "status": "Completed"},
+    {"id": 3, "field_name_in_snake_case": "Realistic domain value 3", "category": "Category A", "metric_value": 78.0, "assigned_to": "Hajiya Maryam Sani", "status": "Pending"}
+  ]
 }`;
 
+    let blueprint: DomainBlueprint | null = null;
+
+    try {
       const aiRes = await Promise.race([
         generateAcademicAI({
-          prompt: aiPrompt,
-          temperature: 0.3,
-          maxTokens: 1200,
+          prompt: aiArchitectPrompt,
+          temperature: 0.25,
+          maxTokens: 2500,
         }),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 12000)),
       ]);
 
       if (aiRes && aiRes.content) {
@@ -61,18 +90,59 @@ Respond strictly in valid JSON matching this structure:
         if (jsonStr.startsWith('```json')) jsonStr = jsonStr.replace(/^```json\s*/, '').replace(/\s*```$/, '');
         else if (jsonStr.startsWith('```')) jsonStr = jsonStr.replace(/^```\s*/, '').replace(/\s*```$/, '');
         
-        try {
-          const parsed = JSON.parse(jsonStr);
-          if (parsed.systemOverview) {
-            blueprint.tagline = parsed.systemOverview;
-          }
-        } catch {
-          // Keep existing blueprint tagline
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.systemName && parsed.primaryEntityPlural && Array.isArray(parsed.schemaFields)) {
+          blueprint = {
+            domainKey: parsed.primaryEntityPlural.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+            category: parsed.category || course || 'Applied Software Systems',
+            systemName: parsed.systemName,
+            tagline: parsed.tagline || `Automated data processing and management for ${cleanTopic}`,
+            primaryEntity: parsed.primaryEntity || 'Record',
+            primaryEntityPlural: parsed.primaryEntityPlural,
+            secondaryEntity: parsed.secondaryEntity || `${parsed.primaryEntity || 'Record'} Audit Log`,
+            kpis: Array.isArray(parsed.kpis) && parsed.kpis.length >= 2 ? parsed.kpis : [
+              { label: `Total ${parsed.primaryEntityPlural}`, value: '142', change: '+12% this month', icon: 'Folder' },
+              { label: 'Completed Workflows', value: '1,029', change: '100% verified', icon: 'CheckCircle' },
+              { label: 'Pending Reviews', value: '8 Items', change: 'Action required', icon: 'Clock' },
+              { label: 'System Uptime', value: '99.98%', change: 'Continuous operational integrity', icon: 'Activity' }
+            ],
+            schemaFields: parsed.schemaFields,
+            categories: Array.isArray(parsed.categories) ? parsed.categories : ['Standard', 'Priority', 'Audit', 'Special'],
+            statuses: Array.isArray(parsed.statuses) ? parsed.statuses : ['Active', 'Completed', 'Pending', 'Flagged'],
+            seedRecords: Array.isArray(parsed.seedRecords) && parsed.seedRecords.length > 0 ? parsed.seedRecords : [],
+            workflowActions: [`Approve ${parsed.primaryEntity || 'Record'}`, 'Export CSV', 'Generate Audit Report']
+          };
         }
       }
-    } catch {
-      // Gracefully continue with deep domain generated files
+    } catch (aiErr) {
+      console.warn('AI Architecture synthesis error, utilizing heuristic blueprint:', aiErr);
     }
+
+    // Fallback if AI was unavailable or invalid
+    if (!blueprint) {
+      blueprint = detectDomainBlueprint(cleanTopic, course);
+    }
+
+    // Ensure seed records exist
+    if (!blueprint.seedRecords || blueprint.seedRecords.length === 0) {
+      blueprint.seedRecords = [
+        { id: 1, [blueprint.schemaFields[0]?.name || 'title']: `${blueprint.primaryEntity} Primary Alpha Unit`, category: blueprint.categories[0] || 'Standard', status: blueprint.statuses[0] || 'Active', date_logged: '2026-11-15' },
+        { id: 2, [blueprint.schemaFields[0]?.name || 'title']: `${blueprint.primaryEntity} Verification Cohort`, category: blueprint.categories[1] || 'Priority', status: blueprint.statuses[1] || 'Completed', date_logged: '2026-11-16' },
+      ];
+    }
+
+    // 2. Synthesize all source files matching the AI Blueprint
+    const files: Record<string, string> = {};
+    files['database/schema.sql'] = generateSchemaSql(blueprint, cleanTopic);
+    files['database/seed_data.sql'] = generateSeedSql(blueprint, cleanTopic);
+
+    const backend = generateBackendCode(blueprint, cleanTopic, effectiveStack);
+    files[backend.fileName] = backend.code;
+
+    files['public/index.html'] = generateFrontendHtml(blueprint, cleanTopic, effectiveStack);
+
+    const extras = generateManifestAndLaunchers(blueprint, cleanTopic, effectiveStack);
+    Object.assign(files, extras);
 
     return NextResponse.json({
       success: true,

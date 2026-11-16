@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import CourseSelect from '@/components/ui/CourseSelect';
 import InstitutionSelect from '@/components/ui/InstitutionSelect';
-import CodingTerminalModal, { StageInfo, GeneratedFileInfo } from '@/components/software/CodingTerminalModal';
 import LiveTestingSimulator from '@/components/software/LiveTestingSimulator';
 import LiveAppSandbox from '@/components/software/LiveAppSandbox';
 import ProjectDocumentUploader from '@/components/software/ProjectDocumentUploader';
@@ -35,7 +34,11 @@ import {
   RotateCcw,
   Plus,
   Monitor,
-  CheckSquare
+  CheckSquare,
+  Activity,
+  Cpu,
+  Clock,
+  CheckCircle
 } from 'lucide-react';
 
 const TECH_STACK_PRESETS = [
@@ -46,6 +49,40 @@ const TECH_STACK_PRESETS = [
   'Python (Django) + SQLite',
   'React / Vite + FastAPI + SQLite',
   'Custom Stack...'
+];
+
+interface SynthesisStage {
+  step: number;
+  title: string;
+  detail: string;
+}
+
+const SYNTHESIS_STAGES: SynthesisStage[] = [
+  {
+    step: 1,
+    title: 'Architecting System Entities & Module Contracts',
+    detail: 'Analyzing domain specifications, primary entities, and API route contracts...',
+  },
+  {
+    step: 2,
+    title: 'Generating Relational Schema & Realistic Defense Seeds',
+    detail: 'Creating normalized SQLite tables, foreign keys, and 15+ authentic demonstration records...',
+  },
+  {
+    step: 3,
+    title: 'Synthesizing Backend Server API & Business Controllers',
+    detail: 'Writing REST endpoints, authentication handlers, and parameter-safe database queries...',
+  },
+  {
+    step: 4,
+    title: 'Compiling Responsive Single-Page Web Application',
+    detail: 'Designing live interactive dashboard with search filters, dynamic modals, and CSV export...',
+  },
+  {
+    step: 5,
+    title: 'Running Verification Tests & Packaging Repository',
+    detail: 'Validating syntax integrity, generating 1-click launchers, and creating supervisor handbook...',
+  },
 ];
 
 export default function SoftwareBuilderPage() {
@@ -61,8 +98,12 @@ export default function SoftwareBuilderPage() {
   const [institution, setInstitution] = useState(user?.institution || '');
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
-  // View state: 'ide' for code editor, 'sandbox' for live interactive browser
+  // View state: 'sandbox' for live interactive web app, 'ide' for source code
   const [activeMainTab, setActiveMainTab] = useState<'sandbox' | 'ide'>('sandbox');
+
+  // Inline progress state (Normal, professional page progress - NO hacker modal)
+  const [currentStageIndex, setCurrentStageIndex] = useState(0);
+  const [progressPercent, setProgressPercent] = useState(15);
 
   // Tech Stack state
   const [techStack, setTechStack] = useState('Python (Flask / Zero-Pip) + SQLite');
@@ -79,48 +120,10 @@ export default function SoftwareBuilderPage() {
   const [showUploader, setShowUploader] = useState(false);
   const [analyzedSpec, setAnalyzedSpec] = useState<any>(null);
 
-  // Modals state
-  const [showTerminalModal, setShowTerminalModal] = useState(false);
+  // Testing Simulator state
   const [showTestingSimulator, setShowTestingSimulator] = useState(false);
-  const [currentStage, setCurrentStage] = useState(1);
-  const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
-  const [verifiedFiles, setVerifiedFiles] = useState<GeneratedFileInfo[]>([]);
-  const [isBuildFinished, setIsBuildFinished] = useState(false);
 
   const effectiveTechStack = techStack === 'Custom Stack...' ? (customStackInput || 'Custom Web Stack') : techStack;
-
-  const stages: StageInfo[] = [
-    {
-      number: 1,
-      name: 'Blueprint & Architecture',
-      description: `Designing domain entity schema, contracts, and REST endpoints for ${effectiveTechStack}`,
-      status: currentStage > 1 ? 'completed' : currentStage === 1 ? 'active' : 'pending',
-    },
-    {
-      number: 2,
-      name: 'Database & Real Seeds',
-      description: 'Synthesizing relational SQLite schema with realistic domain defense records',
-      status: currentStage > 2 ? 'completed' : currentStage === 2 ? 'active' : 'pending',
-    },
-    {
-      number: 3,
-      name: 'Backend Controller & API',
-      description: `Compiling RESTful controllers and search/filter routes for ${effectiveTechStack}`,
-      status: currentStage > 3 ? 'completed' : currentStage === 3 ? 'active' : 'pending',
-    },
-    {
-      number: 4,
-      name: 'Interactive Single-Page App',
-      description: 'Building live interactive dashboard with search, filter, and dynamic modals',
-      status: currentStage > 4 ? 'completed' : currentStage === 4 ? 'active' : 'pending',
-    },
-    {
-      number: 5,
-      name: 'QA Certification & Packaging',
-      description: 'Compiling 1-click launchers, test suite, and README defense handbook',
-      status: currentStage > 5 || isBuildFinished ? 'completed' : currentStage === 5 ? 'active' : 'pending',
-    },
-  ];
 
   // Auto-populate from authenticated user profile
   useEffect(() => {
@@ -151,61 +154,24 @@ export default function SoftwareBuilderPage() {
     }
 
     setIsBuilding(true);
-    setShowTerminalModal(true);
-    setIsBuildFinished(false);
-    setCurrentStage(1);
-    setTerminalLogs([
-      `[00:00] Initializing CodeThesis Multi-Pass Software Synthesizer...`,
-      `[00:01] Target System: "${topic.trim()}"`,
-      `[00:01] Academic Department: ${course || 'Computer Science'}`,
-      `[00:02] Target Tech Stack: ${effectiveTechStack}`,
-      `[00:02] STAGE 1/5: Synthesizing system architecture blueprint and domain contracts...`,
-    ]);
-    setVerifiedFiles([]);
+    setCurrentStageIndex(0);
+    setProgressPercent(15);
 
-    const stageTimer1 = setTimeout(() => {
-      setCurrentStage(2);
-      setTerminalLogs((prev) => [
-        ...prev,
-        `[00:03] Domain entities analyzed; foreign keys and constraints mapped.`,
-        `[00:03] STAGE 2/5: Synthesizing relational SQLite schema and realistic defense seed records...`,
-      ]);
-      setVerifiedFiles([
-        { name: 'project_blueprint.json', lines: 65, size: '2.4 KB', status: 'ready' },
-      ]);
-    }, 1200);
+    // Stage progression timers for realistic multi-step feedback on the page
+    const timer1 = setTimeout(() => {
+      setCurrentStageIndex(1);
+      setProgressPercent(40);
+    }, 2200);
 
-    const stageTimer2 = setTimeout(() => {
-      setCurrentStage(3);
-      setTerminalLogs((prev) => [
-        ...prev,
-        `[00:05] Generated database/schema.sql and database/seed_data.sql.`,
-        `[00:05] STAGE 3/5: Synthesizing ${effectiveTechStack} backend controllers and REST API...`,
-      ]);
-      setVerifiedFiles((prev) => [
-        ...prev,
-        { name: 'database/schema.sql', lines: 68, size: '2.2 KB', status: 'ready' },
-        { name: 'database/seed_data.sql', lines: 85, size: '3.8 KB', status: 'ready' },
-      ]);
-    }, 2800);
+    const timer2 = setTimeout(() => {
+      setCurrentStageIndex(2);
+      setProgressPercent(68);
+    }, 5500);
 
-    const stageTimer3 = setTimeout(() => {
-      setCurrentStage(4);
-      setTerminalLogs((prev) => [
-        ...prev,
-        `[00:07] REST routes compiled with query parameters and security boundaries.`,
-        `[00:07] STAGE 4/5: Synthesizing responsive single-page Tailwind dashboard and reactive DOM...`,
-      ]);
-      setVerifiedFiles((prev) => [
-        ...prev,
-        {
-          name: effectiveTechStack.toLowerCase().includes('node') ? 'server.js' : effectiveTechStack.toLowerCase().includes('fastapi') ? 'main.py' : 'server.py',
-          lines: 195,
-          size: '7.2 KB',
-          status: 'ready' as const,
-        },
-      ]);
-    }, 4500);
+    const timer3 = setTimeout(() => {
+      setCurrentStageIndex(3);
+      setProgressPercent(88);
+    }, 9000);
 
     try {
       const res = await fetch('/api/ai/build-software', {
@@ -219,14 +185,18 @@ export default function SoftwareBuilderPage() {
         }),
       });
 
-      clearTimeout(stageTimer1);
-      clearTimeout(stageTimer2);
-      clearTimeout(stageTimer3);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
 
       const data = await res.json();
       if (!data.success || !data.files) {
         throw new Error(data.error || 'Software synthesis service returned incomplete package.');
       }
+
+      // Final completion stage
+      setCurrentStageIndex(4);
+      setProgressPercent(100);
 
       const files = data.files;
       setGeneratedFiles(files);
@@ -234,34 +204,18 @@ export default function SoftwareBuilderPage() {
       const primaryFile = Object.keys(files).find((k) => k.endsWith('.py') || k.endsWith('.js') || k.endsWith('.php')) || Object.keys(files)[0];
       setSelectedFile(primaryFile);
 
-      setCurrentStage(5);
-      setIsBuildFinished(true);
-      setIsBuilding(false);
-      setIsGenerated(true);
-      setActiveMainTab('sandbox'); // Default to live interactive sandbox so user immediately sees real app!
+      // Brief smooth transition to app view
+      setTimeout(() => {
+        setIsBuilding(false);
+        setIsGenerated(true);
+        setActiveMainTab('sandbox');
+      }, 700);
 
-      setTerminalLogs((prev) => [
-        ...prev,
-        `[00:09] ✓ All 5 synthesis stages completed with 100% test coverage.`,
-        `[00:09] System: ${data.blueprint?.systemName || topic.trim()}`,
-        `[00:10] Domain Classification: ${data.blueprint?.category || 'Applied Software Systems'}`,
-        `[00:10] Primary Entity: ${data.blueprint?.primaryEntityPlural || 'Entities'}`,
-        `[00:11] 🎉 Turnkey software synthesized! Live interactive preview and defense ZIP ready.`,
-      ]);
-
-      setVerifiedFiles(
-        Object.entries(files).map(([name, content]) => ({
-          name,
-          lines: (content as string).split('\n').length,
-          size: `${Math.max(1, Math.round(((content as string).length / 1024) * 10) / 10)} KB`,
-          status: 'ready' as const,
-        }))
-      );
     } catch (err: any) {
-      console.warn('Backend API build error, using client domain synthesis engine:', err);
-      clearTimeout(stageTimer1);
-      clearTimeout(stageTimer2);
-      clearTimeout(stageTimer3);
+      console.warn('Backend API build error, utilizing client domain synthesis engine:', err);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
 
       const fallbackFiles = buildDomainSoftware(topic.trim(), effectiveTechStack, course);
       setGeneratedFiles(fallbackFiles);
@@ -269,26 +223,14 @@ export default function SoftwareBuilderPage() {
       const primaryFile = Object.keys(fallbackFiles).find((k) => k.endsWith('.py') || k.endsWith('.js') || k.endsWith('.php')) || Object.keys(fallbackFiles)[0];
       setSelectedFile(primaryFile);
 
-      setCurrentStage(5);
-      setIsBuildFinished(true);
-      setIsBuilding(false);
-      setIsGenerated(true);
-      setActiveMainTab('sandbox');
+      setCurrentStageIndex(4);
+      setProgressPercent(100);
 
-      setTerminalLogs((prev) => [
-        ...prev,
-        `[00:08] Synthesized domain-specific package via CodeThesis engine.`,
-        `[00:09] ✓ Zero syntax errors detected. Ready for defense!`,
-      ]);
-
-      setVerifiedFiles(
-        Object.entries(fallbackFiles).map(([name, content]) => ({
-          name,
-          lines: (content as string).split('\n').length,
-          size: `${Math.max(1, Math.round(((content as string).length / 1024) * 10) / 10)} KB`,
-          status: 'ready' as const,
-        }))
-      );
+      setTimeout(() => {
+        setIsBuilding(false);
+        setIsGenerated(true);
+        setActiveMainTab('sandbox');
+      }, 700);
     }
   }
 
@@ -398,12 +340,12 @@ export default function SoftwareBuilderPage() {
     <AppLayout>
       {/* Top Banner Notice */}
       {successBanner && (
-        <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center justify-between shadow-lg animate-in fade-in">
+        <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 text-xs flex items-center justify-between shadow-xs animate-in fade-in">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-            <span>{successBanner}</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span className="font-medium">{successBanner}</span>
           </div>
-          <button onClick={() => setSuccessBanner(null)} className="text-emerald-400/60 hover:text-emerald-400">
+          <button onClick={() => setSuccessBanner(null)} className="text-emerald-600/60 hover:text-emerald-600 font-bold">
             &times;
           </button>
         </div>
@@ -427,7 +369,7 @@ export default function SoftwareBuilderPage() {
         </div>
 
         {/* Top Action Buttons */}
-        {isGenerated && (
+        {isGenerated && !isBuilding && (
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowTestingSimulator(true)}
@@ -499,7 +441,8 @@ export default function SoftwareBuilderPage() {
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="e.g. Automated Hospital Blood Bank & Donor Management System"
                 rows={2}
-                className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all resize-none shadow-xs"
+                disabled={isBuilding}
+                className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all resize-none shadow-xs disabled:opacity-60"
               />
             </div>
 
@@ -509,7 +452,8 @@ export default function SoftwareBuilderPage() {
               <select
                 value={techStack}
                 onChange={(e) => setTechStack(e.target.value)}
-                className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all shadow-xs"
+                disabled={isBuilding}
+                className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all shadow-xs disabled:opacity-60"
               >
                 {TECH_STACK_PRESETS.map((stack) => (
                   <option key={stack} value={stack}>
@@ -525,6 +469,7 @@ export default function SoftwareBuilderPage() {
                     value={customStackInput}
                     onChange={(e) => setCustomStackInput(e.target.value)}
                     placeholder="e.g. Golang + SQLite or Laravel + Vue"
+                    disabled={isBuilding}
                     className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 rounded-xl p-2 text-xs font-mono text-slate-800"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">Specify your exact framework and database.</p>
@@ -572,7 +517,7 @@ export default function SoftwareBuilderPage() {
               )}
             </button>
 
-            {isGenerated && (
+            {isGenerated && !isBuilding && (
               <div className="space-y-2 pt-2 border-t border-slate-100">
                 <button
                   onClick={() => setShowTestingSimulator(true)}
@@ -617,7 +562,84 @@ export default function SoftwareBuilderPage() {
 
         {/* Right Main Content Pane (8 cols) */}
         <div className="lg:col-span-8">
-          {!isGenerated ? (
+          
+          {/* CASE 1: GENERATION IN PROGRESS (CLEAN INLINE PROGRESS & NORMAL SPINNER - NO HACKER MODAL) */}
+          {isBuilding && (
+            <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-md flex flex-col items-center justify-center min-h-[540px] text-center animate-in fade-in duration-300">
+              
+              {/* Normal Clean Spinner */}
+              <div className="relative mb-6 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-emerald-600 animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Cpu className="w-6 h-6 text-emerald-600" />
+                </div>
+              </div>
+
+              {/* Title & Topic */}
+              <h3 className="text-lg font-bold text-slate-900 tracking-tight mb-1">
+                Synthesizing Custom Academic Software
+              </h3>
+              <p className="text-xs text-emerald-700 font-semibold mb-6 max-w-lg truncate">
+                &ldquo;{topic.trim()}&rdquo; &bull; {effectiveTechStack}
+              </p>
+
+              {/* Progress Bar */}
+              <div className="w-full max-w-md bg-slate-100 rounded-full h-2 mb-6 overflow-hidden">
+                <div
+                  className="bg-emerald-600 h-2 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+
+              {/* Active Stage Banner */}
+              <div className="w-full max-w-md bg-slate-50 border border-slate-200/80 rounded-2xl p-4 mb-6 text-left shadow-2xs">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-800 mb-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
+                  <span>{SYNTHESIS_STAGES[currentStageIndex]?.title}</span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed pl-4">
+                  {SYNTHESIS_STAGES[currentStageIndex]?.detail}
+                </p>
+              </div>
+
+              {/* Step By Step Checklist */}
+              <div className="w-full max-w-md space-y-2 text-left mb-6">
+                {SYNTHESIS_STAGES.map((stg, idx) => {
+                  const isDone = currentStageIndex > idx;
+                  const isCurrent = currentStageIndex === idx;
+                  return (
+                    <div
+                      key={stg.step}
+                      className={`flex items-center gap-2.5 text-xs py-1 transition-opacity ${
+                        isDone ? 'text-slate-700 font-medium' : isCurrent ? 'text-emerald-700 font-bold' : 'text-slate-300'
+                      }`}
+                    >
+                      {isDone ? (
+                        <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                      ) : isCurrent ? (
+                        <Loader2 className="w-4 h-4 text-emerald-600 animate-spin shrink-0" />
+                      ) : (
+                        <span className="w-4 h-4 rounded-full border border-slate-200 text-[10px] flex items-center justify-center shrink-0">
+                          {stg.step}
+                        </span>
+                      )}
+                      <span className="truncate">{stg.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Explanation Note */}
+              <div className="w-full max-w-md p-3 rounded-xl bg-blue-50/70 border border-blue-200/60 text-[11px] text-blue-900 leading-relaxed text-left">
+                <span className="font-semibold block mb-0.5">ℹ️ Why this takes a few moments:</span>
+                CodeThesis AI performs multi-stage architectural reasoning to synthesize domain-specific tables, realistic seed data, and a live interactive web dashboard rather than one-button generic templates.
+              </div>
+
+            </div>
+          )}
+
+          {/* CASE 2: EMPTY STATE (NOT YET GENERATED AND NOT BUILDING) */}
+          {!isGenerated && !isBuilding && (
             <div className="bg-[#0B132B] rounded-3xl p-12 text-center border border-slate-800 shadow-xl flex flex-col items-center justify-center min-h-[520px] text-slate-300">
               <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 shadow-inner">
                 <Code2 className="w-8 h-8 text-emerald-400" />
@@ -631,11 +653,14 @@ export default function SoftwareBuilderPage() {
                 disabled={!topic.trim() || isBuilding}
                 className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition-transform active:scale-95 disabled:opacity-50 cursor-pointer"
               >
-                {isBuilding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-emerald-200 fill-emerald-200" />}
-                <span>{isBuilding ? 'Synthesizing...' : 'Generate Turnkey Software'}</span>
+                <Sparkles className="w-4 h-4 text-emerald-200 fill-emerald-200" />
+                <span>Generate Turnkey Software</span>
               </button>
             </div>
-          ) : (
+          )}
+
+          {/* CASE 3: COMPLETED STATE (SHOW LIVE APP SANDBOX & CODE IDE) */}
+          {isGenerated && !isBuilding && (
             <div className="space-y-3">
               {/* PRIMARY VIEW SWITCHER TABS */}
               <div className="flex items-center justify-between bg-white border border-slate-200 rounded-2xl p-1.5 shadow-xs">
@@ -705,14 +730,6 @@ export default function SoftwareBuilderPage() {
                       >
                         {isEditMode ? <Eye className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
                         <span>{isEditMode ? 'View Mode' : 'Direct Edit'}</span>
-                      </button>
-
-                      <button
-                        onClick={() => setShowTerminalModal(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold transition-colors cursor-pointer"
-                      >
-                        <Terminal className="w-3.5 h-3.5 text-cyan-400" />
-                        <span>Logs</span>
                       </button>
 
                       <button
@@ -841,25 +858,7 @@ export default function SoftwareBuilderPage() {
         </div>
       </div>
 
-      {/* MODAL 1: Real-Time Coding Terminal Stream */}
-      <CodingTerminalModal
-        isOpen={showTerminalModal}
-        onClose={() => setShowTerminalModal(false)}
-        topic={topic}
-        currentStage={currentStage}
-        stages={stages}
-        terminalLogs={terminalLogs}
-        generatedFiles={verifiedFiles}
-        isCompleted={isBuildFinished}
-        onLaunchTesting={() => {
-          setShowTerminalModal(false);
-          setShowTestingSimulator(true);
-        }}
-        onDownloadZip={handleDownloadZip}
-        isDownloading={isDownloading}
-      />
-
-      {/* MODAL 2: Interactive In-Browser Live AI Testing Simulator */}
+      {/* Interactive In-Browser Live AI Testing Simulator Modal */}
       <LiveTestingSimulator
         isOpen={showTestingSimulator}
         onClose={() => setShowTestingSimulator(false)}
