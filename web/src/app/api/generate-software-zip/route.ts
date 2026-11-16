@@ -29,6 +29,37 @@ export async function POST(req: NextRequest) {
 
     const zip = new JSZip();
 
+    // Check if user has provided prompt-modified customized files
+    const customFiles = body.customFiles || body.files;
+    if (customFiles && typeof customFiles === 'object' && Object.keys(customFiles).length > 0) {
+      Object.entries(customFiles).forEach(([filePath, content]) => {
+        if (typeof content === 'string') {
+          zip.file(filePath, content);
+        }
+      });
+
+      const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
+
+      await autoArchiveProject({
+        userId: creditCheck.userId,
+        toolId: 'software-builder',
+        title: topic,
+        course,
+        institution,
+        summary: `Customized software codebase synthesized by user prompt and CodeThesis AI.`,
+        fileType: 'zip',
+      });
+
+      return new NextResponse(new Uint8Array(zipBuffer), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/zip",
+          "Content-Disposition": `attachment; filename="CodeThesis_Software_${course.replace(/\s+/g, "_")}.zip"`,
+          "X-Remaining-Credits": String(creditCheck.remainingCredits),
+        },
+      });
+    }
+
     // 1. One-Click Launcher: run_project.bat
     const runBatContent = `@echo off
 title CodeThesis Project Launcher - ${topic}
