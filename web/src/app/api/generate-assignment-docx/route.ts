@@ -269,6 +269,55 @@ export async function POST(req: NextRequest) {
     );
 
     const doc = new Document({
+      styles: {
+        default: {
+          document: {
+            run: { font: "Times New Roman", size: 24, color: "111827" },
+            paragraph: { spacing: { line: 360 } },
+          },
+          heading1: {
+            run: { font: "Times New Roman", size: 28, bold: true, color: "000000" },
+            paragraph: { spacing: { before: 400, after: 200 }, alignment: AlignmentType.CENTER },
+          },
+          heading2: {
+            run: { font: "Times New Roman", size: 26, bold: true, color: "000000" },
+            paragraph: { spacing: { before: 280, after: 120 }, alignment: AlignmentType.LEFT },
+          },
+          heading3: {
+            run: { font: "Times New Roman", size: 24, bold: true, italics: true, color: "111827" },
+            paragraph: { spacing: { before: 200, after: 80 }, alignment: AlignmentType.LEFT },
+          },
+        },
+        paragraphStyles: [
+          {
+            id: "Heading1",
+            name: "Heading 1",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: { font: "Times New Roman", size: 28, bold: true, color: "000000" },
+            paragraph: { spacing: { before: 400, after: 200 }, alignment: AlignmentType.CENTER },
+          },
+          {
+            id: "Heading2",
+            name: "Heading 2",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: { font: "Times New Roman", size: 26, bold: true, color: "000000" },
+            paragraph: { spacing: { before: 280, after: 120 }, alignment: AlignmentType.LEFT },
+          },
+          {
+            id: "Heading3",
+            name: "Heading 3",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: { font: "Times New Roman", size: 24, bold: true, italics: true, color: "111827" },
+            paragraph: { spacing: { before: 200, after: 80 }, alignment: AlignmentType.LEFT },
+          },
+        ],
+      },
       sections: [
         {
           properties: {

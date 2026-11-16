@@ -99,36 +99,43 @@ function renderCleanAcademicThesis(rawText: string) {
       flushTable(idx);
     }
 
-    // Heading 1: starts with "# " or "CHAPTER ONE"
-    if (/^#\s+/.test(trimmed) || /^CHAPTER\s+[A-Z0-9]+:/i.test(trimmed)) {
-      const title = trimmed.replace(/^#+\s*/, '').replace(/[*_#`]/g, '').trim();
+    const cleanNoMd = trimmed.replace(/^#+\s*/, '').replace(/[*_#`]/g, '').trim();
+
+    // 1. Heading 1: starts with "# " (H1) or CHAPTER 1/ONE..FIVE (with optional colon/dash)
+    // or major preliminary/postliminary division titles
+    const isChapterRegex = /^(CHAPTER\s+(ONE|TWO|THREE|FOUR|FIVE|[1-5]))\b/i;
+    const isPrelimH1Regex = /^(DEDICATION|CERTIFICATION|DECLARATION|ACKNOWLEDGEMENT|ACKNOWLEDGEMENTS|ABSTRACT|TABLE OF CONTENTS|LIST OF TABLES|LIST OF FIGURES|REFERENCES|BIBLIOGRAPHY|APPENDIX\s+[A-Z0-9])\b/i;
+    const isMarkdownH1 = /^#\s+/.test(trimmed) && !/^###?/.test(trimmed);
+
+    if (isChapterRegex.test(cleanNoMd) || isPrelimH1Regex.test(cleanNoMd) || isMarkdownH1) {
       elements.push(
-        <h2 key={idx} className="text-center font-bold text-sm md:text-base uppercase tracking-wider text-slate-900 mt-6 mb-3">
-          {title}
+        <h2 key={idx} className="text-center font-bold text-sm md:text-base uppercase tracking-wider text-slate-900 mt-7 mb-3">
+          {cleanNoMd.toUpperCase()}
         </h2>
       );
       return;
     }
 
-    // Heading 2: starts with "## " or "1.1 Background"
-    const cleanNoMd = trimmed.replace(/^#+\s*/, '').replace(/[*_#`]/g, '').trim();
-    const isH2 = /^##\s+/.test(trimmed) || /^(\*{0,2}\d+\.\d+\s+[A-Za-z].*?\*{0,2})$/.test(trimmed);
-    if (isH2 && cleanNoMd.length < 130 && !cleanNoMd.endsWith('.')) {
-      elements.push(
-        <h3 key={idx} className="font-bold text-xs md:text-sm text-slate-900 mt-5 mb-2 pb-1 border-b border-slate-200">
-          {cleanNoMd}
-        </h3>
-      );
-      return;
-    }
-
-    // Heading 3: starts with "### " or "1.3.1 Aim"
-    const isH3 = /^###+\s+/.test(trimmed) || /^(\*{0,2}\d+\.\d+\.\d+\s+[A-Za-z].*?\*{0,2})$/.test(trimmed);
-    if (isH3 && cleanNoMd.length < 130 && !cleanNoMd.endsWith('.')) {
+    // 2. Heading 3: starts with "### " or numbered like "1.3.1 Aim" (checked before H2 so 1.3.1 is not caught by 1.3)
+    const isH3Markdown = /^###\s+/.test(trimmed);
+    const isH3Number = /^(\d+\.\d+\.\d+)[\s:.\-–—]/.test(cleanNoMd) || /^(\d+\.\d+\.\d+)$/.test(cleanNoMd);
+    if (isH3Markdown || (isH3Number && cleanNoMd.length < 130)) {
       elements.push(
         <h4 key={idx} className="font-bold text-xs text-slate-800 mt-4 mb-1.5 italic">
           {cleanNoMd}
         </h4>
+      );
+      return;
+    }
+
+    // 3. Heading 2: starts with "## " or numbered like "1.1 Background" or "1.10 Definition"
+    const isH2Markdown = /^##\s+/.test(trimmed);
+    const isH2Number = /^(\d+\.\d+)[\s:.\-–—]/.test(cleanNoMd) || /^(\d+\.\d+)$/.test(cleanNoMd);
+    if (isH2Markdown || (isH2Number && cleanNoMd.length < 130)) {
+      elements.push(
+        <h3 key={idx} className="font-bold text-xs md:text-sm text-slate-900 mt-5 mb-2 pb-1 border-b border-slate-200">
+          {cleanNoMd}
+        </h3>
       );
       return;
     }

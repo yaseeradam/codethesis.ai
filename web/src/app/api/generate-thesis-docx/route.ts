@@ -315,24 +315,41 @@ export async function POST(req: NextRequest) {
           flushTable();
         }
 
-        // 1. Heading 1: starts with "# " or "CHAPTER ONE"
-        if (/^#\s+/.test(line) || /^CHAPTER\s+[A-Z0-9]+:/i.test(line)) {
-          elements.push(...academicHeading1(line));
-          continue;
-        }
-
-        // 2. Heading 2: starts with "## " or numbered like "1.1 Background" or "**1.1 Background**"
         const cleanNoMd = line.replace(/^#+\s*/, "").replace(/[*_#`]/g, "").trim();
-        const isH2Pattern = /^##\s+/.test(line) || /^(\*{0,2}\d+\.\d+\s+[A-Za-z].*?\*{0,2})$/.test(line);
-        if (isH2Pattern && cleanNoMd.length < 130 && !cleanNoMd.endsWith(".")) {
-          elements.push(academicHeading2(cleanNoMd));
+
+        // 1. Heading 1: starts with "# " (H1) or CHAPTER 1/ONE..FIVE (with optional colon/dash)
+        // or major preliminary/postliminary division titles
+        const isChapterRegex = /^(CHAPTER\s+(ONE|TWO|THREE|FOUR|FIVE|[1-5]))\b/i;
+        const isPrelimH1Regex = /^(DEDICATION|CERTIFICATION|DECLARATION|ACKNOWLEDGEMENT|ACKNOWLEDGEMENTS|ABSTRACT|TABLE OF CONTENTS|LIST OF TABLES|LIST OF FIGURES|REFERENCES|BIBLIOGRAPHY|APPENDIX\s+[A-Z0-9])\b/i;
+        const isMarkdownH1 = /^#\s+/.test(line) && !/^###?/.test(line);
+
+        if (isChapterRegex.test(cleanNoMd) || isPrelimH1Regex.test(cleanNoMd) || isMarkdownH1) {
+          let fullTitle = cleanNoMd;
+          // If the line is just "CHAPTER 1" or "CHAPTER ONE" without a subtitle, check if next line is the subtitle
+          if (isChapterRegex.test(cleanNoMd) && !cleanNoMd.includes(":") && !cleanNoMd.includes("-") && i + 1 < lines.length) {
+            const nextCandidate = lines[i + 1].replace(/^#+\s*/, "").replace(/[*_#`]/g, "").trim();
+            if (nextCandidate && !/^\d+\.\d+/.test(nextCandidate) && !/^[-*+]/.test(nextCandidate) && nextCandidate.length < 80) {
+              fullTitle = `${cleanNoMd}: ${nextCandidate}`;
+              i++; // consume next line
+            }
+          }
+          elements.push(...academicHeading1(fullTitle));
           continue;
         }
 
-        // 3. Heading 3: starts with "### " or "1.3.1 Aim" or "**1.3.1 Aim**"
-        const isH3Pattern = /^###+\s+/.test(line) || /^(\*{0,2}\d+\.\d+\.\d+\s+[A-Za-z].*?\*{0,2})$/.test(line);
-        if (isH3Pattern && cleanNoMd.length < 130 && !cleanNoMd.endsWith(".")) {
+        // 2. Heading 3: starts with "### " or numbered like "1.3.1 Aim" (checked before H2 so 1.3.1 is not caught by 1.3)
+        const isH3Markdown = /^###\s+/.test(line);
+        const isH3Number = /^(\d+\.\d+\.\d+)[\s:.\-–—]/.test(cleanNoMd) || /^(\d+\.\d+\.\d+)$/.test(cleanNoMd);
+        if (isH3Markdown || (isH3Number && cleanNoMd.length < 130)) {
           elements.push(academicHeading3(cleanNoMd));
+          continue;
+        }
+
+        // 3. Heading 2: starts with "## " or numbered like "1.1 Background" or "1.10 Definition"
+        const isH2Markdown = /^##\s+/.test(line);
+        const isH2Number = /^(\d+\.\d+)[\s:.\-–—]/.test(cleanNoMd) || /^(\d+\.\d+)$/.test(cleanNoMd);
+        if (isH2Markdown || (isH2Number && cleanNoMd.length < 130)) {
+          elements.push(academicHeading2(cleanNoMd));
           continue;
         }
 
@@ -884,8 +901,113 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    // Build Word Document with Standard Page Setup
+    // Build Word Document with Standard Page Setup and Native Word Heading Styles
     const doc = new Document({
+      styles: {
+        default: {
+          document: {
+            run: {
+              font: "Times New Roman",
+              size: 24, // 12pt default body
+              color: "111827",
+            },
+            paragraph: {
+              spacing: { line: 360 }, // 1.5 line spacing
+            },
+          },
+          heading1: {
+            run: {
+              font: "Times New Roman",
+              size: 28, // 14pt
+              bold: true,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: { before: 400, after: 200 },
+              alignment: AlignmentType.CENTER,
+            },
+          },
+          heading2: {
+            run: {
+              font: "Times New Roman",
+              size: 26, // 13pt
+              bold: true,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: { before: 280, after: 120 },
+              alignment: AlignmentType.LEFT,
+            },
+          },
+          heading3: {
+            run: {
+              font: "Times New Roman",
+              size: 24, // 12pt
+              bold: true,
+              italics: true,
+              color: "111827",
+            },
+            paragraph: {
+              spacing: { before: 200, after: 80 },
+              alignment: AlignmentType.LEFT,
+            },
+          },
+        },
+        paragraphStyles: [
+          {
+            id: "Heading1",
+            name: "Heading 1",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Times New Roman",
+              size: 28, // 14pt
+              bold: true,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: { before: 400, after: 200 },
+              alignment: AlignmentType.CENTER,
+            },
+          },
+          {
+            id: "Heading2",
+            name: "Heading 2",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Times New Roman",
+              size: 26, // 13pt
+              bold: true,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: { before: 280, after: 120 },
+              alignment: AlignmentType.LEFT,
+            },
+          },
+          {
+            id: "Heading3",
+            name: "Heading 3",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Times New Roman",
+              size: 24, // 12pt
+              bold: true,
+              italics: true,
+              color: "111827",
+            },
+            paragraph: {
+              spacing: { before: 200, after: 80 },
+              alignment: AlignmentType.LEFT,
+            },
+          },
+        ],
+      },
       sections: [
         {
           properties: {
