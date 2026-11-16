@@ -38,6 +38,46 @@
   "transactions": [],
   "creditLogs": [
     {
+      "id": "log-e8dd9d8f",
+      "userId": "usr-81f054a4",
+      "amount": -1,
+      "type": "tool_usage",
+      "toolId": "assignmentSolver",
+      "balanceAfter": 46,
+      "description": "Used assignmentSolver tool (1 credit)",
+      "createdAt": "2026-11-16T05:32:25.092Z"
+    },
+    {
+      "id": "log-4b0f7d18",
+      "userId": "usr-81f054a4",
+      "amount": -1,
+      "type": "tool_usage",
+      "toolId": "umlDiagrams",
+      "balanceAfter": 47,
+      "description": "Used umlDiagrams tool (1 credit)",
+      "createdAt": "2026-11-16T05:32:08.284Z"
+    },
+    {
+      "id": "log-55617bd5",
+      "userId": "usr-81f054a4",
+      "amount": -1,
+      "type": "tool_usage",
+      "toolId": "umlDiagrams",
+      "balanceAfter": 48,
+      "description": "Used umlDiagrams tool (1 credit)",
+      "createdAt": "2026-11-16T05:30:49.607Z"
+    },
+    {
+      "id": "log-c6a10dff",
+      "userId": "usr-81f054a4",
+      "amount": -1,
+      "type": "tool_usage",
+      "toolId": "umlDiagrams",
+      "balanceAfter": 49,
+      "description": "Used umlDiagrams tool (1 credit)",
+      "createdAt": "2026-11-16T05:27:58.180Z"
+    },
+    {
       "id": "log-96181663",
       "userId": "usr-81f054a4",
       "amount": 35,
@@ -75,5 +115,7 @@
       "maintenanceNotice": "Platform operating normally at 100% capacity."
     }
   },
-  "notifications": []
+  "notifications": [],
+  "apiKeys": [],
+  "apiUsageLogs": []
 }

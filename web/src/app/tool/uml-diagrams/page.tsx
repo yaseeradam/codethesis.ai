@@ -30,7 +30,7 @@ interface DiagramPreset {
 
 export default function UmlDiagramsToolPage() {
   const [selectedDiagram, setSelectedDiagram] = useState<string>('use-case');
-  const [projectTitle, setProjectTitle] = useState('');
+  const [projectTitle, setProjectTitle] = useState('Automated Student Hostel Allocation and Clearance System');
   const [activeTab, setActiveTab] = useState<'visual' | 'code'>('visual');
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [copied, setCopied] = useState<boolean>(false);
@@ -496,13 +496,19 @@ export default function UmlDiagramsToolPage() {
   }
 
   async function handleGenerateNew() {
+    const cleanTopic = projectTitle.trim();
+    if (!cleanTopic) {
+      setSuccessBanner('Please specify a project or thesis topic before generating custom UML diagrams.');
+      setTimeout(() => setSuccessBanner(null), 4000);
+      return;
+    }
     setIsGenerating(true);
     try {
       const res = await fetch('/api/ai/generate-uml', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          topic: projectTitle,
+          topic: cleanTopic,
           diagramType: selectedDiagram,
           department: 'Computer Science / Engineering',
         }),
@@ -517,12 +523,12 @@ export default function UmlDiagramsToolPage() {
           setAiProviders(prev => ({ ...prev, [selectedDiagram]: data.provider }));
         }
         setActiveTab('code');
-        setSuccessBanner(`Synthesized custom ${currentPreset.name} tailored for "${projectTitle}" via ${data.provider || 'AI Engine'}!`);
+        setSuccessBanner(`Synthesized custom ${currentPreset.name} tailored for "${cleanTopic}" via ${data.provider || 'AI Engine'}!`);
       } else {
-        setSuccessBanner(`Generated updated UML architectural specifications tailored specifically to: "${projectTitle}".`);
+        setSuccessBanner(data.error || `Generated updated UML architectural specifications for: "${cleanTopic}".`);
       }
-    } catch {
-      setSuccessBanner(`Generated updated UML architectural specifications tailored specifically to: "${projectTitle}".`);
+    } catch (err: any) {
+      setSuccessBanner(err.message || 'Error communicating with UML synthesis engine.');
     } finally {
       setIsGenerating(false);
       setTimeout(() => setSuccessBanner(null), 5000);

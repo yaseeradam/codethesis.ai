@@ -42,6 +42,7 @@ import {
   Menu,
   ShieldAlert,
   Download,
+  Terminal,
   X
 } from 'lucide-react';
 
@@ -534,6 +535,18 @@ function DashboardMain() {
             </Link>
 
             <Link
+              href="/developers"
+              prefetch={false}
+              title="Developer API & Keys"
+              className={`flex items-center rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+              }`}
+            >
+              <Terminal className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              {!isSidebarCollapsed && <span className="truncate">Developer API</span>}
+            </Link>
+
+            <Link
               href="/pricing"
               prefetch={false}
               title="Billing & Credits"
@@ -765,6 +778,14 @@ function DashboardMain() {
                 >
                   <FolderGit2 className="w-4 h-4 text-slate-400" />
                   <span>My Projects</span>
+                </Link>
+                <Link
+                  href="/developers"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5"
+                >
+                  <Terminal className="w-4 h-4 text-slate-400" />
+                  <span>Developer API</span>
                 </Link>
                 <Link
                   href="/pricing"

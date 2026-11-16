@@ -94,6 +94,32 @@ export interface Notification {
   createdAt: string;
 }
 
+export interface ApiKey {
+  id: string;
+  userId: string;
+  name: string;
+  keyHash: string;
+  keyPrefix: string;
+  maskedKey: string;
+  rateLimitPerMin: number;
+  status: 'active' | 'revoked';
+  lastUsedAt?: string;
+  createdAt: string;
+}
+
+export interface ApiUsageLog {
+  id: string;
+  apiKeyId: string;
+  userId: string;
+  endpoint: string;
+  method: string;
+  statusCode: number;
+  creditsDeducted: number;
+  responseTimeMs: number;
+  ipAddress?: string;
+  createdAt: string;
+}
+
 export interface VivaTurn {
   id: string;
   role: 'examiner' | 'student';
@@ -158,12 +184,16 @@ export interface AdminSettings {
   };
 }
 
+export type ToolKey = keyof AdminSettings['toolCreditCosts'];
+
 interface DatabaseSchema {
   users: User[];
   projects: Project[];
   transactions: Transaction[];
   creditLogs?: CreditLog[];
   notifications?: Notification[];
+  apiKeys?: ApiKey[];
+  apiUsageLogs?: ApiUsageLog[];
   vivaSessions?: VivaSession[];
   authAuditLogs?: AuthAuditLog[];
   settings: AdminSettings;
@@ -264,6 +294,8 @@ export function readDb(): DatabaseSchema {
     if (!data.settings) data.settings = DEFAULT_SETTINGS;
     if (!data.creditLogs) data.creditLogs = [];
     if (!data.notifications) data.notifications = [];
+    if (!data.apiKeys) data.apiKeys = [];
+    if (!data.apiUsageLogs) data.apiUsageLogs = [];
     if (!data.vivaSessions) data.vivaSessions = [];
     if (!data.authAuditLogs) data.authAuditLogs = [];
     return data;
@@ -274,6 +306,8 @@ export function readDb(): DatabaseSchema {
       transactions: [],
       creditLogs: [],
       notifications: [],
+      apiKeys: [],
+      apiUsageLogs: [],
       vivaSessions: [],
       authAuditLogs: [],
       settings: DEFAULT_SETTINGS,
@@ -1463,4 +1497,286 @@ export async function verifyAndConsumeResetToken(
   });
 
   return { success: true, user: updatedUser || user };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Developer API Key Operations
+// ─────────────────────────────────────────────────────────────
+export function hashApiKey(rawKey: string): string {
+  return crypto.createHash('sha256').update(rawKey).digest('hex');
+}
+
+export async function generateApiKey(
+  userId: string,
+  name: string,
+  isTest = false
+): Promise<{ rawKey: string; keyRecord: ApiKey }> {
+  const prefix = isTest ? 'ct_test_' : 'ct_live_';
+  const randomBytes = crypto.randomBytes(32).toString('hex');
+  const rawKey = `${prefix}${randomBytes}`;
+  const keyHash = hashApiKey(rawKey);
+  const maskedKey = `${prefix}••••••••${rawKey.slice(-4)}`;
+  const id = `key-${crypto.randomUUID().slice(0, 8)}`;
+  const now = new Date().toISOString();
+
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, masked_key, rate_limit_per_min, status, created_at)
+        VALUES (${id}, ${userId}, ${name}, ${keyHash}, ${prefix}, ${maskedKey}, 60, 'active', ${now})
+        RETURNING id, user_id as "userId", name, key_hash as "keyHash", key_prefix as "keyPrefix", masked_key as "maskedKey", rate_limit_per_min as "rateLimitPerMin", status, last_used_at as "lastUsedAt", created_at as "createdAt";
+      `;
+      if (rows && rows.length > 0) {
+        return { rawKey, keyRecord: rows[0] as ApiKey };
+      }
+    } catch (err) {
+      console.error('Neon generateApiKey error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.apiKeys) db.apiKeys = [];
+  const keyRecord: ApiKey = {
+    id,
+    userId,
+    name,
+    keyHash,
+    keyPrefix: prefix,
+    maskedKey,
+    rateLimitPerMin: 60,
+    status: 'active',
+    createdAt: now,
+  };
+  db.apiKeys.unshift(keyRecord);
+  writeDb(db);
+  return { rawKey, keyRecord };
+}
+
+export async function getApiKeysByUserId(userId: string): Promise<ApiKey[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", name, key_hash as "keyHash", key_prefix as "keyPrefix", masked_key as "maskedKey", rate_limit_per_min as "rateLimitPerMin", status, last_used_at as "lastUsedAt", created_at as "createdAt"
+        FROM api_keys
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC;
+      `;
+      return rows as ApiKey[];
+    } catch (err) {
+      console.error('Neon getApiKeysByUserId error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.apiKeys || []).filter(k => k.userId === userId);
+}
+
+export async function revokeApiKey(keyId: string, userId: string): Promise<boolean> {
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        UPDATE api_keys
+        SET status = 'revoked'
+        WHERE id = ${keyId} AND user_id = ${userId};
+      `;
+      return true;
+    } catch (err) {
+      console.error('Neon revokeApiKey error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.apiKeys) return false;
+  const key = db.apiKeys.find(k => k.id === keyId && k.userId === userId);
+  if (key) {
+    key.status = 'revoked';
+    writeDb(db);
+    return true;
+  }
+  return false;
+}
+
+export async function validateApiKey(rawKey: string): Promise<{
+  valid: boolean;
+  keyRecord?: ApiKey;
+  user?: User;
+  error?: string;
+}> {
+  if (!rawKey || typeof rawKey !== 'string') {
+    return { valid: false, error: 'API key is missing or invalid' };
+  }
+
+  const cleanKey = rawKey.trim();
+  if (!cleanKey.startsWith('ct_live_') && !cleanKey.startsWith('ct_test_')) {
+    return { valid: false, error: 'Malformed API key format. Expected prefix "ct_live_" or "ct_test_"' };
+  }
+
+  const keyHash = hashApiKey(cleanKey);
+  let keyRecord: ApiKey | null = null;
+
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", name, key_hash as "keyHash", key_prefix as "keyPrefix", masked_key as "maskedKey", rate_limit_per_min as "rateLimitPerMin", status, last_used_at as "lastUsedAt", created_at as "createdAt"
+        FROM api_keys
+        WHERE key_hash = ${keyHash}
+        LIMIT 1;
+      `;
+      if (rows && rows.length > 0) {
+        keyRecord = rows[0] as ApiKey;
+      }
+    } catch (err) {
+      console.error('Neon validateApiKey error:', err);
+    }
+  }
+
+  if (!keyRecord) {
+    const db = readDb();
+    keyRecord = (db.apiKeys || []).find(k => k.keyHash === keyHash) || null;
+  }
+
+  if (!keyRecord) {
+    return { valid: false, error: 'Invalid API key provided' };
+  }
+
+  if (keyRecord.status !== 'active') {
+    return { valid: false, error: 'This API key has been revoked' };
+  }
+
+  // Update last used timestamp
+  const now = new Date().toISOString();
+  if (isNeonConfigured()) {
+    try {
+      await sql`UPDATE api_keys SET last_used_at = ${now} WHERE id = ${keyRecord.id};`;
+    } catch {}
+  } else {
+    const db = readDb();
+    const k = (db.apiKeys || []).find(item => item.id === keyRecord!.id);
+    if (k) {
+      k.lastUsedAt = now;
+      writeDb(db);
+    }
+  }
+
+  const user = await getUserById(keyRecord.userId);
+  if (!user) {
+    return { valid: false, error: 'Associated user account not found' };
+  }
+  if (user.status === 'suspended') {
+    return { valid: false, error: 'Associated developer account is suspended' };
+  }
+
+  return { valid: true, keyRecord, user };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Developer API Usage Logs & Analytics
+// ─────────────────────────────────────────────────────────────
+export async function logApiUsage(data: {
+  apiKeyId: string;
+  userId: string;
+  endpoint: string;
+  method: string;
+  statusCode: number;
+  creditsDeducted: number;
+  responseTimeMs: number;
+  ipAddress?: string;
+}): Promise<ApiUsageLog> {
+  const id = `use-${crypto.randomUUID().slice(0, 8)}`;
+  const now = new Date().toISOString();
+
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        INSERT INTO api_usage_logs (id, api_key_id, user_id, endpoint, method, status_code, credits_deducted, response_time_ms, ip_address, created_at)
+        VALUES (${id}, ${data.apiKeyId}, ${data.userId}, ${data.endpoint}, ${data.method}, ${data.statusCode}, ${data.creditsDeducted}, ${data.responseTimeMs}, ${data.ipAddress || null}, ${now})
+        RETURNING id, api_key_id as "apiKeyId", user_id as "userId", endpoint, method, status_code as "statusCode", credits_deducted as "creditsDeducted", response_time_ms as "responseTimeMs", ip_address as "ipAddress", created_at as "createdAt";
+      `;
+      if (rows && rows.length > 0) return rows[0] as ApiUsageLog;
+    } catch (err) {
+      console.error('Neon logApiUsage error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.apiUsageLogs) db.apiUsageLogs = [];
+  const log: ApiUsageLog = {
+    id,
+    apiKeyId: data.apiKeyId,
+    userId: data.userId,
+    endpoint: data.endpoint,
+    method: data.method,
+    statusCode: data.statusCode,
+    creditsDeducted: data.creditsDeducted,
+    responseTimeMs: data.responseTimeMs,
+    ipAddress: data.ipAddress,
+    createdAt: now,
+  };
+  db.apiUsageLogs.unshift(log);
+  if (db.apiUsageLogs.length > 2000) db.apiUsageLogs = db.apiUsageLogs.slice(0, 2000);
+  writeDb(db);
+  return log;
+}
+
+export async function getApiUsageLogsByUserId(userId: string, limit = 50): Promise<ApiUsageLog[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, api_key_id as "apiKeyId", user_id as "userId", endpoint, method, status_code as "statusCode", credits_deducted as "creditsDeducted", response_time_ms as "responseTimeMs", ip_address as "ipAddress", created_at as "createdAt"
+        FROM api_usage_logs
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC
+        LIMIT ${limit};
+      `;
+      return rows as ApiUsageLog[];
+    } catch (err) {
+      console.error('Neon getApiUsageLogsByUserId error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.apiUsageLogs || []).filter(l => l.userId === userId).slice(0, limit);
+}
+
+export async function getApiUsageStats(userId: string): Promise<{
+  totalRequests: number;
+  totalCreditsCharged: number;
+  avgLatencyMs: number;
+  successRate: number;
+}> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT 
+          COUNT(*)::int as "totalRequests",
+          COALESCE(SUM(credits_deducted), 0)::int as "totalCreditsCharged",
+          COALESCE(AVG(response_time_ms), 0)::int as "avgLatencyMs",
+          COALESCE(ROUND((COUNT(CASE WHEN status_code >= 200 AND status_code < 300 THEN 1 END)::numeric / NULLIF(COUNT(*), 0)) * 100, 1), 100)::float as "successRate"
+        FROM api_usage_logs
+        WHERE user_id = ${userId};
+      `;
+      if (rows && rows.length > 0) {
+        return {
+          totalRequests: Number(rows[0].totalRequests) || 0,
+          totalCreditsCharged: Number(rows[0].totalCreditsCharged) || 0,
+          avgLatencyMs: Number(rows[0].avgLatencyMs) || 0,
+          successRate: Number(rows[0].successRate) || 100,
+        };
+      }
+    } catch (err) {
+      console.error('Neon getApiUsageStats error:', err);
+    }
+  }
+
+  const db = readDb();
+  const logs = (db.apiUsageLogs || []).filter(l => l.userId === userId);
+  const total = logs.length;
+  if (total === 0) {
+    return { totalRequests: 0, totalCreditsCharged: 0, avgLatencyMs: 0, successRate: 100 };
+  }
+  const credits = logs.reduce((sum, l) => sum + (l.creditsDeducted || 0), 0);
+  const latency = Math.round(logs.reduce((sum, l) => sum + (l.responseTimeMs || 0), 0) / total);
+  const successful = logs.filter(l => l.statusCode >= 200 && l.statusCode < 300).length;
+  const rate = Math.round((successful / total) * 1000) / 10;
+  return { totalRequests: total, totalCreditsCharged: credits, avgLatencyMs: latency, successRate: rate };
 }

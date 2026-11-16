@@ -60,10 +60,10 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
   const openrouterKey = (dynamicKeys as any).openrouter || process.env.OPENROUTER_API_KEY;
   const openaiKey = dynamicKeys.openai || process.env.OPENAI_API_KEY;
 
-  // 1. Google Gemini (2.5 Flash / 3.8 Flash)
+  // 1. Google Gemini
   async function callGemini(targetModel?: string): Promise<AIResponse | null> {
     if (!geminiKey) return null;
-    const models = targetModel ? [targetModel] : ['gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-2.5-flash-lite'];
+    const models = targetModel ? [targetModel] : ['gemini-1.5-flash', 'gemini-2.0-flash-exp'];
     for (const m of models) {
       try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`, {
@@ -77,7 +77,8 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
               }
             ],
             generationConfig: { temperature, maxOutputTokens: Math.min(maxTokens, 4000) }
-          })
+          }),
+          signal: AbortSignal.timeout(4000),
         });
 
         if (res.ok) {
@@ -94,11 +95,11 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
     return null;
   }
 
-  // 2. Groq LPU (Ultra-fast Qwen 3.8 27B / GPT-OSS 120B)
-  async function callGroq(targetModel = 'qwen/qwen3.8-27b', keyToUse?: string): Promise<AIResponse | null> {
+  // 2. Groq LPU (Ultra-fast Llama 3.3 70B / Llama 3.1 8B)
+  async function callGroq(targetModel = 'llama-3.3-70b-versatile', keyToUse?: string): Promise<AIResponse | null> {
     const key = keyToUse || groqKey;
     if (!key) return null;
-    const models = [targetModel, 'openai/gpt-oss-120b', 'openai/gpt-oss-20b'];
+    const models = [targetModel, 'llama-3.1-8b-instant'];
     for (const m of models) {
       try {
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -115,7 +116,8 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
             ],
             max_tokens: Math.min(maxTokens, 4000),
             temperature
-          })
+          }),
+          signal: AbortSignal.timeout(4000),
         });
 
         if (res.ok) {
@@ -132,10 +134,10 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
     return null;
   }
 
-  // 3. OpenRouter (Llama 3.3 70B / Qwen 2.5 Coder 32B)
+  // 3. OpenRouter (Llama 3.3 70B Instruct - High Reliability)
   async function callOpenRouter(targetModel = 'meta-llama/llama-3.3-70b-instruct'): Promise<AIResponse | null> {
     if (!openrouterKey) return null;
-    const models = [targetModel, 'qwen/qwen-2.5-coder-32b-instruct'];
+    const models = [targetModel, 'meta-llama/llama-3.1-8b-instruct'];
     for (const m of models) {
       try {
         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -154,7 +156,8 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
             ],
             max_tokens: Math.min(maxTokens, 4000),
             temperature
-          })
+          }),
+          signal: AbortSignal.timeout(8000),
         });
 
         if (res.ok) {
@@ -406,6 +409,8 @@ You MUST respond strictly in the following JSON format without code blocks:
     provider: 'codethesis-fallback',
   };
 }
+
+export const solveAssignmentAI = solveAcademicProblem;
 
 /**
  * Intelligent Mermaid UML Diagram Synthesizer

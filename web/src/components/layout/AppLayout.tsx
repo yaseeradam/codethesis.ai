@@ -30,6 +30,7 @@ import {
   Coins,
   LogOut,
   Menu,
+  Terminal,
   X
 } from 'lucide-react';
 
@@ -105,6 +106,7 @@ export default function AppLayout({
 
   const secondaryItems = [
     { id: 'projects', label: 'My Projects', href: '/projects', icon: FolderGit2 },
+    { id: 'developers', label: 'Developer API', href: '/developers', icon: Terminal },
     { id: 'pricing', label: 'Billing & Credits', href: '/pricing', icon: CreditCard },
     { id: 'settings', label: 'Settings', href: '/settings', icon: Settings },
     { id: 'support', label: 'Help & Support', href: '/support', icon: Headphones },
