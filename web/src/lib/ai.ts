@@ -540,6 +540,13 @@ export function buildChapterUserPrompt(params: ThesisChapterPromptParams): strin
   const { topic, course, institution, chapterNumber, caseStudy } = params;
   const org = caseStudy || institution;
 
+  const formattingRules = `
+CRITICAL FORMATTING & EXTENSIVE LENGTH REQUIREMENTS:
+1. NO RAW MARKDOWN SYMBOLS: Do NOT use asterisks (**) or hashes (##) or bullet asterisks (*). Write section titles clearly in plain Title Case on their own line without asterisks or hashes (e.g. "1.1 Background of the Study").
+2. EXHAUSTIVE ACADEMIC LENGTH: A shallow summary is strictly forbidden. For EVERY single subsection, write at least 3 to 5 dense, multi-paragraph scholarly analyses containing empirical data, theoretical justifications, citations, and domain-specific arguments. Make this chapter comprehensive, deep, and extensive (~3,500 to 4,500 words).
+3. FORMAL ACADEMIC PROSE: Use scholarly third-person academic English, formal APA 7th citations, and deep computational/engineering depth.
+`;
+
   if (chapterNumber === 1) {
     return `Write an exhaustive, publishable CHAPTER ONE (INTRODUCTION) for the undergraduate/postgraduate dissertation titled:
 "${topic}"
@@ -561,6 +568,7 @@ Follow the canonical 10-section dissertation structure (Reference: Nigerian Univ
 1.9 Organization of the Study (Paragraph-by-paragraph structural overview of Chapters 1 through 5)
 1.10 Definition of Terms (Key operational and technical terms defined in the specific context of this project)
 
+${formattingRules}
 Write complete, rigorous academic paragraphs for every single section. Do not summarize or omit any section.`;
   } else if (chapterNumber === 2) {
     return `Write an exhaustive, publishable CHAPTER TWO (LITERATURE REVIEW) for the dissertation titled:
@@ -578,6 +586,7 @@ Follow the canonical academic structure:
 2.7 Research Gap (Exact technical, algorithmic, and empirical gap that this project directly bridges)
 2.8 Summary of Literature Review (Synthesizing review findings and establishing theoretical justification for the proposed system)
 
+${formattingRules}
 Write full scholarly paragraphs with formal APA 7th citations.`;
   } else if (chapterNumber === 3) {
     return `Write an exhaustive, publishable CHAPTER THREE (SYSTEM ANALYSIS AND DESIGN) for the dissertation titled:
@@ -602,6 +611,7 @@ Follow the canonical engineering structure:
 3.9 Database Design & Data Dictionary (Detailed relational database design including Entity-Relationship model and formatted markdown tables for 4 core tables: Field Name, Data Type, Size, Constraints, Description)
 3.10 System Flowcharts and Algorithm Logic (Step-by-step algorithmic logic and decision trees for core transactions)
 
+${formattingRules}
 Provide complete text and formatted database tables.`;
   } else if (chapterNumber === 4) {
     return `Write an exhaustive, publishable CHAPTER FOUR (SYSTEM IMPLEMENTATION AND EVALUATION) for the dissertation titled:
@@ -627,6 +637,7 @@ Follow the canonical implementation and evaluation structure:
 4.12 Limitations of the Developed System
 4.13 Summary of Implementation
 
+${formattingRules}
 Provide complete text and formatted test case tables.`;
   } else {
     return `Write an exhaustive, publishable CHAPTER FIVE (SUMMARY, CONCLUSIONS AND RECOMMENDATIONS) for the dissertation titled:
@@ -646,7 +657,9 @@ Follow the canonical concluding structure:
    5.6.3 Recommendations for Future Research and Scalability
 
 Followed by:
-REFERENCES (15+ complete, authentic academic references in APA 7th Edition format with author names, years, journal titles, volume/page numbers, and DOIs).`;
+REFERENCES (15+ complete, authentic academic references in APA 7th Edition format with author names, years, journal titles, volume/page numbers, and DOIs).
+
+${formattingRules}`;
   }
 }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 import { generateAcademicAI, buildChapterUserPrompt } from "@/lib/ai";
+import { generateDynamicChapterText } from "@/lib/academic-chapters";
 import {
   Document,
   Packer,
@@ -71,62 +72,146 @@ export async function POST(req: NextRequest) {
     const docChildren: (Paragraph | Table)[] = [];
 
     // --- Helper Functions for Academic Typography (NUC / APA Format) ---
+    const parseInlineMarkdownToRuns = (text: string): TextRun[] => {
+      // First clean leading markdown hashes or stray backticks
+      const cleanText = text.replace(/^#+\s*/, "").trim();
+      const runs: TextRun[] = [];
+
+      // Tokenize by inline markdown markers: ***bold italic***, **bold**, *italic*, `code`
+      const tokenRegex = /(\*\*\*[^*]+?\*\*\*|___[^_]+?___|\*\*[^*]+?\*\*|__[^_]+?__|\*[^*]+?\*|_[^_]+?_|`[^`]+?`)/g;
+      const parts = cleanText.split(tokenRegex);
+
+      for (const part of parts) {
+        if (!part) continue;
+
+        if ((part.startsWith("***") && part.endsWith("***")) || (part.startsWith("___") && part.endsWith("___"))) {
+          const content = part.slice(3, -3).replace(/[*_#`]/g, "").trim();
+          runs.push(
+            new TextRun({
+              text: content,
+              bold: true,
+              italics: true,
+              size: 24, // 12pt
+              font: "Times New Roman",
+              color: "111827",
+            })
+          );
+        } else if ((part.startsWith("**") && part.endsWith("**")) || (part.startsWith("__") && part.endsWith("__"))) {
+          const content = part.slice(2, -2).replace(/[*_#`]/g, "").trim();
+          runs.push(
+            new TextRun({
+              text: content,
+              bold: true,
+              size: 24, // 12pt
+              font: "Times New Roman",
+              color: "000000",
+            })
+          );
+        } else if ((part.startsWith("*") && part.endsWith("*")) || (part.startsWith("_") && part.endsWith("_"))) {
+          const content = part.slice(1, -1).replace(/[*_#`]/g, "").trim();
+          runs.push(
+            new TextRun({
+              text: content,
+              italics: true,
+              size: 24, // 12pt
+              font: "Times New Roman",
+              color: "111827",
+            })
+          );
+        } else if (part.startsWith("`") && part.endsWith("`")) {
+          const content = part.slice(1, -1).trim();
+          runs.push(
+            new TextRun({
+              text: content,
+              font: "Courier New",
+              size: 20, // 10pt
+              color: "1E40AF",
+            })
+          );
+        } else {
+          // Normal prose: strip any stray unclosed asterisks, hashes, or underscores
+          const sanitized = part.replace(/[*#_`]/g, "");
+          if (sanitized) {
+            runs.push(
+              new TextRun({
+                text: sanitized,
+                size: 24, // 12pt
+                font: "Times New Roman",
+                color: "111827",
+              })
+            );
+          }
+        }
+      }
+
+      if (runs.length === 0) {
+        runs.push(
+          new TextRun({
+            text: cleanText.replace(/[*#_`]/g, ""),
+            size: 24,
+            font: "Times New Roman",
+            color: "111827",
+          })
+        );
+      }
+
+      return runs;
+    };
+
     const academicPara = (text: string, indent = true, lineSpacing = 360) =>
       new Paragraph({
         alignment: AlignmentType.JUSTIFIED,
         indent: indent ? { firstLine: 720 } : undefined, // 0.5 inch first line indent
         spacing: { before: 100, after: 120, line: lineSpacing }, // 1.5 line spacing
-        children: [
-          new TextRun({
-            text,
-            size: 24, // 12pt
-            font: "Times New Roman",
-            color: "111827",
-          }),
-        ],
+        children: parseInlineMarkdownToRuns(text),
       });
 
-    const academicHeading1 = (title: string, subtitle?: string) => [
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        heading: HeadingLevel.HEADING_1,
-        spacing: { before: 400, after: 150 },
-        children: [
-          new TextRun({
-            text: title.toUpperCase(),
-            bold: true,
-            size: 28, // 14pt
-            font: "Times New Roman",
-            color: "000000",
-          }),
-        ],
-      }),
-      ...(subtitle
-        ? [
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 300 },
-              children: [
-                new TextRun({
-                  text: subtitle.toUpperCase(),
-                  bold: true,
-                  size: 26, // 13pt
-                  font: "Times New Roman",
-                  color: "000000",
-                }),
-              ],
+    const academicHeading1 = (title: string, subtitle?: string) => {
+      const cleanTitle = title.replace(/^#+\s*/, "").replace(/[*_#`]/g, "").trim();
+      const cleanSubtitle = subtitle ? subtitle.replace(/^#+\s*/, "").replace(/[*_#`]/g, "").trim() : undefined;
+      return [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          heading: HeadingLevel.HEADING_1,
+          spacing: { before: 400, after: 150 },
+          children: [
+            new TextRun({
+              text: cleanTitle.toUpperCase(),
+              bold: true,
+              size: 28, // 14pt
+              font: "Times New Roman",
+              color: "000000",
             }),
-          ]
-        : []),
-    ];
+          ],
+        }),
+        ...(cleanSubtitle
+          ? [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 300 },
+                children: [
+                  new TextRun({
+                    text: cleanSubtitle.toUpperCase(),
+                    bold: true,
+                    size: 26, // 13pt
+                    font: "Times New Roman",
+                    color: "000000",
+                  }),
+                ],
+              }),
+            ]
+          : []),
+      ];
+    };
 
-    const academicHeading2 = (title: string) =>
-      new Paragraph({
+    const academicHeading2 = (title: string) => {
+      const cleanTitle = title.replace(/^#+\s*/, "").replace(/[*_#`]/g, "").trim();
+      return new Paragraph({
         heading: HeadingLevel.HEADING_2,
         spacing: { before: 280, after: 120 },
         children: [
           new TextRun({
-            text: title,
+            text: cleanTitle,
             bold: true,
             size: 26, // 13pt
             font: "Times New Roman",
@@ -134,14 +219,16 @@ export async function POST(req: NextRequest) {
           }),
         ],
       });
+    };
 
-    const academicHeading3 = (title: string) =>
-      new Paragraph({
+    const academicHeading3 = (title: string) => {
+      const cleanTitle = title.replace(/^#+\s*/, "").replace(/[*_#`]/g, "").trim();
+      return new Paragraph({
         heading: HeadingLevel.HEADING_3,
         spacing: { before: 200, after: 80 },
         children: [
           new TextRun({
-            text: title,
+            text: cleanTitle,
             bold: true,
             italics: true,
             size: 24, // 12pt
@@ -150,28 +237,26 @@ export async function POST(req: NextRequest) {
           }),
         ],
       });
+    };
 
-    const academicBullet = (title: string, bodyText: string) =>
-      new Paragraph({
+    const academicBullet = (title: string, bodyText: string) => {
+      const cleanTitle = title.replace(/^#+\s*/, "").replace(/[*_#`]/g, "").trim();
+      return new Paragraph({
         alignment: AlignmentType.JUSTIFIED,
         bullet: { level: 0 },
         spacing: { before: 60, after: 80, line: 360 },
         children: [
           new TextRun({
-            text: `${title}: `,
+            text: `${cleanTitle}: `,
             bold: true,
             size: 24,
             font: "Times New Roman",
             color: "000000",
           }),
-          new TextRun({
-            text: bodyText,
-            size: 24,
-            font: "Times New Roman",
-            color: "111827",
-          }),
+          ...parseInlineMarkdownToRuns(bodyText),
         ],
       });
+    };
 
     // Helper to parse markdown text generated by AI into structured docx elements
     const parseMarkdownToDocx = (mdText: string): (Paragraph | Table)[] => {
@@ -191,7 +276,7 @@ export async function POST(req: NextRequest) {
                       spacing: { before: 40, after: 40 },
                       children: [
                         new TextRun({
-                          text: cellText.trim(),
+                          text: cellText.replace(/[*_#`]/g, "").trim(),
                           bold: isHeader,
                           size: 20, // 10pt
                           font: "Times New Roman",
@@ -230,30 +315,67 @@ export async function POST(req: NextRequest) {
           flushTable();
         }
 
-        if (line.startsWith("# ")) {
-          elements.push(...academicHeading1(line.replace(/^#\s*/, "")));
-        } else if (line.startsWith("## ")) {
-          elements.push(academicHeading2(line.replace(/^##\s*/, "")));
-        } else if (line.startsWith("### ")) {
-          elements.push(academicHeading3(line.replace(/^###\s*/, "")));
-        } else if (line.startsWith("- ") || line.startsWith("* ")) {
-          const bulletText = line.replace(/^[-*]\s*/, "");
-          const colonIdx = bulletText.indexOf(":");
-          if (colonIdx > 0 && colonIdx < 40) {
-            elements.push(academicBullet(bulletText.slice(0, colonIdx), bulletText.slice(colonIdx + 1).trim()));
+        // 1. Heading 1: starts with "# " or "CHAPTER ONE"
+        if (/^#\s+/.test(line) || /^CHAPTER\s+[A-Z0-9]+:/i.test(line)) {
+          elements.push(...academicHeading1(line));
+          continue;
+        }
+
+        // 2. Heading 2: starts with "## " or numbered like "1.1 Background" or "**1.1 Background**"
+        const cleanNoMd = line.replace(/^#+\s*/, "").replace(/[*_#`]/g, "").trim();
+        const isH2Pattern = /^##\s+/.test(line) || /^(\*{0,2}\d+\.\d+\s+[A-Za-z].*?\*{0,2})$/.test(line);
+        if (isH2Pattern && cleanNoMd.length < 130 && !cleanNoMd.endsWith(".")) {
+          elements.push(academicHeading2(cleanNoMd));
+          continue;
+        }
+
+        // 3. Heading 3: starts with "### " or "1.3.1 Aim" or "**1.3.1 Aim**"
+        const isH3Pattern = /^###+\s+/.test(line) || /^(\*{0,2}\d+\.\d+\.\d+\s+[A-Za-z].*?\*{0,2})$/.test(line);
+        if (isH3Pattern && cleanNoMd.length < 130 && !cleanNoMd.endsWith(".")) {
+          elements.push(academicHeading3(cleanNoMd));
+          continue;
+        }
+
+        // 4. Bullet lists: starts with "- ", "* ", "+ "
+        if (/^[-*+]\s+/.test(line)) {
+          const bulletRaw = line.replace(/^[-*+]\s+/, "").trim();
+          const colonMatch = bulletRaw.match(/^(\*{0,2}[A-Za-z0-9\s/&-]{2,50}\*{0,2}):\s*(.*)$/);
+          if (colonMatch) {
+            elements.push(academicBullet(colonMatch[1], colonMatch[2]));
           } else {
             elements.push(
               new Paragraph({
                 bullet: { level: 0 },
                 alignment: AlignmentType.JUSTIFIED,
                 spacing: { before: 60, after: 80, line: 360 },
-                children: [new TextRun({ text: bulletText, size: 24, font: "Times New Roman" })],
+                children: parseInlineMarkdownToRuns(bulletRaw),
               })
             );
           }
-        } else {
-          elements.push(academicPara(line));
+          continue;
         }
+
+        // 5. Numbered list: starts with "1. ", "2. "
+        if (/^\d+\.\s+/.test(line)) {
+          const numMatch = line.match(/^(\d+\.)\s+(.*)$/);
+          if (numMatch) {
+            elements.push(
+              new Paragraph({
+                alignment: AlignmentType.JUSTIFIED,
+                indent: { left: 720, hanging: 360 },
+                spacing: { before: 60, after: 80, line: 360 },
+                children: [
+                  new TextRun({ text: `${numMatch[1]} `, bold: true, size: 24, font: "Times New Roman" }),
+                  ...parseInlineMarkdownToRuns(numMatch[2]),
+                ],
+              })
+            );
+            continue;
+          }
+        }
+
+        // 6. Normal paragraph with inline markdown parsed into TextRuns and stripped of asterisks/hashes
+        elements.push(academicPara(line));
       }
       flushTable();
       return elements;
@@ -619,13 +741,15 @@ export async function POST(req: NextRequest) {
     // =========================================================================
     for (let ch = 1; ch <= 5; ch++) {
       // Check if user already generated this chapter on frontend
-      if (userChapters[ch]) {
-        docChildren.push(...parseMarkdownToDocx(userChapters[ch]));
+      // If it exists AND is sufficiently long (not a 2-sentence stub!), use it
+      const userChapterText = userChapters[ch];
+      if (userChapterText && userChapterText.trim().length >= 800) {
+        docChildren.push(...parseMarkdownToDocx(userChapterText));
         docChildren.push(new Paragraph({ children: [new PageBreak()] }));
         continue;
       }
 
-      // If not generated, synthesize dynamically with Groq AI Pool or dynamic generator
+      // If not generated or if userText is too short, synthesize dynamically with Groq AI Pool or dynamic generator
       let chapterMarkdown = "";
       try {
         const aiPrompt = buildChapterUserPrompt({
@@ -639,11 +763,11 @@ export async function POST(req: NextRequest) {
         const aiRes = await generateAcademicAI({
           prompt: aiPrompt,
           temperature: 0.65,
-          maxTokens: 3500,
+          maxTokens: 4000,
           preferredProvider: "groq",
         });
 
-        if (aiRes && aiRes.content && !aiRes.content.includes("codethesis-academic-heuristic")) {
+        if (aiRes && aiRes.content && aiRes.content.length > 800 && !aiRes.content.includes("codethesis-academic-heuristic")) {
           chapterMarkdown = aiRes.content;
         }
       } catch (err) {
@@ -651,7 +775,7 @@ export async function POST(req: NextRequest) {
       }
 
       // If AI did not return complete text or failed, use our comprehensive topic-tailored generator
-      if (!chapterMarkdown || chapterMarkdown.length < 500) {
+      if (!chapterMarkdown || chapterMarkdown.length < 800) {
         chapterMarkdown = generateDynamicChapterText(topic, course, institution, caseStudy, ch);
       }
 
@@ -808,273 +932,5 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("Generate thesis docx error:", error);
     return NextResponse.json({ error: error.message || "Failed to generate thesis document" }, { status: 500 });
-  }
-}
-
-// Fallback topic-adaptive academic chapter generator
-function generateDynamicChapterText(topic: string, course: string, institution: string, caseStudy: string, ch: number): string {
-  if (ch === 1) {
-    return `# CHAPTER ONE: INTRODUCTION
-
-## 1.1 Background of the Study
-The evolution and rapid adoption of Information and Communication Technology (ICT) has fundamentally reshaped contemporary administrative, operational, and scholastic frameworks within tertiary educational institutions worldwide. In the Nigerian context, universities such as ${institution} are tasked with managing complex organizational workflows spanning student records, service logistics, and decision support under increasing operational scale. Historically, these processes were mediated through manual, paper-based workflows that imposed severe operational friction, high error rates, data loss, and administrative delays.
-
-This research dissertation focuses on the Design and Implementation of ${topic} for ${caseStudy}. By integrating modern software engineering paradigms—including decoupled client-server architectures, relational database management systems, and automated validation logic—the research delivers an efficient, secure, and verifiable platform capable of overcoming the structural limitations of legacy procedures.
-
-## 1.2 Statement of the Problem
-Operational procedures at ${caseStudy} confront significant bottlenecks when managed through traditional manual or fragmented spreadsheet methods. The primary challenges identified include:
-- Administrative Latency: High turnaround times for processing student and organizational transactions, creating substantial operational backlog.
-- Human Error and Inconsistency: Manual transcription errors, misplaced files, and data entry discrepancies that undermine institutional record integrity.
-- Data Redundancy and Concurrency Collisions: Disconnected records maintained across disparate physical offices leading to conflicting entries.
-- Lack of Real-Time Auditability and Transparency: The absence of automated audit logging makes tracking operational history difficult and breeds administrative opacity.
-
-## 1.3 Aim and Objectives of the Study
-### 1.3.1 Aim
-The overarching aim of this study is to design, develop, test, and empirically evaluate a turnkey, automated software system for ${topic} at ${caseStudy}, ${institution}.
-
-### 1.3.2 Objectives
-To accomplish this aim, the study pursues the following five specific objectives:
-1. To examine and evaluate the operational workflows and limitations of the existing manual system at ${caseStudy}.
-2. To identify the structural bottlenecks, error frequencies, and security vulnerabilities inherent in current procedures.
-3. To design a decoupled 3-tier software architecture and normalized relational database schema for ${topic}.
-4. To implement the software modules using modern development environments, ensuring ACID transaction guarantees.
-5. To test, evaluate, and benchmark the developed platform through empirical unit tests, stress analysis, and User Acceptance Testing (UAT).
-
-## 1.4 Significance of the Study
-This study contributes significantly across several institutional and academic domains:
-- For Students and Users: Provides 24/7 self-service accessibility, immediate feedback on requests, and eliminates physical queues.
-- For Administrators: Automates record generation, minimizes clerical burden, and delivers real-time analytical dashboards.
-- For Management: Enhances institutional transparency, prevents fraud, and supports data-driven policy planning.
-- For Academic Research: Establishes a reproducible engineering reference model for tertiary institution software systems.
-
-## 1.5 Scope of the Study
-The scope of this project encompasses requirements engineering, architectural design, database modeling, software implementation, and empirical evaluation for ${topic} within ${caseStudy} at ${institution}. The system provides user authentication, operational data entry, automated validation, administrative reporting, and audit trail tracking.
-
-## 1.6 Limitations of the Study
-1. Time constraints associated with completing development within the academic session calendar.
-2. Financial constraints limiting large-scale enterprise server infrastructure deployment.
-3. Access constraints regarding sensitive historical institutional data.
-4. Technical dependencies on network connectivity and power infrastructure during testing.
-
-## 1.7 Assumptions of the Study
-1. End-users possess basic digital literacy and access to standard computing devices.
-2. System administrators will maintain role-based access permissions and security protocols.
-3. The host institution will provide the server infrastructure required for deployment.
-4. Input data supplied by candidates during registration is accurate and authentic.
-5. The relational database will operate without catastrophic hardware storage failure.
-
-## 1.8 Methodology
-This project adopts the Agile Prototyping methodology within the Software Development Life Cycle (SDLC). Requirements were gathered through structured interviews with administrative personnel and surveys administered to prospective end-users. The development proceeded through iterative sprints: architectural design, database modeling, module coding, and continuous testing.
-
-## 1.9 Organization of the Study
-This dissertation is organized into five structured chapters:
-- Chapter One introduces the background, statement of the problem, aim, objectives, and scope.
-- Chapter Two presents the theoretical framework, conceptual review, and related literature.
-- Chapter Three details the system analysis, design methodology, UML diagrams, and database schema.
-- Chapter Four documents the implementation walkthrough, development environment, and testing results.
-- Chapter Five concludes with a summary of findings, contributions to knowledge, and recommendations.
-
-## 1.10 Definition of Terms
-- ACID Properties: Atomicity, Consistency, Isolation, and Durability guarantees in relational databases.
-- Concurrency Control: Coordination of simultaneous transactions to prevent data collisions.
-- Role-Based Access Control (RBAC): Restricting system access based on authenticated user roles.
-- Software Development Life Cycle (SDLC): The systematic framework for engineering software systems.`;
-  } else if (ch === 2) {
-    return `# CHAPTER TWO: LITERATURE REVIEW
-
-## 2.1 Introduction
-This chapter provides an exhaustive review of literature relevant to ${topic}. It establishes the conceptual foundation, evaluates underpinning theoretical frameworks, critiques existing empirical systems, and articulates the research gap addressed by this study.
-
-## 2.2 Conceptual Review
-Automated information systems represent the intersection of computational hardware, software engineering, and human processes designed to capture, store, manipulate, and disseminate data to support operational execution and strategic decision-making (Laudon & Laudon, 2024). Within higher education in developing nations, transitioning from physical ledgers to centralized digital architectures has consistently demonstrated reductions in operational overhead, elimination of data loss, and enhanced service delivery.
-
-## 2.3 Theoretical Framework
-This research is anchored upon three foundational theories:
-1. Technology Acceptance Model (TAM): Formulated by Davis (1989), TAM posits that perceived usefulness (PU) and perceived ease of use (PEOU) are primary determinants of whether end-users embrace new digital software.
-2. Relational Database Theory: Formulated by Edgar F. Codd (1970), establishing mathematical normalization (1NF through 3NF) to eliminate insertion, update, and deletion anomalies.
-3. Queuing and Concurrency Theory: Mathematical analysis of concurrent user transactions to ensure zero race conditions under peak operational load.
-
-## 2.4 Review of Modern Technological Frameworks
-The technical realization of ${topic} requires evaluating suitable development stacks:
-- Programming Languages: Python was selected for its high expressive power, rich standard library, and robust web server frameworks.
-- Database Engines: SQLite and PostgreSQL provide ACID compliance, foreign key integrity, and sub-millisecond query execution.
-- Web Architectures: Decoupled 3-tier architectures separate presentation from business logic, ensuring horizontal maintainability.
-
-## 2.5 Review of Related Works
-1. Adebayo and Eze (2022) developed an automated portal for Nigerian universities, achieving an 82% reduction in registration latency, but noted vulnerabilities in concurrency handling during enrollment peaks.
-2. Mohammed et al. (2023) designed a campus administration framework utilizing PHP and MySQL, highlighting usability gains but identifying weaknesses in offline execution capability.
-3. Williams and Bello (2024) investigated transactional integrity in higher education portals, establishing that row-level locking eliminates multi-user record collisions.
-4. Ahmadu and Ibrahim (2023) evaluated normalized database schemas for student services, reporting a 99.8% reduction in data redundancy.
-
-## 2.6 Limitations of Existing Systems
-- Vulnerability to race conditions during simultaneous user access.
-- Excessive dependence on complex external software dependencies.
-- Inadequate role-based security and audit trail logging.
-- Poor ergonomic design leading to low user satisfaction scores.
-
-## 2.7 Research Gap
-While existing literature explores general institutional automation, few systems combine zero-configuration offline execution, strict row-level transaction safety, and comprehensive audit telemetry tailored for Nigerian tertiary institutions. This project directly addresses this gap.
-
-## 2.8 Summary of Literature Review
-The review of literature confirms that computerized information systems provide superior efficiency, data integrity, and user satisfaction compared to manual workflows. Grounded in TAM and Relational Database Theory, this research implements an optimized architecture for ${topic}.`;
-  } else if (ch === 3) {
-    return `# CHAPTER THREE: SYSTEM ANALYSIS AND DESIGN
-
-## 3.1 Introduction
-This chapter details the analysis of the current operational procedures, system requirements, architectural modeling, database design, and algorithmic workflows for ${topic}.
-
-## 3.2 Analysis of the Existing System
-The existing system at ${caseStudy} relies upon manual paperwork, physical verification queues, and decentralized spreadsheet logs. When a user initiates a transaction, staff must cross-examine physical ledgers, manually issue receipts, and physically file documents.
-### 3.2.1 Problems of the Existing System
-- High transactional latency requiring several business days to conclude basic requests.
-- Susceptibility to human errors, lost application dockets, and transcription mistakes.
-- Complete absence of real-time concurrency control during peak registration rushes.
-
-## 3.3 Analysis of the Proposed System
-The proposed system automates the entire lifecycle of ${topic}. Users authenticate digitally, submit parameters, receive immediate algorithmic validation, and generate verifiable electronic dockets.
-
-## 3.4 Objectives of the Proposed System
-- Reduce transactional processing latency from multiple business days to under two minutes.
-- Maintain 100% data integrity with zero duplicate record collisions.
-- Provide administrative dashboards with real-time operational telemetry.
-
-## 3.5 System Development Methodology
-The study adopted the Agile Scrum methodology, organizing development into 2-week sprints comprising requirements refinement, database schema design, UI implementation, and continuous testing.
-
-## 3.6 Feasibility Study
-- Technical Feasibility: The Python runtime, SQLite engine, and HTML5 interfaces operate seamlessly across existing institutional hardware.
-- Economic Feasibility: Developed using open-source tools with zero commercial licensing costs, ensuring high return on investment.
-- Operational Feasibility: Intuitive user interfaces require minimal onboarding, ensuring enthusiastic user adoption.
-
-## 3.7 System Architecture
-The system adopts a decoupled 3-tier architecture:
-1. Presentation Layer: Responsive HTML5, Tailwind CSS, and client-side JavaScript.
-2. Business Logic Layer: Python HTTP API coordinating transaction validation, security checks, and routing.
-3. Database Layer: Relational DBMS enforcing primary/foreign key constraints and ACID isolation.
-
-## 3.8 Data Flow Analysis & Models
-- Context Diagram: Illustrates the high-level boundary between external actors (Students, Staff, Administrators) and the centralized core system.
-- Level-1 Data Flow Diagram: Traces data flows across Authentication, Application Processing, Record Validation, and Report Generation.
-
-## 3.9 Database Design & Data Dictionary
-### Table 3.1: Users Entity Structure
-| Field Name | Data Type | Size | Constraint | Description |
-|---|---|---|---|---|
-| user_id | INTEGER | - | PRIMARY KEY | Unique user identifier |
-| username | VARCHAR | 50 | UNIQUE, NOT NULL | Authentication username |
-| password_hash | VARCHAR | 255 | NOT NULL | BCrypt hashed password |
-| full_name | VARCHAR | 100 | NOT NULL | Full name of user |
-| role | VARCHAR | 20 | NOT NULL | User role (admin/user) |
-| created_at | TIMESTAMP | - | DEFAULT CURRENT | Registration timestamp |
-
-### Table 3.2: Primary Operational Records Structure
-| Field Name | Data Type | Size | Constraint | Description |
-|---|---|---|---|---|
-| record_id | INTEGER | - | PRIMARY KEY | Unique record identifier |
-| user_id | INTEGER | - | FOREIGN KEY | Associated user ID |
-| title | VARCHAR | 150 | NOT NULL | Operational request title |
-| category | VARCHAR | 50 | DEFAULT 'general' | Categorical classification |
-| status | VARCHAR | 25 | DEFAULT 'active' | Transactional status |
-| updated_at | TIMESTAMP | - | DEFAULT CURRENT | Last modification date |
-
-## 3.10 System Flowchart & Algorithm Logic
-The core algorithm executes input validation, queries the relational database for conflict detection, acquires row-level locks, commits the transactional update, and issues digital confirmation.`;
-  } else if (ch === 4) {
-    return `# CHAPTER FOUR: SYSTEM IMPLEMENTATION AND EVALUATION
-
-## 4.1 Introduction
-This chapter presents the implementation walkthrough, development environment specifications, testing protocols, and empirical evaluation metrics for ${topic}.
-
-## 4.2 System Development Environment
-### Hardware Specifications:
-- Processor: Intel Core i5 / AMD Ryzen 5 (2.5 GHz or higher)
-- Memory: 8 GB DDR4 RAM
-- Storage: 256 GB Solid State Drive (SSD)
-### Software Specifications:
-- Operating System: Microsoft Windows 10/11 / Ubuntu Linux 22.04 LTS
-- Programming Language: Python 3.9+
-- Database Engine: SQLite 3 / PostgreSQL 15
-- Development Tools: Visual Studio Code, Git
-
-## 4.3 System Implementation Architecture
-The platform was implemented using modular design patterns. Core subsystems include the cryptographic authentication handler, the transactional operational engine, the administrative management console, and the automated reporting module.
-
-## 4.4 Database Implementation
-The database schema was generated using structured SQL DDL scripts. Relational integrity constraints, unique indexes, and foreign key cascades were verified to ensure zero orphaned records.
-
-## 4.5 Description of System Modules
-1. Authentication Module: Enforces secure credential validation, session handling, and role-based permissions.
-2. Operational Core Module: Handles user submissions, validation checks, and automatic record generation.
-3. Administrative Control Console: Allows authorized personnel to oversee system activities, approve requests, and monitor logs.
-4. Reporting & Analytics Module: Compiles operational metrics into printable rosters and summary tables.
-
-## 4.6 User Interface Design
-- Home / Authentication Screen: Clean login portal with credential inputs and validation feedback.
-- Dashboard Interface: Presents active records, status indicators, and one-click action buttons.
-- Administrative Telemetry Portal: Interactive charts and management tables summarizing organizational metrics.
-
-## 4.7 Testing of the System
-System quality assurance encompassed Unit Testing, Integration Testing, and System Stress Testing.
-
-## 4.8 Test Cases and Results
-### Table 4.1: Test Execution Matrix
-| Test ID | Module Tested | Input Data | Expected Result | Actual Result | Status |
-|---|---|---|---|---|---|
-| TC-01 | User Authentication | Valid credentials | Grant access to dashboard | Access granted | PASS |
-| TC-02 | User Authentication | Invalid password | Display error notification | Error displayed | PASS |
-| TC-03 | Record Submission | Complete valid form | Insert row, return 200 OK | Row inserted | PASS |
-| TC-04 | Duplicate Prevention | Existing unique key | Reject duplicate with 409 | Duplicate rejected | PASS |
-| TC-05 | Report Generation | Date range filter | Output filtered dataset | Dataset generated | PASS |
-
-## 4.9 Results Obtained & Empirical Metrics
-Stress benchmarking simulating 500 simultaneous user requests recorded an average transaction latency of 38.4 ms with 0.00% data collision errors. User Acceptance Testing (UAT) conducted with 50 participants yielded an average System Usability Scale (SUS) score of 88.5 out of 100.
-
-## 4.10 Discussion of Results
-Empirical findings confirm that the automated system significantly outperforms legacy manual methods, reducing request clearance times by over 92% and eliminating human transcription errors.
-
-## 4.11 Advantages of the Developed System
-- Sub-second transaction response times.
-- Zero duplicate record errors under concurrent usage.
-- High usability requiring minimal user training.
-
-## 4.12 Limitations of the Developed System
-- Requires computing devices with modern web browsers.
-- Dependent on stable institutional electrical power supply.
-
-## 4.13 Summary of Implementation
-The implementation and testing verified that the developed software fulfills all functional and non-functional requirements specified in Chapter Three.`;
-  } else {
-    return `# CHAPTER FIVE: SUMMARY, CONCLUSIONS AND RECOMMENDATIONS
-
-## 5.1 Introduction
-This concluding chapter summarizes the achievements of the research, states definitive conclusions, highlights contributions to knowledge, and offers actionable recommendations.
-
-## 5.2 Summary of the Project
-This research dissertation designed, developed, tested, and empirically evaluated an automated system for ${topic} at ${caseStudy}, ${institution}. Grounded in Agile methodology and Relational Database Theory, the platform replaces prone manual paperwork with a decoupled 3-tier architecture ensuring ACID transactional safety.
-
-## 5.3 Summary of Findings
-1. The automated platform reduces request processing time from multiple days to under two minutes.
-2. Relational database constraints and automated validation completely eliminate duplicate records.
-3. Centralized digital persistence enables instant generation of administrative reports and audit logs.
-4. User Acceptance Testing confirmed high satisfaction with a System Usability Scale (SUS) score of 88.5/100.
-
-## 5.4 Conclusions
-The research successfully accomplished all stated aim and specific objectives. The developed software provides an efficient, reliable, and transparent platform that overcomes the operational bottlenecks of manual methods. It is concluded that automating ${topic} substantially enhances institutional productivity and service delivery.
-
-## 5.5 Contributions to Knowledge
-- Theoretical Contribution: Demonstrates the practical integration of Relational Database Theory and TAM in Nigerian tertiary institutional workflows.
-- Technical Contribution: Engineered a turnkey, zero-dependency Python + SQLite architecture ensuring high-performance transactional execution.
-- Institutional Contribution: Delivered a ready-to-deploy operational platform for ${caseStudy} that eliminates registration queues and transcription errors.
-
-## 5.6 Recommendations
-### 5.6.1 Recommendations for the Tertiary Institution
-- Fully integrate the developed software into the central university information technology infrastructure.
-- Provide modern computing terminals and continuous electrical power backup in administrative offices.
-### 5.6.2 Recommendations for System Administrators
-- Enforce strict database backup schedules to safeguard institutional data against storage failures.
-- Conduct regular user access reviews to maintain role-based security integrity.
-### 5.6.3 Recommendations for Future Research
-- Future researchers can extend the architecture to include native mobile applications with biometric multi-factor authentication.
-- Machine learning models can be incorporated for predictive resource allocation and anomaly detection.`;
   }
 }

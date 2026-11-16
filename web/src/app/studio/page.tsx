@@ -31,6 +31,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
+import { generateDynamicChapterText } from '@/lib/academic-chapters';
 import CourseSelect from '@/components/ui/CourseSelect';
 import InstitutionSelect from '@/components/ui/InstitutionSelect';
 import { useAuth } from '@/context/AuthContext';
@@ -44,6 +45,147 @@ const CHAPTERS = [
   { id: 'ch5', title: 'Chapter 5: Summary & Recommendations', subtitle: 'Contributions & APA 7th References' },
   { id: 'toc', title: 'Table of Contents', subtitle: '2-Column Borderless Dot Leaders' },
 ];
+
+function renderCleanAcademicThesis(rawText: string) {
+  if (!rawText) return null;
+  const lines = rawText.split('\n');
+  const elements: React.ReactNode[] = [];
+  let currentTableRows: string[][] = [];
+
+  const flushTable = (k: number) => {
+    if (currentTableRows.length > 0) {
+      const rows = [...currentTableRows];
+      currentTableRows = [];
+      elements.push(
+        <div key={`table-${k}`} className="overflow-x-auto my-4 rounded-xl border border-slate-200">
+          <table className="w-full text-left text-xs">
+            <tbody>
+              {rows.map((row, rIdx) => {
+                const isHeader = rIdx === 0;
+                return (
+                  <tr
+                    key={rIdx}
+                    className={
+                      isHeader
+                        ? 'bg-slate-100 font-bold text-slate-900 border-b border-slate-200'
+                        : 'border-b border-slate-100 last:border-b-0 hover:bg-slate-50'
+                    }
+                  >
+                    {row.map((cell, cIdx) => (
+                      <td key={cIdx} className="p-2.5 border-r border-slate-200 last:border-r-0">
+                        {cell.replace(/[*_#`]/g, '').trim()}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+  };
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      const cells = trimmed.split('|').slice(1, -1).map(c => c.trim());
+      if (cells.every(c => /^[-:]+$/.test(c))) return;
+      currentTableRows.push(cells);
+      return;
+    } else {
+      flushTable(idx);
+    }
+
+    // Heading 1: starts with "# " or "CHAPTER ONE"
+    if (/^#\s+/.test(trimmed) || /^CHAPTER\s+[A-Z0-9]+:/i.test(trimmed)) {
+      const title = trimmed.replace(/^#+\s*/, '').replace(/[*_#`]/g, '').trim();
+      elements.push(
+        <h2 key={idx} className="text-center font-bold text-sm md:text-base uppercase tracking-wider text-slate-900 mt-6 mb-3">
+          {title}
+        </h2>
+      );
+      return;
+    }
+
+    // Heading 2: starts with "## " or "1.1 Background"
+    const cleanNoMd = trimmed.replace(/^#+\s*/, '').replace(/[*_#`]/g, '').trim();
+    const isH2 = /^##\s+/.test(trimmed) || /^(\*{0,2}\d+\.\d+\s+[A-Za-z].*?\*{0,2})$/.test(trimmed);
+    if (isH2 && cleanNoMd.length < 130 && !cleanNoMd.endsWith('.')) {
+      elements.push(
+        <h3 key={idx} className="font-bold text-xs md:text-sm text-slate-900 mt-5 mb-2 pb-1 border-b border-slate-200">
+          {cleanNoMd}
+        </h3>
+      );
+      return;
+    }
+
+    // Heading 3: starts with "### " or "1.3.1 Aim"
+    const isH3 = /^###+\s+/.test(trimmed) || /^(\*{0,2}\d+\.\d+\.\d+\s+[A-Za-z].*?\*{0,2})$/.test(trimmed);
+    if (isH3 && cleanNoMd.length < 130 && !cleanNoMd.endsWith('.')) {
+      elements.push(
+        <h4 key={idx} className="font-bold text-xs text-slate-800 mt-4 mb-1.5 italic">
+          {cleanNoMd}
+        </h4>
+      );
+      return;
+    }
+
+    // Bullet points: starts with "- ", "* ", "+ "
+    if (/^[-*+]\s+/.test(trimmed)) {
+      const bulletRaw = trimmed.replace(/^[-*+]\s+/, '').trim();
+      const colonMatch = bulletRaw.match(/^(\*{0,2}[A-Za-z0-9\s/&-]{2,50}\*{0,2}):\s*(.*)$/);
+      if (colonMatch) {
+        const label = colonMatch[1].replace(/[*_#`]/g, '').trim();
+        const body = colonMatch[2].replace(/[*_#`]/g, '').trim();
+        elements.push(
+          <div key={idx} className="flex items-start gap-2 pl-4 text-xs md:text-sm text-slate-800 my-1">
+            <span className="text-blue-600 font-bold">•</span>
+            <span>
+              <strong className="text-slate-900">{label}:</strong> {body}
+            </span>
+          </div>
+        );
+      } else {
+        const cleanBullet = bulletRaw.replace(/[*_#`]/g, '').trim();
+        elements.push(
+          <div key={idx} className="flex items-start gap-2 pl-4 text-xs md:text-sm text-slate-800 my-1">
+            <span className="text-blue-600 font-bold">•</span>
+            <span>{cleanBullet}</span>
+          </div>
+        );
+      }
+      return;
+    }
+
+    // Numbered lists: "1. ", "2. "
+    if (/^\d+\.\s+/.test(trimmed)) {
+      const numMatch = trimmed.match(/^(\d+\.)\s+(.*)$/);
+      if (numMatch) {
+        elements.push(
+          <div key={idx} className="flex items-start gap-2 pl-4 text-xs md:text-sm text-slate-800 my-1">
+            <span className="font-bold text-slate-900">{numMatch[1]}</span>
+            <span>{numMatch[2].replace(/[*_#`]/g, '').trim()}</span>
+          </div>
+        );
+        return;
+      }
+    }
+
+    // Regular paragraph: strip markdown and render with indent
+    const cleanParagraph = trimmed.replace(/[*_#`]/g, '').trim();
+    elements.push(
+      <p key={idx} className="indent-8 text-justify text-xs md:text-sm text-slate-800 leading-relaxed font-serif my-2.5">
+        {cleanParagraph}
+      </p>
+    );
+  });
+
+  flushTable(99999);
+  return <div className="space-y-1">{elements}</div>;
+}
 
 function StudioMain() {
   const searchParams = useSearchParams();
@@ -207,21 +349,28 @@ function StudioMain() {
     }
 
     setIsGeneratingProject(true);
-    setStatusNotice('Generating complete defense-grade academic suite with AI...');
+    setStatusNotice('Generating complete 5-chapter dissertation and academic suite with Groq AI...');
 
     try {
-      const res = await fetch('/api/ai/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          toolId: 'thesis',
-          topic: topic.trim(),
-          course: course || 'Computer Science',
-          institution: institution || 'Tertiary Educational Institution',
-          prompt: `Generate a defense-grade 5-chapter dissertation summary for "${topic}". Include Chapter 1 Background, Problem Statement, Objectives; Chapter 2 Literature Review & Theories; Chapter 3 System Architecture & Methodology; Chapter 4 Implementation & Empirical Results; and Chapter 5 Summary & Conclusion.`,
-        }),
-      });
-      const data = await res.json();
+      let data: any = {};
+      try {
+        const res = await fetch('/api/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            toolId: 'thesis-all',
+            generateAllChapters: true,
+            topic: topic.trim(),
+            course: course || 'Computer Science',
+            institution: institution || 'Tertiary Educational Institution',
+            caseStudy: caseStudy || effectiveCaseStudy,
+          }),
+        });
+        data = await res.json();
+      } catch (fetchErr) {
+        console.warn('API call encountered error, using comprehensive academic fallback:', fetchErr);
+        data = {};
+      }
 
       const topicSlug = topic.toLowerCase().replace(/[^a-z0-9]/g, '_');
       const appCode = `# ==============================================================================
@@ -358,14 +507,33 @@ pause
         }
       ];
 
-      const ch1Text = data.content || `Chapter 1: Introduction for ${topic.trim()}\n\n1.1 Background of the Study\nIn modern tertiary educational institutions such as ${effectiveInstitution}, automated management systems represent a critical requirement to streamline administrative and academic workflows. Historically, operations relied on manual procedures which are prone to delays and errors. This research implements an automated framework for ${effectiveCaseStudy}.\n\n1.2 Statement of the Problem\nThe manual operational procedures within ${effectiveCaseStudy} exhibit significant latency and inconsistencies. This research provides a resilient, modern digital architecture.\n\n1.3 Aim and Objectives\nThe primary aim is to develop a reliable system for ${topic.trim()}.`;
+      const returnedChapters = data.chapters || {};
+      const ch1 = (returnedChapters.ch1 && returnedChapters.ch1.length > 800)
+        ? returnedChapters.ch1
+        : (data.content && data.content.length > 800 ? data.content : generateDynamicChapterText(topic, course, institution, caseStudy, 1));
+
+      const ch2 = (returnedChapters.ch2 && returnedChapters.ch2.length > 800)
+        ? returnedChapters.ch2
+        : generateDynamicChapterText(topic, course, institution, caseStudy, 2);
+
+      const ch3 = (returnedChapters.ch3 && returnedChapters.ch3.length > 800)
+        ? returnedChapters.ch3
+        : generateDynamicChapterText(topic, course, institution, caseStudy, 3);
+
+      const ch4 = (returnedChapters.ch4 && returnedChapters.ch4.length > 800)
+        ? returnedChapters.ch4
+        : generateDynamicChapterText(topic, course, institution, caseStudy, 4);
+
+      const ch5 = (returnedChapters.ch5 && returnedChapters.ch5.length > 800)
+        ? returnedChapters.ch5
+        : generateDynamicChapterText(topic, course, institution, caseStudy, 5);
 
       setGeneratedThesis({
-        ch1: ch1Text,
-        ch2: `Chapter 2: Literature Review\n\n2.1 Theoretical Framework\nThis study is grounded in modern distributed software engineering, concurrency control, and database normalization paradigms (Laudon & Laudon, 2024).\n\n2.2 Review of Related Empirical Systems\nComparative analysis confirms that automated architectures provide over 85% reduction in latency compared to manual paper-based methodologies.`,
-        ch3: `Chapter 3: System Methodology & Architecture\n\n3.1 Research Methodology\nThe system utilizes the Agile Scrum framework across iterative development sprints.\n\n3.2 Architecture Design\nA decoupled multi-tier architecture separates presentation from relational ACID persistence.`,
-        ch4: `Chapter 4: Implementation and Testing\n\n4.1 Implementation Environment\nBuilt using Python and SQLite relational persistence with zero external pip dependencies.\n\n4.2 Testing & Benchmarking\nComprehensive stress tests confirmed zero race conditions and sub-second response times across simulated user loads.`,
-        ch5: `Chapter 5: Summary, Conclusion, and Recommendations\n\n5.1 Summary\nThe automated system for ${topic.trim()} was successfully designed, developed, and verified.\n\n5.2 Recommendations\nRecommended for full production deployment across departmental workstations.`
+        ch1,
+        ch2,
+        ch3,
+        ch4,
+        ch5,
       });
 
       setGeneratedFiles({
@@ -839,8 +1007,10 @@ pause
                   <h2 className="text-base font-bold uppercase tracking-wide text-slate-900 text-center mb-4">
                     {CHAPTERS.find(c => c.id === activeChapter)?.title}
                   </h2>
-                  <div className="text-justify text-xs md:text-sm text-slate-800 leading-relaxed font-serif whitespace-pre-line space-y-4">
-                    {generatedThesis[activeChapter] || generatedThesis['ch1'] || (
+                  <div className="text-justify text-xs md:text-sm text-slate-800 leading-relaxed font-serif">
+                    {generatedThesis[activeChapter] || generatedThesis['ch1'] ? (
+                      renderCleanAcademicThesis(generatedThesis[activeChapter] || generatedThesis['ch1'])
+                    ) : (
                       <p className="italic text-slate-500 text-center py-8">
                         Chapter content ready for synthesis. Use the AI Co-Pilot or click Download Full (.docx) to export the complete dissertation.
                       </p>

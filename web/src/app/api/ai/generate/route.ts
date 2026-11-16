@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authorizeAndDeductCredits, ToolKey } from '@/lib/credits';
-import { generateAcademicAI } from '@/lib/ai';
+import { generateAcademicAI, buildChapterUserPrompt } from '@/lib/ai';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,6 +9,7 @@ export async function POST(req: NextRequest) {
     const topic = rawBody.topic || rawBody.context?.topic || rawBody.projectName || '';
     const course = rawBody.course || rawBody.context?.course || rawBody.department || 'Computer Science / Engineering';
     const institution = rawBody.institution || rawBody.context?.institution || 'Nigerian Tertiary Institution';
+    const caseStudy = rawBody.caseStudy || institution;
     const chapterNumber = rawBody.chapterNumber;
     const prompt = rawBody.prompt || rawBody.userQuery || '';
     const deductCredits = rawBody.deductCredits === true;
@@ -40,15 +41,67 @@ export async function POST(req: NextRequest) {
 Topic: "${topic || prompt}"
 Department / Course: "${course}"
 Institution: "${institution}"
-Adhere strictly to formal academic English, APA 7th referencing with Crossref DOIs, clean mathematical derivations with LaTeX, and NUC benchmark criteria.`;
+Adhere strictly to formal academic English, APA 7th referencing with Crossref DOIs, clean mathematical derivations with LaTeX, and NUC benchmark criteria. Write comprehensive, deep, multi-paragraph scholarly analyses without raw Markdown syntax (no asterisks or hashes in headings or prose).`;
 
-    const userQuery = prompt || `Generate an exhaustive academic section for Chapter ${chapterNumber || 1} on the topic: "${topic}". Include introduction, theoretical framework, methodology/implementation analysis, and references.`;
+    // Multi-Chapter Batch Generation for Academic Studio
+    if (rawBody.generateAllChapters === true || rawBody.toolId === 'thesis-all') {
+      const chapters: Record<string, string> = {};
+      const chapterPromises = [1, 2, 3, 4, 5].map(async (chNum) => {
+        try {
+          const chPrompt = buildChapterUserPrompt({
+            topic,
+            course,
+            institution,
+            chapterNumber: chNum,
+            caseStudy,
+          });
+          const res = await generateAcademicAI({
+            prompt: chPrompt,
+            systemPrompt,
+            temperature: 0.65,
+            maxTokens: 4000,
+            preferredProvider: 'groq',
+          });
+          return { ch: `ch${chNum}`, content: res.content };
+        } catch {
+          return { ch: `ch${chNum}`, content: '' };
+        }
+      });
+
+      const results = await Promise.all(chapterPromises);
+      results.forEach(r => {
+        if (r.content) chapters[r.ch] = r.content;
+      });
+
+      return NextResponse.json({
+        success: true,
+        chapters,
+        topic,
+        course,
+        institution,
+        ...creditInfo,
+      });
+    }
+
+    let userQuery = prompt;
+    if (!userQuery && chapterNumber) {
+      userQuery = buildChapterUserPrompt({
+        topic,
+        course,
+        institution,
+        chapterNumber: Number(chapterNumber),
+        caseStudy,
+      });
+    } else if (!userQuery) {
+      userQuery = `Generate an exhaustive academic section for Chapter ${chapterNumber || 1} on the topic: "${topic}". Include introduction, theoretical framework, methodology/implementation analysis, and references.`;
+    }
 
     const aiRes = await generateAcademicAI({
       prompt: userQuery,
       systemPrompt,
       temperature: 0.7,
       maxTokens: 4000,
+      preferredProvider: 'groq',
     });
 
     return NextResponse.json({
