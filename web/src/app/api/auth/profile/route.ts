@@ -29,10 +29,10 @@ export async function GET() {
         fullName: user.fullName,
         matricNumber: user.matricNumber || '',
         institution: user.institution || '',
-        department: user.department || 'Computer Science',
+        department: user.department || '',
         phone: user.phone || '',
-        degreeLevel: user.degreeLevel || 'B.Sc',
-        graduationYear: user.graduationYear || '2026',
+        degreeLevel: user.degreeLevel || '',
+        graduationYear: user.graduationYear || '',
         preferences: user.preferences || {
           citationFormat: 'apa7',
           lineSpacing: '1.5',

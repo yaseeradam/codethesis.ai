@@ -539,27 +539,25 @@ function DashboardMain() {
             }`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/60 flex-shrink-0">
-                <Image
-                  src="/assets/avatar_adebayo.jpg"
-                  alt="Student Avatar"
-                  fill
-                  className="object-cover"
-                />
+              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/60 flex-shrink-0 bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                {user?.fullName ? (
+                  <span>{user.fullName.trim()[0].toUpperCase()}</span>
+                ) : (
+                  <Image
+                    src="/assets/avatar_adebayo.jpg"
+                    alt="Student Avatar"
+                    fill
+                    className="object-cover"
+                  />
+                )}
               </div>
               {!isSidebarCollapsed && (
                 <div className="leading-tight overflow-hidden">
                   <p className="text-xs font-bold text-white truncate">
-                    {user?.fullName || 'Adebayo Tunde'}
+                    {user?.fullName || 'Scholar'}
                   </p>
                   <p className="text-[10px] text-cyan-300/80 truncate">
-                    {user?.institution
-                      ? user.institution.includes('FUTA')
-                        ? 'FUTA Student'
-                        : user.institution.includes('UNILAG')
-                        ? 'UNILAG Student'
-                        : user.institution
-                      : 'FUTA Student'}
+                    {user?.institution || 'Student'}
                   </p>
                 </div>
               )}
@@ -665,7 +663,7 @@ function DashboardMain() {
             <div className="mt-4 pt-3 border-t border-slate-800/80">
               <div className="flex items-center justify-between px-2 mb-2">
                 <span className="text-[11px] text-slate-400 font-medium truncate max-w-[160px]">
-                  {user?.fullName || 'Adebayo Tunde'}
+                  {user?.fullName || 'Scholar'}
                 </span>
                 <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
                   {currentCredits} Credits
@@ -786,7 +784,7 @@ function DashboardMain() {
               {/* Left Copy & Buttons */}
               <div className="lg:col-span-7 z-10">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white">
-                  Welcome back, <span className="text-[#38BDF8]">Adebayo!</span> 👋
+                  Welcome back, <span className="text-[#38BDF8]">{user?.fullName ? user.fullName.trim().split(/\s+/)[0] : 'Scholar'}!</span> 👋
                 </h1>
                 <p className="text-xs sm:text-sm font-medium text-slate-200 mt-1.5">
                   Your all-in-one academic engineering workspace.

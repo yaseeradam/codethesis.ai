@@ -274,29 +274,23 @@ export default function AppLayout({
             }`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/60 flex-shrink-0">
-                <Image
-                  src={
-                    user?.email === 'imusa@futa.edu.ng'
-                      ? '/assets/avatar_ibrahim.jpg'
-                      : '/assets/avatar_adebayo.jpg'
-                  }
-                  alt="Student Avatar"
-                  fill
-                  className="object-cover"
-                />
+              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/60 flex-shrink-0 bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                {user?.fullName ? (
+                  <span>{user.fullName.trim()[0].toUpperCase()}</span>
+                ) : (
+                  <Image
+                    src="/assets/avatar_adebayo.jpg"
+                    alt="Student Avatar"
+                    fill
+                    className="object-cover"
+                  />
+                )}
               </div>
               {!isSidebarCollapsed && (
                 <div className="leading-tight overflow-hidden">
                   <p className="text-xs font-bold text-white truncate">{studentName}</p>
                   <p className="text-[10px] text-cyan-300/80 truncate">
-                    {user?.institution
-                      ? user.institution.includes('FUTA')
-                        ? 'FUTA Student'
-                        : user.institution.includes('UNILAG')
-                        ? 'UNILAG Student'
-                        : user.institution
-                      : 'Active Student'}
+                    {user?.institution || 'Student'}
                   </p>
                 </div>
               )}

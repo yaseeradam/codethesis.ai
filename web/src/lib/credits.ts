@@ -12,8 +12,8 @@ export interface CreditCheckResult {
 }
 
 /**
- * Validates and deducts credits for a student running an academic generation tool.
- * Falls back to demo student if no active session is present.
+ * Validates and deducts credits for an authenticated student running an academic generation tool.
+ * Requires an active database user session.
  */
 export async function authorizeAndDeductCredits(
   toolKey: ToolKey,

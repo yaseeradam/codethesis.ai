@@ -14,29 +14,36 @@
       "plan": "free",
       "credits": 15,
       "status": "active",
-      "role": "student",
+      "role": "admin",
       "createdAt": "2026-11-15T21:35:16.509Z",
       "preferences": {
         "pythonGui": "tkinter",
         "lineSpacing": "1.5",
         "citationFormat": "apa7"
       }
-    },
-    {
-      "id": "demo-admin-001",
-      "email": "admin@codethesis.ai",
-      "passwordHash": "17bf931e22d8ba01b31552c6739f353dd6e95aeabe29a514d9f92436bd70ec0d",
-      "fullName": "System Administrator",
-      "plan": "faculty",
-      "credits": 9999,
-      "role": "admin",
-      "status": "active",
-      "createdAt": "2026-11-16T04:46:00.889Z"
     }
   ],
   "projects": [],
   "transactions": [],
   "creditLogs": [
+    {
+      "id": "log-df5b9732",
+      "userId": "usr-54194169",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "createdAt": "2026-11-16T07:44:58.110Z"
+    },
+    {
+      "id": "log-ddeb7bbb",
+      "userId": "usr-9711c1fd",
+      "amount": 15,
+      "type": "signup_bonus",
+      "balanceAfter": 15,
+      "description": "Welcome bonus: 15 free academic credits granted on signup",
+      "createdAt": "2026-11-16T07:35:06.424Z"
+    },
     {
       "id": "log-f586f518",
       "userId": "usr-81f054a4",
@@ -129,6 +136,50 @@
   ],
   "vivaSessions": [],
   "authAuditLogs": [
+    {
+      "id": "audit-24fa6cff",
+      "userId": "usr-54194169",
+      "email": "scholar_1794815093451@unilag.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-16T07:45:06.176Z"
+    },
+    {
+      "id": "audit-1b9162fc",
+      "userId": "usr-54194169",
+      "email": "scholar_1794815093451@unilag.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "timestamp": "2026-11-16T07:45:00.299Z"
+    },
+    {
+      "id": "audit-5e51ea97",
+      "userId": "usr-9711c1fd",
+      "email": "scholar_1794814503913@unilag.edu.ng",
+      "action": "signin_failed",
+      "ip": "::1",
+      "metadata": {
+        "reason": "invalid_password"
+      },
+      "timestamp": "2026-11-16T07:35:14.081Z"
+    },
+    {
+      "id": "audit-672eb2d1",
+      "userId": "usr-9711c1fd",
+      "email": "scholar_1794814503913@unilag.edu.ng",
+      "action": "signin_success",
+      "ip": "::1",
+      "metadata": {
+        "loginType": "credentials"
+      },
+      "timestamp": "2026-11-16T07:35:08.892Z"
+    },
     {
       "id": "audit-fec73c0e",
       "userId": "usr-81f054a4",

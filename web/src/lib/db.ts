@@ -298,19 +298,7 @@ function ensureDb() {
   }
   if (!fs.existsSync(DB_FILE)) {
     const initialData: DatabaseSchema = {
-      users: [
-        {
-          id: 'admin-001',
-          email: 'admin@codethesis.ai',
-          passwordHash: hashPassword('admin123'),
-          fullName: 'System Administrator',
-          plan: 'faculty',
-          credits: 9999,
-          role: 'admin',
-          status: 'active',
-          createdAt: new Date().toISOString(),
-        }
-      ],
+      users: [],
       authAuditLogs: [],
       projects: [],
       transactions: [],

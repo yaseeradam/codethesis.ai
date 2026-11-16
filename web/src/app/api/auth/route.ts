@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByEmail, createUser, hashPassword, User } from '@/lib/db';
+import { getUserByEmail, createUser, verifyPassword, User } from '@/lib/db';
 import { createSessionToken, COOKIE_NAME, getCurrentUser } from '@/lib/auth';
 
 export async function GET() {
@@ -70,8 +70,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
       }
 
-      const expectedHash = hashPassword(password);
-      if (user.passwordHash !== expectedHash) {
+      if (!verifyPassword(password, user.passwordHash)) {
         return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
       }
 

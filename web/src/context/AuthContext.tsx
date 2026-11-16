@@ -41,7 +41,6 @@ interface AuthContextType {
   user: SafeUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  loginDemo: (role?: 'adebayo' | 'ibrahim' | 'chioma' | 'admin') => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: (firebaseUser: { email: string; fullName: string; photoURL?: string; uid?: string }) => Promise<{ success: boolean; error?: string }>;
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
@@ -55,7 +54,6 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
   login: async () => ({ success: false }),
-  loginDemo: async () => ({ success: false }),
   loginWithGoogle: async () => ({ success: false }),
   register: async () => ({ success: false }),
   logout: async () => {},
@@ -123,31 +121,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: any) {
       setIsLoading(false);
       return { success: false, error: err.message || 'Login request failed' };
-    }
-  };
-
-  const loginDemo = async (role: 'adebayo' | 'ibrahim' | 'chioma' | 'admin' = 'adebayo') => {
-    try {
-      setIsLoading(true);
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ demo: role }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setIsLoading(false);
-        return { success: false, error: data.error || 'Demo login failed' };
-      }
-      setUser(data.user);
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('credits-updated', { detail: { credits: data.user.credits } }));
-      }
-      setIsLoading(false);
-      return { success: true };
-    } catch (err: any) {
-      setIsLoading(false);
-      return { success: false, error: err.message || 'Demo login request failed' };
     }
   };
 
@@ -282,7 +255,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isLoading,
         login,
-        loginDemo,
         loginWithGoogle,
         register,
         logout,

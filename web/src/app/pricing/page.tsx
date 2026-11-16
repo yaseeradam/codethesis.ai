@@ -82,9 +82,14 @@ export default function PricingPage() {
   ];
 
   async function handlePay(planName: string, amountNGN: number, credits: number) {
+    if (!user?.email) {
+      window.location.href = '/auth/login?returnTo=/pricing';
+      return;
+    }
+
     try {
       setIsProcessing(true);
-      const userEmail = user?.email || 'student@futa.edu.ng';
+      const userEmail = user.email;
       const res = await fetch('/api/payments/paystack/initialize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

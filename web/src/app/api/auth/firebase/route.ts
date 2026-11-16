@@ -31,10 +31,8 @@ export async function POST(req: NextRequest) {
           email: normalizedEmail,
           fullName: fullName?.trim() || normalizedEmail.split('@')[0],
           password: crypto.randomBytes(16).toString('hex'), // Secure random password
-          matricNumber: 'GOOG/CSC/26/' + Math.floor(1000 + Math.random() * 9000),
-          institution: normalizedEmail.includes('.edu')
-            ? 'Institutional Scholar'
-            : 'Federal University of Technology, Akure',
+          matricNumber: '',
+          institution: '',
         });
       } catch (err: any) {
         // In case of race condition
