@@ -98,7 +98,9 @@ export default function AppLayout({
     { id: 'pricing', label: 'Billing & Credits', href: '/pricing', icon: CreditCard },
     { id: 'settings', label: 'Settings', href: '/settings', icon: Settings },
     { id: 'support', label: 'Help & Support', href: '/support', icon: Headphones },
-    { id: 'admin', label: 'Admin Controls', href: '/admin', icon: ShieldAlert, highlight: true },
+    ...(user?.role === 'admin'
+      ? [{ id: 'admin', label: 'Admin Controls', href: '/admin', icon: ShieldAlert, highlight: true }]
+      : []),
   ];
 
   return (

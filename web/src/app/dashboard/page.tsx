@@ -32,6 +32,7 @@ import {
   LayoutGrid,
   Star,
   ShieldCheck,
+  ShieldAlert,
   Coins,
   PanelLeftClose,
   PanelLeft,
@@ -496,6 +497,19 @@ function DashboardMain() {
                 </Link>
               );
             })}
+            {user?.role === 'admin' && (
+              <Link
+                href="/admin"
+                prefetch={false}
+                title="Admin Control Center"
+                className={`flex items-center rounded-xl text-xs font-semibold text-amber-300 hover:text-white hover:bg-white/5 transition-all active:scale-95 ${
+                  isSidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2'
+                }`}
+              >
+                <ShieldAlert className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                {!isSidebarCollapsed && <span className="truncate">Admin Controls</span>}
+              </Link>
+            )}
           </div>
         </div>
 
@@ -656,6 +670,16 @@ function DashboardMain() {
                     <span>{item.label}</span>
                   </Link>
                 ))}
+                {user?.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-amber-300 hover:text-white hover:bg-white/5"
+                  >
+                    <ShieldAlert className="w-4 h-4 text-amber-400" />
+                    <span>Admin Controls</span>
+                  </Link>
+                )}
               </div>
             </div>
 
