@@ -1,10 +1,28 @@
 // ==============================================================================
 // CodeThesis AI — Unified Multi-Provider Resilient AI Inference Engine
-// Providers: Google Gemini (2.5/3.8 Flash), Groq LPU (Qwen 3.8 27B / GPT-OSS 120B),
-//            OpenRouter (Llama 3.3 70B / Qwen 2.5 Coder 32B), and Academic Heuristics
+// Providers: Groq LPU (Qwen 3.8 27B / GPT-OSS 120B / GPT-OSS 20B with 15-Key Pool),
+//            Google Gemini (1.5 Flash), OpenRouter (Llama 3.3 70B), Academic Synthesis
 // ==============================================================================
 
 import { getAdminSettings } from '@/lib/db';
+
+export const GROQ_API_KEYS: string[] = [];
+
+let globalGroqKeyIndex = 0;
+
+export function getGroqPoolKeys(): string[] {
+  const envKeys = process.env.GROQ_API_KEYS
+    ? process.env.GROQ_API_KEYS.split(',').map((k) => k.trim()).filter(Boolean)
+    : [];
+  const combined = Array.from(
+    new Set([
+      ...envKeys,
+      process.env.GROQ_API_KEY || '',
+      process.env.GROQ_BACKUP_API_KEY || ''
+    ])
+  ).filter((k) => k && k.startsWith('gsk_'));
+  return combined.length > 0 ? combined : GROQ_API_KEYS;
+}
 
 export interface AIResponse {
   content: string;
@@ -44,28 +62,96 @@ export interface SolvedAssignmentResult {
  * Primary multi-tier resilient AI generation cascade
  */
 export async function generateAcademicAI(options: GenerateOptions): Promise<AIResponse> {
-  const adminSettings = await getAdminSettings();
-  const engineConfig = adminSettings?.aiEngine || {};
+  let engineConfig: any = {};
+  try {
+    const adminSettings = await Promise.race([
+      getAdminSettings(),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 1200))
+    ]);
+    engineConfig = adminSettings?.aiEngine || {};
+  } catch {
+    engineConfig = {};
+  }
 
-  const activeProvider = options.preferredProvider || engineConfig.activeProvider || 'gemini';
-  const temperature = options.temperature ?? engineConfig.temperature ?? 0.7;
+  // Prioritize Groq with the 15-key rotating pool for ultra-fast response
+  const activeProvider = options.preferredProvider || engineConfig.activeProvider || 'groq';
+  const temperature = options.temperature ?? engineConfig.temperature ?? 0.65;
   const maxTokens = options.maxTokens ?? engineConfig.maxTokens ?? 4000;
   const systemPrompt = options.systemPrompt || engineConfig.systemPromptOverride || 
     'You are CodeThesis AI, the authoritative academic engineering and scientific copilot for Nigerian and African tertiary university dissertations, technical defenses, and coursework.';
 
   const dynamicKeys = engineConfig.apiKeys || {};
   const geminiKey = dynamicKeys.gemini || process.env.GEMINI_API_KEY;
-  const groqKey = dynamicKeys.groq || process.env.GROQ_API_KEY;
-  const groqBackupKey = process.env.GROQ_BACKUP_API_KEY;
   const openrouterKey = (dynamicKeys as any).openrouter || process.env.OPENROUTER_API_KEY;
   const openaiKey = dynamicKeys.openai || process.env.OPENAI_API_KEY;
 
-  // 1. Google Gemini
+  // 1. Groq LPU with Round-Robin Key Pool (Fast inference at 500+ tok/s)
+  async function callGroq(targetModel = 'qwen/qwen3.8-27b'): Promise<AIResponse | null> {
+    const keyPool = getGroqPoolKeys();
+    const models = [targetModel, 'openai/gpt-oss-120b', 'openai/gpt-oss-20b'];
+
+    // Try keys from the pool up to 5 attempts
+    const maxKeyAttempts = Math.min(keyPool.length, 5);
+    for (let attempt = 0; attempt < maxKeyAttempts; attempt++) {
+      const keyIndex = (globalGroqKeyIndex + attempt) % keyPool.length;
+      const key = keyPool[keyIndex];
+
+      for (const m of models) {
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 25000);
+
+          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${key}`
+            },
+            body: JSON.stringify({
+              model: m,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: options.prompt }
+              ],
+              max_tokens: Math.min(maxTokens, 4000),
+              temperature
+            }),
+            signal: controller.signal
+          });
+          clearTimeout(timer);
+
+          if (res.ok) {
+            const data = await res.json();
+            const choice = data.choices?.[0];
+            const content = choice?.message?.content || choice?.message?.reasoning;
+            if (content && typeof content === 'string' && content.trim().length > 0) {
+              globalGroqKeyIndex = (keyIndex + 1) % keyPool.length; // advance pointer on success
+              return { content: content.trim(), provider: 'groq-lpu', model: m };
+            }
+          } else if (res.status === 429) {
+            console.warn(`Groq Key ${keyIndex + 1} rate limited (429), trying next key...`);
+            break; // Try next key in the pool
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            console.warn(`Groq (${m}) Key ${keyIndex + 1} error:`, errData);
+          }
+        } catch (err: any) {
+          console.warn(`Groq (${m}) Key ${keyIndex + 1} fetch error:`, err?.message || err);
+        }
+      }
+    }
+    return null;
+  }
+
+  // 2. Google Gemini
   async function callGemini(targetModel?: string): Promise<AIResponse | null> {
     if (!geminiKey) return null;
     const models = targetModel ? [targetModel] : ['gemini-1.5-flash', 'gemini-2.0-flash-exp'];
     for (const m of models) {
       try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 20000);
+
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -78,8 +164,9 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
             ],
             generationConfig: { temperature, maxOutputTokens: Math.min(maxTokens, 4000) }
           }),
-          signal: AbortSignal.timeout(4000),
+          signal: controller.signal,
         });
+        clearTimeout(timer);
 
         if (res.ok) {
           const data = await res.json();
@@ -95,51 +182,15 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
     return null;
   }
 
-  // 2. Groq LPU (Ultra-fast Llama 3.3 70B / Llama 3.1 8B)
-  async function callGroq(targetModel = 'llama-3.3-70b-versatile', keyToUse?: string): Promise<AIResponse | null> {
-    const key = keyToUse || groqKey;
-    if (!key) return null;
-    const models = [targetModel, 'llama-3.1-8b-instant'];
-    for (const m of models) {
-      try {
-        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${key}`
-          },
-          body: JSON.stringify({
-            model: m,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: options.prompt }
-            ],
-            max_tokens: Math.min(maxTokens, 4000),
-            temperature
-          }),
-          signal: AbortSignal.timeout(4000),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          const content = data.choices?.[0]?.message?.content;
-          if (content && typeof content === 'string' && content.trim().length > 0) {
-            return { content: content.trim(), provider: 'groq-lpu', model: m };
-          }
-        }
-      } catch (err) {
-        console.warn(`Groq (${m}) error:`, err);
-      }
-    }
-    return null;
-  }
-
-  // 3. OpenRouter (Llama 3.3 70B Instruct - High Reliability)
+  // 3. OpenRouter (Llama 3.3 70B Instruct)
   async function callOpenRouter(targetModel = 'meta-llama/llama-3.3-70b-instruct'): Promise<AIResponse | null> {
     if (!openrouterKey) return null;
     const models = [targetModel, 'meta-llama/llama-3.1-8b-instruct'];
     for (const m of models) {
       try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 20000);
+
         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -157,8 +208,9 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
             max_tokens: Math.min(maxTokens, 4000),
             temperature
           }),
-          signal: AbortSignal.timeout(8000),
+          signal: controller.signal,
         });
+        clearTimeout(timer);
 
         if (res.ok) {
           const data = await res.json();
@@ -178,6 +230,9 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
   async function callOpenAI(): Promise<AIResponse | null> {
     if (!openaiKey) return null;
     try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000);
+
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -192,8 +247,10 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
           ],
           max_tokens: Math.min(maxTokens, 3000),
           temperature
-        })
+        }),
+        signal: controller.signal
       });
+      clearTimeout(timer);
 
       if (res.ok) {
         const data = await res.json();
@@ -212,11 +269,11 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
   // If user has a preference, run preferred first
   if (activeProvider && activeProvider !== 'heuristic') {
     tried.add(activeProvider);
-    if (activeProvider === 'gemini') {
-      const res = await callGemini();
-      if (res) return res;
-    } else if (activeProvider === 'groq') {
+    if (activeProvider === 'groq') {
       const res = await callGroq();
+      if (res) return res;
+    } else if (activeProvider === 'gemini') {
+      const res = await callGemini();
       if (res) return res;
     } else if (activeProvider === 'openrouter') {
       const res = await callOpenRouter();
@@ -227,20 +284,15 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
     }
   }
 
-  // Full Fallback Cascade: Gemini -> Groq Primary -> Groq Backup -> OpenRouter -> OpenAI
+  // Full Fallback Cascade: Groq Pool -> Gemini -> OpenRouter -> OpenAI
+  if (!tried.has('groq')) {
+    const groqRes = await callGroq('qwen/qwen3.8-27b');
+    if (groqRes) return groqRes;
+  }
+
   if (!tried.has('gemini')) {
     const geminiRes = await callGemini();
     if (geminiRes) return geminiRes;
-  }
-
-  if (!tried.has('groq')) {
-    const groqRes = await callGroq('qwen/qwen3.8-27b', groqKey);
-    if (groqRes) return groqRes;
-
-    if (groqBackupKey) {
-      const groqBackupRes = await callGroq('qwen/qwen3.8-27b', groqBackupKey);
-      if (groqBackupRes) return groqBackupRes;
-    }
   }
 
   if (!tried.has('openrouter')) {
@@ -253,7 +305,7 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
     if (openaiRes) return openaiRes;
   }
 
-  // Ultimate deterministic offline heuristic
+  // Ultimate deterministic fallback heuristic
   return {
     content: `[CodeThesis Academic Synthesis Engine]\nBased on rigorous NUC benchmark guidelines, the system has formulated an academic derivation addressing your research parameters with 3NF relational normalization and empirical validity.`,
     provider: 'codethesis-academic-heuristic',
@@ -470,4 +522,147 @@ Return ONLY the Mermaid diagram code inside a \`\`\`mermaid code block, followed
       provider: 'codethesis-fallback',
     };
   }
+}
+
+/**
+ * Parameter interface for Chapter Synthesis based on Nigerian NUC & ABU Zaria Standard (Reference: MY PROJECT ORIGINAL.docx)
+ */
+export interface ThesisChapterPromptParams {
+  topic: string;
+  course: string;
+  institution: string;
+  chapterNumber: number;
+  caseStudy?: string;
+  additionalContext?: string;
+}
+
+export function buildChapterUserPrompt(params: ThesisChapterPromptParams): string {
+  const { topic, course, institution, chapterNumber, caseStudy } = params;
+  const org = caseStudy || institution;
+
+  if (chapterNumber === 1) {
+    return `Write an exhaustive, publishable CHAPTER ONE (INTRODUCTION) for the undergraduate/postgraduate dissertation titled:
+"${topic}"
+Department: ${course}
+Institution: ${institution}
+Case Study: ${org}
+
+Follow the canonical 10-section dissertation structure (Reference: Nigerian University System B.Sc/B.Tech guidelines):
+1.1 Background of the Study (In-depth analysis of the problem domain, historical context, emergence of digital/automated solutions, and challenges in the Nigerian context)
+1.2 Statement of the Problem (Concrete examination of existing operational bottlenecks, administrative delays, human error rates, data loss, and lack of transparency)
+1.3 Aim and Objectives of the Study
+   1.3.1 Aim (Overarching technical goal of the software/system)
+   1.3.2 Specific Objectives (Exactly 5 numbered action-oriented objectives: 1. To examine..., 2. To identify..., 3. To design..., 4. To develop..., 5. To test and evaluate...)
+1.4 Significance of the Study (Academic, institutional, economic, and practical contributions to students, administration, and industry)
+1.5 Scope of the Study (Clear functional, technological, geographical, and organizational boundaries)
+1.6 Limitations of the Study (5 realistic constraints: time, finance, institutional data access, hardware/network dependencies)
+1.7 Assumptions of the Study (5 numbered core operational assumptions)
+1.8 Methodology (Software development lifecycle model adopted e.g. Agile/Prototyping/Waterfall, data gathering instruments)
+1.9 Organization of the Study (Paragraph-by-paragraph structural overview of Chapters 1 through 5)
+1.10 Definition of Terms (Key operational and technical terms defined in the specific context of this project)
+
+Write complete, rigorous academic paragraphs for every single section. Do not summarize or omit any section.`;
+  } else if (chapterNumber === 2) {
+    return `Write an exhaustive, publishable CHAPTER TWO (LITERATURE REVIEW) for the dissertation titled:
+"${topic}"
+Department: ${course}
+Institution: ${institution}
+
+Follow the canonical academic structure:
+2.1 Introduction (Thematic scope and outline of literature surveyed)
+2.2 Conceptual Review (Detailed conceptual review of core domains, information systems, automation architectures, and modern paradigms)
+2.3 Theoretical Framework (Core underlying theories: Technology Acceptance Model (TAM), Relational Database Theory, Queuing Theory, Algorithmic Complexity)
+2.4 Review of Modern Technological Frameworks (Comparative evaluation of programming languages, backend frameworks, relational/NoSQL databases, and security protocols)
+2.5 Review of Related Works / Similar Existing Systems (Critical review of 4 published systems or academic papers with author names, publication years, methodology, and findings)
+2.6 Comparative Analysis Table & Limitations of Existing Systems (Detailed critique of existing solutions highlighting vulnerabilities: scalability, security, cost, local institutional fit)
+2.7 Research Gap (Exact technical, algorithmic, and empirical gap that this project directly bridges)
+2.8 Summary of Literature Review (Synthesizing review findings and establishing theoretical justification for the proposed system)
+
+Write full scholarly paragraphs with formal APA 7th citations.`;
+  } else if (chapterNumber === 3) {
+    return `Write an exhaustive, publishable CHAPTER THREE (SYSTEM ANALYSIS AND DESIGN) for the dissertation titled:
+"${topic}"
+Department: ${course}
+Institution: ${institution}
+Case Study: ${org}
+
+Follow the canonical engineering structure:
+3.1 Introduction (Design philosophy and objectives of system analysis)
+3.2 Analysis of the Existing System & Current Workflow (Step-by-step description of how operations are conducted manually at ${org})
+   3.2.1 Problems and Bottlenecks of the Existing System
+3.3 Analysis of the Proposed System & Technical Improvements (How the proposed software eliminates manual bottlenecks and introduces automation)
+3.4 Objectives of the Proposed System (Measurable operational targets)
+3.5 System Development Methodology & Justification (Detailed phase-by-phase justification of the chosen SDLC methodology)
+3.6 Feasibility Study
+   3.6.1 Technical Feasibility (Hardware, software, programming environment readiness)
+   3.6.2 Economic Feasibility (Cost-benefit analysis, infrastructure ROI)
+   3.6.3 Operational Feasibility (User adoption, training requirements, institutional policy alignment)
+3.7 System Architecture (Decoupled 3-tier architecture: Presentation Layer, Business Logic Layer, and Database Layer)
+3.8 Data Flow Analysis & Models (Detailed description of Context Diagram, Level 1 DFD, and Use Case specifications)
+3.9 Database Design & Data Dictionary (Detailed relational database design including Entity-Relationship model and formatted markdown tables for 4 core tables: Field Name, Data Type, Size, Constraints, Description)
+3.10 System Flowcharts and Algorithm Logic (Step-by-step algorithmic logic and decision trees for core transactions)
+
+Provide complete text and formatted database tables.`;
+  } else if (chapterNumber === 4) {
+    return `Write an exhaustive, publishable CHAPTER FOUR (SYSTEM IMPLEMENTATION AND EVALUATION) for the dissertation titled:
+"${topic}"
+Department: ${course}
+Institution: ${institution}
+
+Follow the canonical implementation and evaluation structure:
+4.1 Introduction (Implementation roadmap and testing objectives)
+4.2 System Development Environment (Hardware specifications e.g. Processor, RAM, SSD; and Software specifications e.g. OS, Runtime, DBMS, IDE)
+4.3 System Implementation Architecture (Technical execution, framework integrations, and security enforcement)
+4.4 Database Implementation (DDL script execution, relational constraints, foreign keys, and transaction integrity)
+4.5 Description of System Modules (Detailed explanation of 5 core modules: Authentication Module, Main Operational Module, Admin Dashboard Module, Concurrency/Locking Module, Reporting Module)
+4.6 User Interface Design & Screen Descriptions (Detailed walkthrough of 5 key interfaces: Landing/Home, User Registration, Main Dashboard, Transaction Action Screen, Admin Panel)
+4.7 Testing of the System
+   4.7.1 Unit Testing
+   4.7.2 Integration Testing
+   4.7.3 System & Stress Testing
+4.8 Test Cases and Results (A formatted markdown table containing 5 realistic test cases: Test ID, Description, Test Input, Expected Output, Actual Result, Status PASS)
+4.9 Results Obtained & Empirical Metrics (Latency in milliseconds, concurrency stress benchmark under 500+ simultaneous requests, 0% error/collision rate)
+4.10 Discussion of Results (Comparison of empirical metrics with legacy manual methods)
+4.11 Advantages and Practical Contributions of the Developed System
+4.12 Limitations of the Developed System
+4.13 Summary of Implementation
+
+Provide complete text and formatted test case tables.`;
+  } else {
+    return `Write an exhaustive, publishable CHAPTER FIVE (SUMMARY, CONCLUSIONS AND RECOMMENDATIONS) for the dissertation titled:
+"${topic}"
+Department: ${course}
+Institution: ${institution}
+
+Follow the canonical concluding structure:
+5.1 Introduction (Overview of the concluding chapter)
+5.2 Summary of the Project (Comprehensive recap of problem statement, methodology, software developed, and testing outcomes)
+5.3 Summary of Findings & Achievements (Clear articulation of what the system achieved against the 5 original objectives)
+5.4 Conclusions (Definitive closing statement on the efficacy, performance, and practical impact of the software)
+5.5 Contributions to Knowledge (Distinct theoretical, technical, practical, and institutional contributions)
+5.6 Recommendations
+   5.6.1 Recommendations for the Tertiary Institution & Stakeholders
+   5.6.2 Recommendations for System Administrators & Technical Staff
+   5.6.3 Recommendations for Future Research and Scalability
+
+Followed by:
+REFERENCES (15+ complete, authentic academic references in APA 7th Edition format with author names, years, journal titles, volume/page numbers, and DOIs).`;
+  }
+}
+
+/**
+ * Generate a complete thesis chapter using the Groq multi-key pool
+ */
+export async function generateThesisChapterAI(params: ThesisChapterPromptParams): Promise<AIResponse> {
+  const prompt = buildChapterUserPrompt(params);
+  const systemPrompt = `You are CodeThesis AI, a distinguished university professor and academic project supervisor in ${params.course} at ${params.institution}.
+Write in authoritative, publishable academic English adhering strictly to National Universities Commission (NUC) benchmark dissertation standards.`;
+
+  return generateAcademicAI({
+    prompt,
+    systemPrompt,
+    temperature: 0.65,
+    maxTokens: 4000,
+    preferredProvider: 'groq',
+  });
 }

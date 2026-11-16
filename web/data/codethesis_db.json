@@ -27,6 +27,16 @@
   "transactions": [],
   "creditLogs": [
     {
+      "id": "log-f4e86cff",
+      "userId": "usr-81f054a4",
+      "amount": -3,
+      "type": "tool_usage",
+      "toolId": "thesis",
+      "balanceAfter": 259,
+      "description": "Used thesis tool (3 credits)",
+      "createdAt": "2026-11-16T09:14:50.563Z"
+    },
+    {
       "id": "log-8dcbf0a0",
       "userId": "usr-81f054a4",
       "amount": 100,

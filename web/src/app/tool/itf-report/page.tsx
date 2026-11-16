@@ -60,9 +60,8 @@ export default function ItfReportPage() {
 
   const [chapters, setChapters] = useState<Chapter[]>([]);
 
-  useEffect(() => {
-    const effectiveCompany = companyName.trim() || 'the Industrial Training Establishment';
-    setChapters([
+  function buildDefaultChapters(effectiveCompany: string, dept: string): Chapter[] {
+    return [
       {
         number: 1,
         title: 'Introduction & Profile of the Establishment',
@@ -71,7 +70,7 @@ export default function ItfReportPage() {
         subsections: [
           {
             heading: `1.1 Historical Background & Mandate of ${effectiveCompany}`,
-            content: `${effectiveCompany} was established to drive operational excellence, enterprise infrastructure modernization, and technological capacity building. The enterprise operates tier-grade certified infrastructure, delivering high-availability SLA uptime to corporate, governmental, and industrial institutions across the federation.`
+            content: `${effectiveCompany} was established to drive operational excellence, enterprise infrastructure modernization, and technological capacity building in ${dept}. The enterprise operates tier-grade certified infrastructure, delivering high-availability SLA uptime to corporate, governmental, and industrial institutions across the federation.`
           },
           {
             heading: '1.2 Organizational Organogram & Operational Governance',
@@ -91,7 +90,7 @@ export default function ItfReportPage() {
         subsections: [
           {
             heading: '2.1 Health, Safety and Environment (HSE) Directives',
-            content: 'Strict compliance with ISO 45001 occupational safety guidelines was enforced daily. Personal Protective Equipment (PPE) including composite toe dielectric safety boots, high-visibility vests, and ear protection gear was mandatory in generator and chiller plants producing ambient noise in excess of 85 dBA.'
+            content: 'Strict compliance with ISO 45001 occupational safety guidelines was enforced daily. Personal Protective Equipment (PPE) including composite toe dielectric safety boots, high-visibility vests, and ear protection gear was mandatory in operational areas producing ambient noise in excess of 85 dBA.'
           },
           {
             heading: '2.2 Electrostatic Discharge (ESD) Mitigation Protocols',
@@ -107,19 +106,19 @@ export default function ItfReportPage() {
         number: 3,
         title: 'Technical Operations, Tasks Executed & Hands-On Experience',
         wordCount: '8,650 words',
-        summary: 'Detailed technical report on enterprise structured cabling, Cisco switch configuration, Linux server administration, and VLAN segregation.',
+        summary: 'Detailed technical report on enterprise structured cabling, switch configuration, system administration, and network troubleshooting.',
         subsections: [
           {
             heading: '3.1 Structured Fiber Optic & Copper Cabling Standards',
             content: 'Terminated OM4 multimode fiber optic cables utilizing LC-to-LC duplex connectors with fusion splicers. Fusion splice attenuation was rigorously verified to be less than 0.05 dB per splice. Copper infrastructure was standardized on Cat6A 23-AWG 500MHz foil-screened twisted pair cables.'
           },
           {
-            heading: '3.2 Cisco IOS Switch Staging & Multi-VLAN Configuration',
+            heading: '3.2 IOS Switch Staging & Multi-VLAN Configuration',
             content: 'Provisioned enterprise core switches with IEEE 802.1Q trunking, Rapid Spanning Tree Protocol (RSTP 802.1w) to prevent bridging loops, and BPDU Guard on all edge user ports. Port security was configured with a maximum of 2 sticky MAC addresses per switch interface to thwart unauthorized network taps.'
           },
           {
-            heading: '3.3 Linux Server Deployment & Shell Automation',
-            content: 'Administered Ubuntu Server 22.04 LTS and Rocky Linux production hosts. Automated nightly backup routines using cron daemons executing rsync over SSH with RSA-4096 bit asymmetric key pairs, storing encrypted dumps into offsite SAN targets.'
+            heading: '3.3 Server Deployment & Shell Automation',
+            content: 'Administered production server operating systems. Automated nightly backup routines using cron daemons executing rsync over SSH with RSA-4096 bit asymmetric key pairs, storing encrypted dumps into offsite SAN targets.'
           }
         ]
       },
@@ -131,7 +130,7 @@ export default function ItfReportPage() {
         subsections: [
           {
             heading: '4.1 Intermittent Packet Loss Due to Fiber Bend Radius Violation',
-            content: 'Problem: Rack C-12 exhibited 14% intermittent packet drops on optical Uplink 1. Root Cause: Tight cable ties compressed the patch cable below the manufacturer-recommended 30mm minimum dynamic bend radius, causing macro-bending optical losses. Solution: Re-routed fiber through dedicated yellow fiber raceways and swapped zip ties for non-compressive Velcro straps.'
+            content: 'Problem: Equipment rack exhibited 14% intermittent packet drops on optical Uplink 1. Root Cause: Tight cable ties compressed the patch cable below the manufacturer-recommended 30mm minimum dynamic bend radius, causing macro-bending optical losses. Solution: Re-routed fiber through dedicated yellow fiber raceways and swapped zip ties for non-compressive Velcro straps.'
           },
           {
             heading: '4.2 Broadcast Storm Caused by Unmanaged Switch Loop',
@@ -147,11 +146,11 @@ export default function ItfReportPage() {
         subsections: [
           {
             heading: '5.1 Evaluation of Industrial Skills Acquired',
-            content: 'The 24-week SIWES attachment successfully transformed abstract theoretical network concepts into demonstrable industrial competency. Hands-on exposure to high-availability datacenter infrastructure and enterprise routing protocols significantly amplified engineering problem-solving ability.'
+            content: `The ${duration} SIWES attachment successfully transformed abstract theoretical concepts into demonstrable industrial competency. Hands-on exposure to high-availability infrastructure and enterprise operations at ${effectiveCompany} significantly amplified technical problem-solving ability.`
           },
           {
             heading: '5.2 Actionable Recommendations to the Institution',
-            content: 'The Department of Computer Science should update outdated networking syllabi to incorporate practical cloud deployment, containerization (Docker), and modern DevOps tools, establishing dedicated physical router/switch training laboratories.'
+            content: 'The academic department should update outdated syllabi to incorporate practical cloud deployment, containerization (Docker), and modern DevOps tools, establishing dedicated physical laboratory environments.'
           },
           {
             heading: '5.3 Actionable Recommendations to the Industrial Training Fund (ITF)',
@@ -159,8 +158,8 @@ export default function ItfReportPage() {
           }
         ]
       }
-    ]);
-  }, [companyName]);
+    ];
+  }
 
   const [isDownloading, setIsDownloading] = useState(false);
   const activeChapter = chapters[activeChapterIndex] || chapters[0] || {
@@ -201,6 +200,14 @@ export default function ItfReportPage() {
     setIsGenerating(true);
     const targetCompany = companyName.trim() || 'the Industrial Training Establishment';
     const targetDept = department.trim() || 'Computer Science / Engineering';
+
+    // Ensure base chapters exist
+    let currentChapters = chapters;
+    if (currentChapters.length === 0) {
+      currentChapters = buildDefaultChapters(targetCompany, targetDept);
+      setChapters(currentChapters);
+    }
+
     try {
       const res = await fetch('/api/ai/generate', {
         method: 'POST',
@@ -217,8 +224,9 @@ export default function ItfReportPage() {
 
       const data = await res.json();
       if (data.success && data.content) {
-        setChapters((prev) =>
-          prev.map((chap) => {
+        setChapters((prev) => {
+          const base = prev.length > 0 ? prev : currentChapters;
+          return base.map((chap) => {
             if (chap.number === 3) {
               return {
                 ...chap,
@@ -232,8 +240,8 @@ export default function ItfReportPage() {
               };
             }
             return chap;
-          })
-        );
+          });
+        });
         setSuccessBanner(`Synthesized customized 5-Chapter SIWES Technical Report for ${targetCompany} using ${data.provider || 'AI Engine'}!`);
       } else {
         setSuccessBanner(`Report customized for ${targetCompany}!`);
@@ -358,130 +366,156 @@ export default function ItfReportPage() {
           {/* Chapter Directory */}
           <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-2">
             <div className="text-xs font-bold text-slate-800 px-1 mb-2">Chapters Navigation</div>
-            {chapters.map((ch, idx) => (
-              <button
-                key={ch.number}
-                onClick={() => setActiveChapterIndex(idx)}
-                className={`w-full text-left p-2.5 rounded-xl border text-xs transition-all flex items-center justify-between ${
-                  activeChapterIndex === idx
-                    ? 'border-fuchsia-500 bg-fuchsia-50/70 text-fuchsia-950 font-bold shadow-xs'
-                    : 'border-slate-200/70 bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black ${
-                    activeChapterIndex === idx ? 'bg-fuchsia-600 text-white' : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {ch.number}
-                  </span>
-                  <span className="truncate text-[11px]">{ch.title}</span>
-                </div>
-                <span className="text-[10px] text-slate-400 flex-shrink-0">{ch.wordCount}</span>
-              </button>
-            ))}
+            {chapters.length === 0 ? (
+              <div className="text-center py-8 text-slate-400 text-xs font-medium">
+                No chapters generated yet.
+              </div>
+            ) : (
+              chapters.map((ch, idx) => (
+                <button
+                  key={ch.number}
+                  onClick={() => setActiveChapterIndex(idx)}
+                  className={`w-full text-left p-2.5 rounded-xl border text-xs transition-all flex items-center justify-between ${
+                    activeChapterIndex === idx
+                      ? 'border-fuchsia-500 bg-fuchsia-50/70 text-fuchsia-950 font-bold shadow-xs'
+                      : 'border-slate-200/70 bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black ${
+                      activeChapterIndex === idx ? 'bg-fuchsia-600 text-white' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {ch.number}
+                    </span>
+                    <span className="truncate text-[11px]">{ch.title}</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 flex-shrink-0">{ch.wordCount}</span>
+                </button>
+              ))
+            )}
           </div>
         </div>
 
         {/* Right Document A4 simulated preview (8 Cols) */}
         <div className="lg:col-span-8 space-y-4">
-          <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
-            {/* Top Toolbar */}
-            <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-xs text-slate-900">
-                  CHAPTER {activeChapter.number}: {activeChapter.title.toUpperCase()}
-                </span>
-                <span className="text-[10px] bg-fuchsia-100 text-fuchsia-800 font-bold px-2 py-0.5 rounded-full">
-                  {activeChapter.wordCount}
-                </span>
+          {chapters.length === 0 ? (
+            <div className="bg-white border border-dashed border-slate-200 rounded-2xl p-12 text-center flex flex-col items-center justify-center min-h-[480px]">
+              <div className="w-16 h-16 rounded-2xl bg-fuchsia-50 text-fuchsia-600 flex items-center justify-center mb-4 shadow-sm">
+                <FileCheck className="w-8 h-8" />
               </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopyChapter}
-                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-white text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                  title="Copy Chapter Text"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      <span className="text-emerald-700">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Copy Chapter</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  onClick={handleExportWord}
-                  disabled={isDownloading}
-                  className="px-3 py-1.5 bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
-                >
-                  {isDownloading ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Compiling Report DOCX...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download .DOCX</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* A4 Document Reader Body */}
-            <div className="p-8 bg-white min-h-[520px] font-serif text-slate-800 leading-relaxed text-sm space-y-6">
-              <div className="text-center border-b border-slate-200 pb-4">
-                <h1 className="text-base font-bold uppercase tracking-wider text-slate-900">
-                  CHAPTER {activeChapter.number}
-                </h1>
-                <h2 className="text-lg font-bold text-slate-900 mt-1">
-                  {activeChapter.title.toUpperCase()}
-                </h2>
-              </div>
-
-              <div className="space-y-6">
-                {activeChapter.subsections.map((sub, i) => (
-                  <div key={i} className="space-y-2">
-                    <h3 className="font-bold text-slate-900 text-sm font-sans">
-                      {sub.heading}
-                    </h3>
-                    <p className="text-slate-700 text-justify text-xs lg:text-[13px] leading-relaxed indent-8">
-                      {sub.content}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Bottom Document Footer */}
-            <div className="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500 font-sans">
+              <h3 className="text-base font-bold text-slate-900 mb-1">No ITF Technical Report Generated Yet</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto mb-6 leading-relaxed">
+                Provide your host establishment details, department, and attachment duration on the left, then click the button below to generate your complete 5-chapter industrial defense report.
+              </p>
               <button
-                onClick={() => setActiveChapterIndex(prev => Math.max(0, prev - 1))}
-                disabled={activeChapterIndex === 0}
-                className="px-3 py-1 rounded-md border border-slate-200 hover:bg-white disabled:opacity-40"
+                onClick={handleRegenerate}
+                disabled={isGenerating}
+                className="px-5 py-2.5 bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-xs font-bold rounded-xl shadow-xs hover:opacity-95 transition-all flex items-center gap-2"
               >
-                ← Previous Chapter
-              </button>
-
-              <span>Page {activeChapterIndex * 7 + 1} of 35 • Institutional Format</span>
-
-              <button
-                onClick={() => setActiveChapterIndex(prev => Math.min(chapters.length - 1, prev + 1))}
-                disabled={activeChapterIndex === chapters.length - 1}
-                className="px-3 py-1 rounded-md border border-slate-200 hover:bg-white disabled:opacity-40"
-              >
-                Next Chapter →
+                <Sparkles className="w-4 h-4" />
+                <span>{isGenerating ? 'Synthesizing Report...' : 'Generate 5-Chapter Technical Report'}</span>
               </button>
             </div>
-          </div>
+          ) : (
+            <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+              {/* Top Toolbar */}
+              <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-xs text-slate-900">
+                    CHAPTER {activeChapter.number}: {activeChapter.title.toUpperCase()}
+                  </span>
+                  <span className="text-[10px] bg-fuchsia-100 text-fuchsia-800 font-bold px-2 py-0.5 rounded-full">
+                    {activeChapter.wordCount}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyChapter}
+                    className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-white text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                    title="Copy Chapter Text"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-emerald-700">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 text-slate-500" />
+                        <span>Copy Chapter</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={handleExportWord}
+                    disabled={isDownloading}
+                    className="px-3 py-1.5 bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    {isDownloading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Compiling Report DOCX...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download .DOCX</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* A4 Document Reader Body */}
+              <div className="p-8 bg-white min-h-[520px] font-serif text-slate-800 leading-relaxed text-sm space-y-6">
+                <div className="text-center border-b border-slate-200 pb-4">
+                  <h1 className="text-base font-bold uppercase tracking-wider text-slate-900">
+                    CHAPTER {activeChapter.number}
+                  </h1>
+                  <h2 className="text-lg font-bold text-slate-900 mt-1">
+                    {activeChapter.title.toUpperCase()}
+                  </h2>
+                </div>
+
+                <div className="space-y-6">
+                  {activeChapter.subsections.map((sub, i) => (
+                    <div key={i} className="space-y-2">
+                      <h3 className="font-bold text-slate-900 text-sm font-sans">
+                        {sub.heading}
+                      </h3>
+                      <p className="text-slate-700 text-justify text-xs lg:text-[13px] leading-relaxed indent-8">
+                        {sub.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bottom Document Footer */}
+              <div className="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500 font-sans">
+                <button
+                  onClick={() => setActiveChapterIndex(prev => Math.max(0, prev - 1))}
+                  disabled={activeChapterIndex === 0}
+                  className="px-3 py-1 rounded-md border border-slate-200 hover:bg-white disabled:opacity-40"
+                >
+                  ← Previous Chapter
+                </button>
+
+                <span>Page {activeChapterIndex * 7 + 1} of 35 • Institutional Format</span>
+
+                <button
+                  onClick={() => setActiveChapterIndex(prev => Math.min(chapters.length - 1, prev + 1))}
+                  disabled={activeChapterIndex === chapters.length - 1}
+                  className="px-3 py-1 rounded-md border border-slate-200 hover:bg-white disabled:opacity-40"
+                >
+                  Next Chapter →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>

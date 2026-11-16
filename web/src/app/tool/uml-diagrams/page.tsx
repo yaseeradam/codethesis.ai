@@ -16,7 +16,8 @@ import {
   Share2,
   CheckCircle2,
   Info,
-  RefreshCw
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 
 interface DiagramPreset {
@@ -30,7 +31,8 @@ interface DiagramPreset {
 
 export default function UmlDiagramsToolPage() {
   const [selectedDiagram, setSelectedDiagram] = useState<string>('use-case');
-  const [projectTitle, setProjectTitle] = useState('Automated Student Hostel Allocation and Clearance System');
+  const [projectTitle, setProjectTitle] = useState('');
+  const [isGenerated, setIsGenerated] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'visual' | 'code'>('visual');
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [copied, setCopied] = useState<boolean>(false);
@@ -522,9 +524,11 @@ export default function UmlDiagramsToolPage() {
         if (data.provider) {
           setAiProviders(prev => ({ ...prev, [selectedDiagram]: data.provider }));
         }
+        setIsGenerated(true);
         setActiveTab('code');
         setSuccessBanner(`Synthesized custom ${currentPreset.name} tailored for "${cleanTopic}" via ${data.provider || 'AI Engine'}!`);
       } else {
+        setIsGenerated(true);
         setSuccessBanner(data.error || `Generated updated UML architectural specifications for: "${cleanTopic}".`);
       }
     } catch (err: any) {
@@ -715,7 +719,25 @@ export default function UmlDiagramsToolPage() {
 
             {/* Display Area */}
             <div id="uml-svg-container" className="p-4 bg-slate-100/50 min-h-[460px] flex items-center justify-center overflow-auto">
-              {activeTab === 'visual' ? (
+              {!isGenerated ? (
+                <div className="flex flex-col items-center justify-center p-8 text-center max-w-md">
+                  <div className="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 mb-3 shadow-inner">
+                    <GitFork className="w-7 h-7" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-800 mb-1">No UML Architecture Generated Yet</h4>
+                  <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+                    Enter your research project title and select a diagram type on the left, then click <strong>&ldquo;Generate Architecture (AI)&rdquo;</strong> to render high-resolution vector models.
+                  </p>
+                  <button
+                    onClick={handleGenerateNew}
+                    disabled={isGenerating || !projectTitle.trim()}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50 cursor-pointer"
+                  >
+                    {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />}
+                    <span>Generate Architecture (AI)</span>
+                  </button>
+                </div>
+              ) : activeTab === 'visual' ? (
                 <div
                   style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }}
                   className="transition-transform duration-200 ease-out w-full max-w-[850px] bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden"

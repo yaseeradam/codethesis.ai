@@ -57,7 +57,7 @@ export default function ThesisToolPage() {
     setIsDownloading(true);
     await downloadAcademicFile(
       '/api/generate-thesis-docx',
-      { topic, course, institution, caseStudy, studentName, matricNumber, session },
+      { topic, course, institution, caseStudy, studentName, matricNumber, session, aiCustomContent },
       `5_Chapter_Thesis_${course.replace(/\s+/g, '_')}.docx`
     );
     setIsDownloading(false);
@@ -262,90 +262,31 @@ export default function ThesisToolPage() {
 
           {/* Academic Content Preview Area */}
           <div className="font-serif text-slate-800 text-xs sm:text-sm leading-relaxed space-y-4 max-h-[600px] overflow-y-auto pr-2">
-            {aiCustomContent[activeChapter] && (
-              <div className="mb-4 p-4 rounded-xl bg-amber-50/80 border border-amber-200/90 text-slate-800 font-sans shadow-2xs">
-                <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs mb-2">
+            {!aiCustomContent[activeChapter] ? (
+              <div className="flex flex-col items-center justify-center py-16 px-6 text-center bg-slate-50 border border-slate-200/80 rounded-2xl">
+                <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 mb-3 shadow-inner">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-bold text-slate-800 mb-1 font-sans">Chapter {activeChapter} Not Generated Yet</h4>
+                <p className="text-xs text-slate-500 max-w-sm mb-4 leading-relaxed font-sans">
+                  Enter your dissertation topic and parameters above, then click <strong>&ldquo;Synthesize Chapter with AI&rdquo;</strong> to generate comprehensive academic text with APA 7th citations, or <strong>&ldquo;Download Full (.docx)&rdquo;</strong> to compile all 5 chapters.
+                </p>
+                <button
+                  onClick={handleGenerate}
+                  disabled={isGenerating || !topic.trim()}
+                  className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50 cursor-pointer font-sans"
+                >
+                  {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  <span>Synthesize Chapter {activeChapter} with AI</span>
+                </button>
+              </div>
+            ) : (
+              <div className="p-6 rounded-2xl bg-white border border-slate-200 text-slate-800 font-serif leading-relaxed text-xs sm:text-sm whitespace-pre-line shadow-xs text-justify">
+                <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs mb-3 font-sans pb-2 border-b border-amber-100">
                   <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
                   <span>Synthesized AI Research Text for Chapter {activeChapter}</span>
                 </div>
-                <p className="whitespace-pre-line text-xs sm:text-sm leading-relaxed text-justify">
-                  {aiCustomContent[activeChapter]}
-                </p>
-              </div>
-            )}
-            {activeChapter === 1 && (
-              <div className="space-y-4">
-                <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">1.1 Background of the Study</h3>
-                <p className="text-justify indent-8">
-                  In modern tertiary educational institutions such as {effectiveInstitution}, the administration of student hostel accommodation represents one of the most critical auxiliary services impacting student welfare, academic focus, and overall campus security. Historically, residential hall administration has relied extensively on manual registration cards, physical queue allocation registries, and manual verification ledgers. These conventional methods are inherently susceptible to human transcription discrepancies, unauthorized room reservations, duplication of allocations, and severe administrative bottlenecks.
-                </p>
-                <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">1.2 Statement of the Problem</h3>
-                <p className="text-justify indent-8">
-                  The manual hostel accommodation allocation framework in tertiary universities is plagued by fundamental structural inefficiencies. Students are frequently subjected to arduous physical queues spanning multiple academic departments and administrative offices. The absence of a real-time synchronized repository creates acute challenges: room over-allocation, inaccurate vacancy status tracking, and lack of transparency. This study proposes the design and implementation of an automated allocation system for {effectiveCaseStudy} to completely eliminate manual bottlenecks.
-                </p>
-                <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">1.3 Aim and Objectives of the Study</h3>
-                <p className="text-justify indent-8">
-                  The overarching aim of this research is to design and implement an automated hostel allocation system for {effectiveInstitution}. To fulfill this primary aim, the specific objectives are:
-                </p>
-                <ol className="list-decimal pl-10 space-y-1 font-sans text-xs">
-                  <li>To critically examine and analyze the bottlenecks associated with the existing manual hostel allocation workflows.</li>
-                  <li>To formulate a secure relational database schema for student profiles, room quotas, and real-time bed-space tracking.</li>
-                  <li>To design a multi-tiered web architecture enabling students to submit accommodation requests seamlessly online.</li>
-                  <li>To develop an automated conflict-free room assignment engine enforcing institutional eligibility policies.</li>
-                  <li>To test, evaluate, and benchmark the developed system against manual operational metrics to ascertain latency reduction and accuracy gains.</li>
-                </ol>
-              </div>
-            )}
-
-            {activeChapter === 2 && (
-              <div className="space-y-4">
-                <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">2.1 Conceptual Review: Automated Facility Allocation</h3>
-                <p className="text-justify indent-8">
-                  Management Information Systems (MIS) within higher education environments have transitioned from isolated batch data processing units to integrated, distributed web application architectures. According to Laudon and Laudon (2022), automated resource allocation frameworks in institutional setups substantially reduce operational overhead by decoupling request initiation from manual operator handling.
-                </p>
-                <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">2.2 Theoretical Framework: Resource Allocation Theory</h3>
-                <p className="text-justify indent-8">
-                  The theoretical foundation of this study is grounded in Resource Constrained Allocation Optimization and Queueing Theory (Gross et al., 2018). In an academic campus setting, hostel capacity operates as a strictly bounded, non-elastic asset where demand invariably surpasses supply by substantial margins during start-of-session onboarding.
-                </p>
-              </div>
-            )}
-
-            {activeChapter === 3 && (
-              <div className="space-y-4">
-                <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">3.1 System Architecture and Methodology</h3>
-                <p className="text-justify indent-8">
-                  The methodology adopted for this project is the Structured System Analysis and Design Methodology (SSADM) coupled with an iterative Agile sprint framework. The system is designed following a robust 3-Tier Architecture comprising: (1) Presentation Layer (Responsive Web Client), (2) Application Logic Layer (RESTful API Services), and (3) Database Layer (Relational PostgreSQL Database).
-                </p>
-                <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">3.2 Data Flow and Entity-Relationship Architecture</h3>
-                <p className="text-justify indent-8">
-                  The system enforces strict normalization standards up to Third Normal Form (3NF) across all operational entities: Student Entity, Hostel Block Entity, Room Capacity Entity, Application Ledger, and Allocation Transaction Receipts.
-                </p>
-              </div>
-            )}
-
-            {activeChapter === 4 && (
-              <div className="space-y-4">
-                <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">4.1 Development Environment & Implementation Details</h3>
-                <p className="text-justify indent-8">
-                  The automated system implementation leverages modern, production-grade toolchains: TypeScript runtime, Next.js server-side rendering, Tailwind CSS responsive layouts, and PostgreSQL database storage with transaction isolation levels to prevent race conditions during concurrent bed-space booking.
-                </p>
-                <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">4.2 System Evaluation and Test Results</h3>
-                <p className="text-justify indent-8">
-                  System evaluation was performed across unit, integration, and load testing matrices. Concurrent simulated allocation transactions confirmed 100% data integrity with zero double-allocation instances across 1,000 synthetic student applications.
-                </p>
-              </div>
-            )}
-
-            {activeChapter === 5 && (
-              <div className="space-y-4">
-                <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">5.1 Summary of Findings</h3>
-                <p className="text-justify indent-8">
-                  This research presented the design, implementation, and empirical evaluation of an automated hostel allocation system. The deployed system successfully addressed the documented vulnerabilities of manual allocation: processing latency was diminished by over 85%, transcription errors were eliminated, and student satisfaction metrics showed marked improvements.
-                </p>
-                <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">5.2 Recommendations & Future Work</h3>
-                <p className="text-justify indent-8">
-                  It is recommended that institutional authorities at {effectiveInstitution} fully integrate this automated system into the central university portal. Future extensions include mobile application deployment and biometric identity verification at residential hall checkpoints.
-                </p>
+                {aiCustomContent[activeChapter]}
               </div>
             )}
           </div>
