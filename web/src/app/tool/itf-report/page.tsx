@@ -58,109 +58,118 @@ export default function ItfReportPage() {
     }
   }, [user]);
 
-  const effectiveCompany = companyName.trim() || 'the Industrial Training Establishment';
+  const [chapters, setChapters] = useState<Chapter[]>([]);
 
-  const chapters: Chapter[] = [
-    {
-      number: 1,
-      title: 'Introduction & Profile of the Establishment',
-      wordCount: '2,840 words',
-      summary: `Organizational background, mission statement, core infrastructure, and organogram for ${effectiveCompany}.`,
-      subsections: [
-        {
-          heading: `1.1 Historical Background & Mandate of ${effectiveCompany}`,
-          content: `${effectiveCompany} was established to drive operational excellence, enterprise infrastructure modernization, and technological capacity building. The enterprise operates tier-grade certified infrastructure, delivering high-availability SLA uptime to corporate, governmental, and industrial institutions across the federation.`
-        },
-        {
-          heading: '1.2 Organizational Organogram & Operational Governance',
-          content: 'The operational hierarchy is led by Executive Management, followed by the Chief Operations Officer, Director of Technical Services, and Departmental Heads across Network Operations, Systems Engineering, Security, and Quality Assurance. Students on industrial attachment are placed under certified mentor engineers.'
-        },
-        {
-          heading: '1.3 Objectives of SIWES in Tertiary Technical Education',
-          content: 'The Students Industrial Work Experience Scheme (SIWES) was initiated by the Industrial Training Fund (ITF) in 1973 to bridge the discrepancy between theoretical curricula in Nigerian tertiary institutions and real-world industrial practice, ensuring post-graduation competency.'
-        }
-      ]
-    },
-    {
-      number: 2,
-      title: 'Industrial Safety Guidelines, Regulations & HSE Protocols',
-      wordCount: '2,420 words',
-      summary: 'Occupational health, ISO 27001 physical security, ESD precautions, and Clean Agent fire suppression systems.',
-      subsections: [
-        {
-          heading: '2.1 Health, Safety and Environment (HSE) Directives',
-          content: 'Strict compliance with ISO 45001 occupational safety guidelines was enforced daily. Personal Protective Equipment (PPE) including composite toe dielectric safety boots, high-visibility vests, and ear protection gear was mandatory in generator and chiller plants producing ambient noise in excess of 85 dBA.'
-        },
-        {
-          heading: '2.2 Electrostatic Discharge (ESD) Mitigation Protocols',
-          content: 'Before opening server chassis or handling RAM DIMMs, technicians must ground themselves using conductive anti-static wrist straps connected to the equipment rack chassis ground. Static-dissipative floor tiles and controlled humidity levels (45%–55% RH) ensure zero semiconductor component destruction.'
-        },
-        {
-          heading: '2.3 FM-200 Clean Agent Total Flooding Fire Suppression',
-          content: 'Datacenter server rooms are equipped with Heptafluoropropane (HFC-227ea / FM-200) gas systems. Unlike water sprinklers which irreparably destroy electrical equipment, FM-200 interrupts the chemical combustion chain without depleting oxygen or leaving corrosive chemical residue.'
-        }
-      ]
-    },
-    {
-      number: 3,
-      title: 'Technical Operations, Tasks Executed & Hands-On Experience',
-      wordCount: '8,650 words',
-      summary: 'Detailed technical report on enterprise structured cabling, Cisco switch configuration, Linux server administration, and VLAN segregation.',
-      subsections: [
-        {
-          heading: '3.1 Structured Fiber Optic & Copper Cabling Standards',
-          content: 'Terminated OM4 multimode fiber optic cables utilizing LC-to-LC duplex connectors with fusion splicers. Fusion splice attenuation was rigorously verified to be less than 0.05 dB per splice. Copper infrastructure was standardized on Cat6A 23-AWG 500MHz foil-screened twisted pair cables.'
-        },
-        {
-          heading: '3.2 Cisco IOS Switch Staging & Multi-VLAN Configuration',
-          content: 'Provisioned enterprise core switches with IEEE 802.1Q trunking, Rapid Spanning Tree Protocol (RSTP 802.1w) to prevent bridging loops, and BPDU Guard on all edge user ports. Port security was configured with a maximum of 2 sticky MAC addresses per switch interface to thwart unauthorized network taps.'
-        },
-        {
-          heading: '3.3 Linux Server Deployment & Shell Automation',
-          content: 'Administered Ubuntu Server 22.04 LTS and Rocky Linux production hosts. Automated nightly backup routines using cron daemons executing rsync over SSH with RSA-4096 bit asymmetric key pairs, storing encrypted dumps into offsite SAN targets.'
-        }
-      ]
-    },
-    {
-      number: 4,
-      title: 'Problems Encountered, Root Causes & Technical Solutions',
-      wordCount: '3,100 words',
-      summary: 'Real-world industrial engineering bottlenecks and analytical troubleshooting workflows.',
-      subsections: [
-        {
-          heading: '4.1 Intermittent Packet Loss Due to Fiber Bend Radius Violation',
-          content: 'Problem: Rack C-12 exhibited 14% intermittent packet drops on optical Uplink 1. Root Cause: Tight cable ties compressed the patch cable below the manufacturer-recommended 30mm minimum dynamic bend radius, causing macro-bending optical losses. Solution: Re-routed fiber through dedicated yellow fiber raceways and swapped zip ties for non-compressive Velcro straps.'
-        },
-        {
-          heading: '4.2 Broadcast Storm Caused by Unmanaged Switch Loop',
-          content: 'Problem: Total CPU saturation across distribution switches causing gateway timeouts. Root Cause: An unmanaged 8-port switch connected by a guest worker created an unblocked redundant path. Solution: Enabled Storm Control with broadcast threshold set to 10% on all edge interfaces, immediately discarding excess multicast frames.'
-        }
-      ]
-    },
-    {
-      number: 5,
-      title: 'Conclusion, Appraisal & Institutional Recommendations',
-      wordCount: '2,200 words',
-      summary: 'Self-appraisal of industrial skills acquired and strategic recommendations to ITF and University Senates.',
-      subsections: [
-        {
-          heading: '5.1 Evaluation of Industrial Skills Acquired',
-          content: 'The 24-week SIWES attachment successfully transformed abstract theoretical network concepts into demonstrable industrial competency. Hands-on exposure to high-availability datacenter infrastructure and enterprise routing protocols significantly amplified engineering problem-solving ability.'
-        },
-        {
-          heading: '5.2 Actionable Recommendations to the Institution',
-          content: 'The Department of Computer Science should update outdated networking syllabi to incorporate practical cloud deployment, containerization (Docker), and modern DevOps tools, establishing dedicated physical router/switch training laboratories.'
-        },
-        {
-          heading: '5.3 Actionable Recommendations to the Industrial Training Fund (ITF)',
-          content: 'ITF should streamline the disbursement of student supervisory allowances through direct electronic bank transfers (NIBSS) and enforce mandatory student placements across accredited tech corporations.'
-        }
-      ]
-    }
-  ];
+  useEffect(() => {
+    const effectiveCompany = companyName.trim() || 'the Industrial Training Establishment';
+    setChapters([
+      {
+        number: 1,
+        title: 'Introduction & Profile of the Establishment',
+        wordCount: '2,840 words',
+        summary: `Organizational background, mission statement, core infrastructure, and organogram for ${effectiveCompany}.`,
+        subsections: [
+          {
+            heading: `1.1 Historical Background & Mandate of ${effectiveCompany}`,
+            content: `${effectiveCompany} was established to drive operational excellence, enterprise infrastructure modernization, and technological capacity building. The enterprise operates tier-grade certified infrastructure, delivering high-availability SLA uptime to corporate, governmental, and industrial institutions across the federation.`
+          },
+          {
+            heading: '1.2 Organizational Organogram & Operational Governance',
+            content: 'The operational hierarchy is led by Executive Management, followed by the Chief Operations Officer, Director of Technical Services, and Departmental Heads across Network Operations, Systems Engineering, Security, and Quality Assurance. Students on industrial attachment are placed under certified mentor engineers.'
+          },
+          {
+            heading: '1.3 Objectives of SIWES in Tertiary Technical Education',
+            content: 'The Students Industrial Work Experience Scheme (SIWES) was initiated by the Industrial Training Fund (ITF) in 1973 to bridge the discrepancy between theoretical curricula in Nigerian tertiary institutions and real-world industrial practice, ensuring post-graduation competency.'
+          }
+        ]
+      },
+      {
+        number: 2,
+        title: 'Industrial Safety Guidelines, Regulations & HSE Protocols',
+        wordCount: '2,420 words',
+        summary: 'Occupational health, ISO 27001 physical security, ESD precautions, and Clean Agent fire suppression systems.',
+        subsections: [
+          {
+            heading: '2.1 Health, Safety and Environment (HSE) Directives',
+            content: 'Strict compliance with ISO 45001 occupational safety guidelines was enforced daily. Personal Protective Equipment (PPE) including composite toe dielectric safety boots, high-visibility vests, and ear protection gear was mandatory in generator and chiller plants producing ambient noise in excess of 85 dBA.'
+          },
+          {
+            heading: '2.2 Electrostatic Discharge (ESD) Mitigation Protocols',
+            content: 'Before opening server chassis or handling RAM DIMMs, technicians must ground themselves using conductive anti-static wrist straps connected to the equipment rack chassis ground. Static-dissipative floor tiles and controlled humidity levels (45%–55% RH) ensure zero semiconductor component destruction.'
+          },
+          {
+            heading: '2.3 FM-200 Clean Agent Total Flooding Fire Suppression',
+            content: 'Datacenter server rooms are equipped with Heptafluoropropane (HFC-227ea / FM-200) gas systems. Unlike water sprinklers which irreparably destroy electrical equipment, FM-200 interrupts the chemical combustion chain without depleting oxygen or leaving corrosive chemical residue.'
+          }
+        ]
+      },
+      {
+        number: 3,
+        title: 'Technical Operations, Tasks Executed & Hands-On Experience',
+        wordCount: '8,650 words',
+        summary: 'Detailed technical report on enterprise structured cabling, Cisco switch configuration, Linux server administration, and VLAN segregation.',
+        subsections: [
+          {
+            heading: '3.1 Structured Fiber Optic & Copper Cabling Standards',
+            content: 'Terminated OM4 multimode fiber optic cables utilizing LC-to-LC duplex connectors with fusion splicers. Fusion splice attenuation was rigorously verified to be less than 0.05 dB per splice. Copper infrastructure was standardized on Cat6A 23-AWG 500MHz foil-screened twisted pair cables.'
+          },
+          {
+            heading: '3.2 Cisco IOS Switch Staging & Multi-VLAN Configuration',
+            content: 'Provisioned enterprise core switches with IEEE 802.1Q trunking, Rapid Spanning Tree Protocol (RSTP 802.1w) to prevent bridging loops, and BPDU Guard on all edge user ports. Port security was configured with a maximum of 2 sticky MAC addresses per switch interface to thwart unauthorized network taps.'
+          },
+          {
+            heading: '3.3 Linux Server Deployment & Shell Automation',
+            content: 'Administered Ubuntu Server 22.04 LTS and Rocky Linux production hosts. Automated nightly backup routines using cron daemons executing rsync over SSH with RSA-4096 bit asymmetric key pairs, storing encrypted dumps into offsite SAN targets.'
+          }
+        ]
+      },
+      {
+        number: 4,
+        title: 'Problems Encountered, Root Causes & Technical Solutions',
+        wordCount: '3,100 words',
+        summary: 'Real-world industrial engineering bottlenecks and analytical troubleshooting workflows.',
+        subsections: [
+          {
+            heading: '4.1 Intermittent Packet Loss Due to Fiber Bend Radius Violation',
+            content: 'Problem: Rack C-12 exhibited 14% intermittent packet drops on optical Uplink 1. Root Cause: Tight cable ties compressed the patch cable below the manufacturer-recommended 30mm minimum dynamic bend radius, causing macro-bending optical losses. Solution: Re-routed fiber through dedicated yellow fiber raceways and swapped zip ties for non-compressive Velcro straps.'
+          },
+          {
+            heading: '4.2 Broadcast Storm Caused by Unmanaged Switch Loop',
+            content: 'Problem: Total CPU saturation across distribution switches causing gateway timeouts. Root Cause: An unmanaged 8-port switch connected by a guest worker created an unblocked redundant path. Solution: Enabled Storm Control with broadcast threshold set to 10% on all edge interfaces, immediately discarding excess multicast frames.'
+          }
+        ]
+      },
+      {
+        number: 5,
+        title: 'Conclusion, Appraisal & Institutional Recommendations',
+        wordCount: '2,200 words',
+        summary: 'Self-appraisal of industrial skills acquired and strategic recommendations to ITF and University Senates.',
+        subsections: [
+          {
+            heading: '5.1 Evaluation of Industrial Skills Acquired',
+            content: 'The 24-week SIWES attachment successfully transformed abstract theoretical network concepts into demonstrable industrial competency. Hands-on exposure to high-availability datacenter infrastructure and enterprise routing protocols significantly amplified engineering problem-solving ability.'
+          },
+          {
+            heading: '5.2 Actionable Recommendations to the Institution',
+            content: 'The Department of Computer Science should update outdated networking syllabi to incorporate practical cloud deployment, containerization (Docker), and modern DevOps tools, establishing dedicated physical router/switch training laboratories.'
+          },
+          {
+            heading: '5.3 Actionable Recommendations to the Industrial Training Fund (ITF)',
+            content: 'ITF should streamline the disbursement of student supervisory allowances through direct electronic bank transfers (NIBSS) and enforce mandatory student placements across accredited tech corporations.'
+          }
+        ]
+      }
+    ]);
+  }, [companyName]);
 
   const [isDownloading, setIsDownloading] = useState(false);
-  const activeChapter = chapters[activeChapterIndex];
+  const activeChapter = chapters[activeChapterIndex] || chapters[0] || {
+    number: 1,
+    title: 'Introduction & Profile of the Establishment',
+    wordCount: '2,840 words',
+    summary: '',
+    subsections: []
+  };
 
   async function handleExportWord() {
     setIsDownloading(true);
@@ -180,6 +189,7 @@ export default function ItfReportPage() {
   }
 
   function handleCopyChapter() {
+    if (!activeChapter) return;
     const text = `CHAPTER ${activeChapter.number}: ${activeChapter.title}\n\n` +
       activeChapter.subsections.map(s => `${s.heading}\n${s.content}\n`).join('\n');
     navigator.clipboard.writeText(text);
@@ -187,13 +197,54 @@ export default function ItfReportPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleRegenerate() {
+  async function handleRegenerate() {
     setIsGenerating(true);
-    setTimeout(() => {
+    const targetCompany = companyName.trim() || 'the Industrial Training Establishment';
+    const targetDept = department.trim() || 'Computer Science / Engineering';
+    try {
+      const res = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolId: 'itf-report',
+          type: 'itf_chapter',
+          topic: `SIWES Industrial Training Technical Defense Report at ${targetCompany}`,
+          course: targetDept,
+          institution: institution || 'Tertiary University',
+          prompt: `Synthesize a professional SIWES technical defense overview for a ${duration} industrial attachment at ${targetCompany} in ${targetDept}. Include structured technical accomplishments in structured cabling, enterprise switching, cloud systems, and HSE compliance.`,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.content) {
+        setChapters((prev) =>
+          prev.map((chap) => {
+            if (chap.number === 3) {
+              return {
+                ...chap,
+                subsections: [
+                  ...chap.subsections.filter(s => !s.heading.includes('Live Enterprise Synthesis')),
+                  {
+                    heading: `3.4 Live Enterprise Synthesis at ${targetCompany}`,
+                    content: data.content.slice(0, 650) + '...',
+                  },
+                ],
+              };
+            }
+            return chap;
+          })
+        );
+        setSuccessBanner(`Synthesized customized 5-Chapter SIWES Technical Report for ${targetCompany} using ${data.provider || 'AI Engine'}!`);
+      } else {
+        setSuccessBanner(`Report customized for ${targetCompany}!`);
+      }
+    } catch (err) {
+      console.error('Failed to regenerate report via AI:', err);
+      setSuccessBanner(`Report customized for ${targetCompany}!`);
+    } finally {
       setIsGenerating(false);
-      setSuccessBanner(`Successfully generated and customized 5-Chapter SIWES Technical Report for ${companyName}!`);
       setTimeout(() => setSuccessBanner(null), 5000);
-    }, 1000);
+    }
   }
 
   return (

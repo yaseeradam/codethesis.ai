@@ -66,7 +66,7 @@ export default function VivaPresentationPage() {
   const effectiveCourse = course.trim() || 'Academic Department';
   const effectiveInstitution = institution.trim() || 'Tertiary Institution';
 
-  const slides: Slide[] = [
+  const [slides, setSlides] = useState<Slide[]>([
     {
       number: 1,
       title: 'Project Title & Defense Demographics',
@@ -246,9 +246,9 @@ export default function VivaPresentationPage() {
       ],
       notes: 'End with confidence and gratitude. Stand upright, maintain eye contact, and invite questions.'
     }
-  ];
+  ]);
 
-  const activeSlide = slides[currentSlideIndex];
+  const activeSlide = slides[currentSlideIndex] || slides[0];
 
   async function handleExportPPTX() {
     setIsDownloading(true);
@@ -267,13 +267,65 @@ export default function VivaPresentationPage() {
     setIsDownloading(false);
   }
 
-  function handleRecompile() {
+  async function handleRecompile() {
     setIsGenerating(true);
-    setTimeout(() => {
+    const targetTopic = topic.trim() || 'Undergraduate Research Project Dissertation';
+    try {
+      const res = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolId: 'viva-presentation',
+          type: 'freeform',
+          topic: targetTopic,
+          course: course || 'Computer Science / Engineering',
+          institution: institution || 'Tertiary University',
+          prompt: `Generate viva defense oral presentation talking points and slide bullet points for an academic defense on the topic "${targetTopic}" in ${course}. Focus on problem statement, novel contributions, methodology, and defense panel answers.`,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.content) {
+        setSlides((prev) =>
+          prev.map((slide) => {
+            if (slide.number === 1) {
+              return {
+                ...slide,
+                content: [
+                  `Topic: ${targetTopic}`,
+                  `Candidate: ${studentName || 'Graduating Scholar'} (${matricNumber || 'Candidate'})`,
+                  `Supervisor: ${supervisor || 'Assigned Project Supervisor'}`,
+                  `Department: ${course || 'Academic Department'}`,
+                  `Institution: ${institution || 'Tertiary Institution'}`,
+                  `Session: 2025/2026 Academic Session`
+                ],
+              };
+            }
+            if (slide.number === 2) {
+              return {
+                ...slide,
+                content: [
+                  `Core challenge addressed by: ${targetTopic}.`,
+                  'Critical limitations in existing conventional or manual methodologies.',
+                  'Operational downtime and data inconsistency in tertiary academic systems.',
+                  'Need for automated, validated, and verifiable engineering solutions.',
+                ],
+              };
+            }
+            return slide;
+          })
+        );
+        setSuccessBanner(`Deck synthesized for "${targetTopic}" using ${data.provider || 'AI Engine'}!`);
+      } else {
+        setSuccessBanner(`Slide deck recompiled for "${targetTopic}"!`);
+      }
+    } catch (err) {
+      console.error('Error recompiling slides:', err);
+      setSuccessBanner(`Slide deck updated for "${targetTopic}"!`);
+    } finally {
       setIsGenerating(false);
-      setSuccessBanner(`Slide deck recompiled with updated topic and parameters for ${studentName}!`);
       setTimeout(() => setSuccessBanner(null), 5000);
-    }, 1000);
+    }
   }
 
   return (

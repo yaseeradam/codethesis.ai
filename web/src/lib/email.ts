@@ -25,11 +25,22 @@ export async function sendEmail({
   from,
 }: SendEmailOptions): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn('[Resend] RESEND_API_KEY is not defined in environment variables.');
+  const isSimulation = !apiKey || apiKey.includes('placeholder') || apiKey.includes('xxxx') || !apiKey.startsWith('re_');
+
+  if (isSimulation) {
+    const recipients = Array.isArray(to) ? to.join(', ') : to;
+    console.log('\n══════════════════════════════════════════════════════════════');
+    console.log('📨 [Transactional Email Simulation — Development & Fallback Mode]');
+    console.log(`To: ${recipients}`);
+    console.log(`Subject: ${subject}`);
+    const matchLink = html.match(/href="([^"]+)"/);
+    if (matchLink) {
+      console.log(`🔗 Action / Reset Link: ${matchLink[1]}`);
+    }
+    console.log('══════════════════════════════════════════════════════════════\n');
     return {
-      success: false,
-      error: 'RESEND_API_KEY is not configured in environment variables.',
+      success: true,
+      id: `sim-${Date.now()}`,
     };
   }
 

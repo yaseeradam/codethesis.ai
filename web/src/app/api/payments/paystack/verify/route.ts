@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTransactionByReference, updateTransactionByReference, updateUser, getUserById } from '@/lib/db';
+import {
+  getTransactionByReference,
+  updateTransactionByReference,
+  updateUser,
+  getUserById,
+  logCreditEntry,
+  createNotification
+} from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 
 const PLAN_CREDITS: Record<string, number> = {
@@ -71,9 +78,28 @@ export async function GET(req: NextRequest) {
       const creditsToAdd = PLAN_CREDITS[tx.planId] || 15;
       const user = await getUserById(tx.userId);
       if (user) {
+        const newBalance = (user.credits || 0) + creditsToAdd;
         await updateUser(user.id, {
           plan: tx.planId as any,
-          credits: (user.credits || 0) + creditsToAdd,
+          credits: newBalance,
+        });
+
+        // Audit credit history
+        await logCreditEntry({
+          userId: user.id,
+          amount: creditsToAdd,
+          type: 'payment_topup',
+          balanceAfter: newBalance,
+          description: `Payment topup: ${tx.planId.toUpperCase()} package (+${creditsToAdd} credits)`,
+        });
+
+        // Push persistent notification
+        await createNotification({
+          userId: user.id,
+          title: 'Credits Added Successfully',
+          message: `Your payment was confirmed. ${creditsToAdd} academic generation credits have been added to your balance.`,
+          type: 'payment',
+          link: '/dashboard',
         });
       }
 

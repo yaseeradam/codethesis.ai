@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { updateUser, getUserById, hashPassword } from '@/lib/db';
+import { updateUser, getUserById, hashPassword, createNotification } from '@/lib/db';
 
 export async function GET() {
   try {
@@ -141,6 +141,24 @@ export async function PUT(req: NextRequest) {
         { success: false, error: 'Failed to apply updates' },
         { status: 500 }
       );
+    }
+
+    if (newPassword) {
+      createNotification({
+        userId,
+        title: 'Security Alert: Password Changed',
+        message: 'Your account password was updated successfully. If you did not initiate this change, contact support immediately.',
+        type: 'security',
+        link: '/settings',
+      }).catch(() => {});
+    } else {
+      createNotification({
+        userId,
+        title: 'Profile Updated',
+        message: 'Your institutional preferences and profile details have been saved.',
+        type: 'info',
+        link: '/settings',
+      }).catch(() => {});
     }
 
     return NextResponse.json({

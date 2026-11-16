@@ -47,6 +47,7 @@ export default function ThesisToolPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
+  const [aiCustomContent, setAiCustomContent] = useState<{ [ch: number]: string }>({});
 
   const effectiveTopic = topic.trim() || 'Design and Implementation of an Automated System';
   const effectiveInstitution = institution.trim() || 'Tertiary Institution';
@@ -66,6 +67,30 @@ export default function ThesisToolPage() {
 
   async function handleGenerate() {
     setIsGenerating(true);
+    try {
+      const res = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolId: 'thesis',
+          type: 'thesis_chapter',
+          chapterNumber: activeChapter,
+          topic: effectiveTopic,
+          course: course || 'Computer Science / Engineering',
+          institution: effectiveInstitution,
+          prompt: `Synthesize comprehensive academic research text for Chapter ${activeChapter} on "${effectiveTopic}" for ${effectiveInstitution} with case study on ${effectiveCaseStudy}. Include NUC methodology, APA citations, and problem formulation.`,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.content) {
+        setAiCustomContent(prev => ({
+          ...prev,
+          [activeChapter]: data.content,
+        }));
+      }
+    } catch (err) {
+      console.warn('AI preview synthesis warning:', err);
+    }
     // Directly compile and download the full 5-chapter thesis document
     await handleDownloadDocx();
     setIsGenerating(false);
@@ -230,6 +255,17 @@ export default function ThesisToolPage() {
 
           {/* Academic Content Preview Area */}
           <div className="font-serif text-slate-800 text-xs sm:text-sm leading-relaxed space-y-4 max-h-[600px] overflow-y-auto pr-2">
+            {aiCustomContent[activeChapter] && (
+              <div className="mb-4 p-4 rounded-xl bg-amber-50/80 border border-amber-200/90 text-slate-800 font-sans shadow-2xs">
+                <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                  <span>Synthesized AI Research Text for Chapter {activeChapter}</span>
+                </div>
+                <p className="whitespace-pre-line text-xs sm:text-sm leading-relaxed text-justify">
+                  {aiCustomContent[activeChapter]}
+                </p>
+              </div>
+            )}
             {activeChapter === 1 && (
               <div className="space-y-4">
                 <h3 className="font-bold font-sans text-sm text-slate-900 uppercase">1.1 Background of the Study</h3>

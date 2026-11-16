@@ -83,6 +83,17 @@ export interface CreditLog {
   createdAt: string;
 }
 
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: 'credit' | 'project' | 'payment' | 'security' | 'info' | 'system';
+  read: boolean;
+  link?: string;
+  createdAt: string;
+}
+
 export interface VivaTurn {
   id: string;
   role: 'examiner' | 'student';
@@ -152,6 +163,7 @@ interface DatabaseSchema {
   projects: Project[];
   transactions: Transaction[];
   creditLogs?: CreditLog[];
+  notifications?: Notification[];
   vivaSessions?: VivaSession[];
   authAuditLogs?: AuthAuditLog[];
   settings: AdminSettings;
@@ -251,6 +263,7 @@ export function readDb(): DatabaseSchema {
     const data = JSON.parse(raw);
     if (!data.settings) data.settings = DEFAULT_SETTINGS;
     if (!data.creditLogs) data.creditLogs = [];
+    if (!data.notifications) data.notifications = [];
     if (!data.vivaSessions) data.vivaSessions = [];
     if (!data.authAuditLogs) data.authAuditLogs = [];
     return data;
@@ -260,6 +273,7 @@ export function readDb(): DatabaseSchema {
       projects: [],
       transactions: [],
       creditLogs: [],
+      notifications: [],
       vivaSessions: [],
       authAuditLogs: [],
       settings: DEFAULT_SETTINGS,
@@ -644,6 +658,185 @@ export async function getCreditLogsByUserId(userId: string): Promise<CreditLog[]
 
   const db = readDb();
   return (db.creditLogs || []).filter(l => l.userId === userId);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Notification Operations
+// ─────────────────────────────────────────────────────────────
+export async function createNotification(data: {
+  userId: string;
+  title: string;
+  message: string;
+  type?: Notification['type'];
+  link?: string;
+}): Promise<Notification> {
+  const id = `notif-${crypto.randomUUID().slice(0, 8)}`;
+  const now = new Date().toISOString();
+  const type = data.type || 'info';
+
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        INSERT INTO notifications (id, user_id, title, message, type, read, link, created_at)
+        VALUES (${id}, ${data.userId}, ${data.title}, ${data.message}, ${type}, FALSE, ${data.link || null}, ${now})
+        RETURNING id, user_id as "userId", title, message, type, read, link, created_at as "createdAt";
+      `;
+      if (rows && rows.length > 0) return rows[0] as Notification;
+    } catch (err) {
+      console.error('Neon createNotification error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.notifications) db.notifications = [];
+  const notif: Notification = {
+    id,
+    userId: data.userId,
+    title: data.title,
+    message: data.message,
+    type,
+    read: false,
+    link: data.link,
+    createdAt: now,
+  };
+  db.notifications.unshift(notif);
+  writeDb(db);
+  return notif;
+}
+
+export async function getNotificationsByUserId(userId: string, limit = 30): Promise<Notification[]> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT id, user_id as "userId", title, message, type, read, link, created_at as "createdAt"
+        FROM notifications
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC
+        LIMIT ${limit};
+      `;
+      return rows as Notification[];
+    } catch (err) {
+      console.error('Neon getNotificationsByUserId error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.notifications || []).filter(n => n.userId === userId).slice(0, limit);
+}
+
+export async function getUnreadNotificationCount(userId: string): Promise<number> {
+  if (isNeonConfigured()) {
+    try {
+      const rows = await sql`
+        SELECT COUNT(*)::int as count
+        FROM notifications
+        WHERE user_id = ${userId} AND read = FALSE;
+      `;
+      if (rows && rows.length > 0) {
+        return Number(rows[0].count) || 0;
+      }
+    } catch (err) {
+      console.error('Neon getUnreadNotificationCount error:', err);
+    }
+  }
+
+  const db = readDb();
+  return (db.notifications || []).filter(n => n.userId === userId && !n.read).length;
+}
+
+export async function markNotificationAsRead(id: string, userId: string): Promise<boolean> {
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        UPDATE notifications
+        SET read = TRUE
+        WHERE id = ${id} AND user_id = ${userId};
+      `;
+      return true;
+    } catch (err) {
+      console.error('Neon markNotificationAsRead error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.notifications) return false;
+  const item = db.notifications.find(n => n.id === id && n.userId === userId);
+  if (item) {
+    item.read = true;
+    writeDb(db);
+    return true;
+  }
+  return false;
+}
+
+export async function markAllNotificationsAsRead(userId: string): Promise<number> {
+  if (isNeonConfigured()) {
+    try {
+      const result = await sql`
+        UPDATE notifications
+        SET read = TRUE
+        WHERE user_id = ${userId} AND read = FALSE
+        RETURNING id;
+      `;
+      return result ? result.length : 0;
+    } catch (err) {
+      console.error('Neon markAllNotificationsAsRead error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.notifications) return 0;
+  let count = 0;
+  db.notifications.forEach(n => {
+    if (n.userId === userId && !n.read) {
+      n.read = true;
+      count++;
+    }
+  });
+  if (count > 0) writeDb(db);
+  return count;
+}
+
+export async function deleteNotification(id: string, userId: string): Promise<boolean> {
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        DELETE FROM notifications
+        WHERE id = ${id} AND user_id = ${userId};
+      `;
+      return true;
+    } catch (err) {
+      console.error('Neon deleteNotification error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.notifications) return false;
+  const initLen = db.notifications.length;
+  db.notifications = db.notifications.filter(n => !(n.id === id && n.userId === userId));
+  const removed = db.notifications.length < initLen;
+  if (removed) writeDb(db);
+  return removed;
+}
+
+export async function clearAllNotifications(userId: string): Promise<boolean> {
+  if (isNeonConfigured()) {
+    try {
+      await sql`
+        DELETE FROM notifications
+        WHERE user_id = ${userId};
+      `;
+      return true;
+    } catch (err) {
+      console.error('Neon clearAllNotifications error:', err);
+    }
+  }
+
+  const db = readDb();
+  if (!db.notifications) return true;
+  db.notifications = db.notifications.filter(n => n.userId !== userId);
+  writeDb(db);
+  return true;
 }
 
 // ─────────────────────────────────────────────────────────────

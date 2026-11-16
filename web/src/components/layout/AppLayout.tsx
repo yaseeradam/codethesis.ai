@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
+import NotificationBell from '@/components/ui/NotificationBell';
 import {
   Home,
   GraduationCap,
@@ -65,7 +66,6 @@ export default function AppLayout({
   const { user, logout } = useAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const userCredits = user?.credits ?? 15;
   const studentName = user?.fullName || 'Student Scholar';
@@ -511,59 +511,7 @@ export default function AppLayout({
 
             {/* Right Controls */}
             <div className="flex items-center gap-3 relative">
-              <div className="relative">
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-2 rounded-full bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-xs transition-transform active:scale-95 cursor-pointer"
-                  aria-label="Notifications"
-                >
-                  <Bell className="w-4 h-4" />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
-                    3
-                  </span>
-                </button>
-
-                {/* Notification Dropdown Popover */}
-                {showNotifications && (
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50 p-4 space-y-3 animate-fadeIn">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <span className="text-xs font-bold text-slate-900">Notifications</span>
-                      <span className="text-[10px] font-semibold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
-                        3 New
-                      </span>
-                    </div>
-                    <div className="space-y-2.5">
-                      <div className="flex items-start gap-2.5 text-xs">
-                        <div className="w-2 h-2 rounded-full bg-sky-500 mt-1.5 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-slate-800 text-[11px]">Welcome Bonus Credited</p>
-                          <p className="text-slate-500 text-[10px] leading-relaxed">15 starter credits are loaded and ready in your account.</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2.5 text-xs">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-slate-800 text-[11px]">5-Chapter Thesis Ready</p>
-                          <p className="text-slate-500 text-[10px] leading-relaxed">NUC standard templates calibrated for 2025/2026 academic session.</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2.5 text-xs">
-                        <div className="w-2 h-2 rounded-full bg-purple-500 mt-1.5 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold text-slate-800 text-[11px]">Viva Defense Simulator Active</p>
-                          <p className="text-slate-500 text-[10px] leading-relaxed">Practice your oral examination with AI external examiners.</p>
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setShowNotifications(false)}
-                      className="w-full pt-1 text-center text-[11px] font-semibold text-sky-600 hover:text-sky-700 cursor-pointer"
-                    >
-                      Close
-                    </button>
-                  </div>
-                )}
-              </div>
+              <NotificationBell align="right" />
 
               {/* Live Academic Credit Badge */}
               <Link

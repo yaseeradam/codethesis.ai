@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createUser, getUserByEmail, logCreditEntry } from '@/lib/db';
+import { createUser, getUserByEmail, logCreditEntry, createNotification } from '@/lib/db';
 import { createSessionToken, COOKIE_NAME } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/email';
 
@@ -58,6 +58,15 @@ export async function POST(req: NextRequest) {
       type: 'signup_bonus',
       balanceAfter: newUser.credits,
       description: `Welcome bonus: ${newUser.credits} free academic credits granted on signup`,
+    });
+
+    // Create persistent welcome notification
+    await createNotification({
+      userId: newUser.id,
+      title: 'Welcome to CodeThesis AI',
+      message: `${newUser.credits} complimentary research credits have been deposited to your account.`,
+      type: 'credit',
+      link: '/dashboard',
     });
 
     // Asynchronously dispatch transactional welcome email via Resend

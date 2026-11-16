@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import NotificationBell from '@/components/ui/NotificationBell';
 import {
   Home,
   GraduationCap,
@@ -248,7 +249,6 @@ function DashboardMain() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [demoBanner, setDemoBanner] = useState<string | null>(null);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'capstone' | 'defense-siwes' | 'coursework'>('all');
 
@@ -387,10 +387,31 @@ function DashboardMain() {
   useEffect(() => {
     if (authError === 'unauthorized') {
       setDemoBanner('Access Denied: Administrative privileges required to access the admin portal.');
-    } else if (paymentRef && (paymentStatus === 'success' || paymentStatus === 'simulation')) {
-      setDemoBanner('Payment verified! 15 new generation credits have been added to your account.');
+    } else if (paymentRef) {
+      setDemoBanner('Verifying your payment with Paystack secure gateway...');
+      fetch(`/api/payments/paystack/verify?reference=${encodeURIComponent(paymentRef)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setDemoBanner(`Payment confirmed! ${data.creditsAdded || 15} academic generation credits added to your account.`);
+            if (refreshUser) refreshUser();
+          } else {
+            setDemoBanner(`Payment status: ${data.message || 'Payment reference processed.'}`);
+          }
+          if (typeof window !== 'undefined') {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('ref');
+            url.searchParams.delete('payment');
+            url.searchParams.delete('reference');
+            window.history.replaceState({}, '', url.pathname);
+          }
+        })
+        .catch((err) => {
+          console.error('Error verifying Paystack reference:', err);
+          setDemoBanner('Could not finalize automatic payment verification. Please check your billing tab.');
+        });
     }
-  }, [authError, paymentRef, paymentStatus]);
+  }, [authError, paymentRef, refreshUser]);
 
   return (
     <div className="h-screen bg-[#F1F5F9] text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-cyan-500 selection:text-white overflow-hidden">
@@ -833,60 +854,7 @@ function DashboardMain() {
 
           {/* Right Header Controls */}
           <div className="flex items-center gap-3 relative">
-            {/* Notification Bell with Badge 3 */}
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 rounded-full bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-xs transition-transform active:scale-95 cursor-pointer"
-                aria-label="Notifications"
-              >
-                <Bell className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-xs">
-                  3
-                </span>
-              </button>
-
-              {/* Notification Popover */}
-              {showNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50 p-4 space-y-3 animate-fadeIn">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <span className="text-xs font-bold text-slate-900">Notifications</span>
-                    <span className="text-[10px] font-semibold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
-                      3 New
-                    </span>
-                  </div>
-                  <div className="space-y-2.5">
-                    <div className="flex items-start gap-2.5 text-xs">
-                      <div className="w-2 h-2 rounded-full bg-sky-500 mt-1.5 flex-shrink-0" />
-                      <div>
-                        <p className="font-semibold text-slate-800 text-[11px]">Welcome Bonus Credited</p>
-                        <p className="text-slate-500 text-[10px] leading-relaxed">15 starter credits are loaded and ready in your account.</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2.5 text-xs">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
-                      <div>
-                        <p className="font-semibold text-slate-800 text-[11px]">5-Chapter Thesis Ready</p>
-                        <p className="text-slate-500 text-[10px] leading-relaxed">NUC standard templates calibrated for 2025/2026 academic session.</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2.5 text-xs">
-                      <div className="w-2 h-2 rounded-full bg-purple-500 mt-1.5 flex-shrink-0" />
-                      <div>
-                        <p className="font-semibold text-slate-800 text-[11px]">Viva Defense Simulator Active</p>
-                        <p className="text-slate-500 text-[10px] leading-relaxed">Practice your oral examination with AI external examiners.</p>
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowNotifications(false)}
-                    className="w-full pt-1 text-center text-[11px] font-semibold text-sky-600 hover:text-sky-700 cursor-pointer"
-                  >
-                    Close
-                  </button>
-                </div>
-              )}
-            </div>
+            <NotificationBell align="right" />
 
             {/* Upgrade Plan Button */}
             <Link

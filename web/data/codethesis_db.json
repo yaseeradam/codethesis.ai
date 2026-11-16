@@ -36,7 +36,17 @@
   ],
   "projects": [],
   "transactions": [],
-  "creditLogs": [],
+  "creditLogs": [
+    {
+      "id": "log-96181663",
+      "userId": "usr-81f054a4",
+      "amount": 35,
+      "type": "payment_topup",
+      "balanceAfter": 50,
+      "description": "Payment topup: STANDARD package (+35 credits)",
+      "createdAt": "2026-11-16T05:16:08.854Z"
+    }
+  ],
   "vivaSessions": [],
   "authAuditLogs": [],
   "settings": {
@@ -64,5 +74,6 @@
       "statusText": "All Systems Online",
       "maintenanceNotice": "Platform operating normally at 100% capacity."
     }
-  }
+  },
+  "notifications": []
 }

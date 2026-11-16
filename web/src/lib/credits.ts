@@ -1,5 +1,5 @@
 import { getCurrentUser } from './auth';
-import { deductUserCredits, saveProject, getAdminSettings, AdminSettings, getUserById } from './db';
+import { deductUserCredits, saveProject, getAdminSettings, AdminSettings, getUserById, createNotification } from './db';
 
 export type ToolKey = keyof AdminSettings['toolCreditCosts'];
 
@@ -79,6 +79,14 @@ export async function authorizeAndDeductCredits(
     };
   }
 
+  createNotification({
+    userId,
+    title: 'Credits Deducted',
+    message: `${cost} credit(s) debited for ${toolKey}. Balance remaining: ${result.remainingCredits}.`,
+    type: 'credit',
+    link: '/pricing',
+  }).catch(() => {});
+
   return {
     allowed: true,
     userId,
@@ -102,7 +110,7 @@ export async function autoArchiveProject(params: {
   metadata?: Record<string, any>;
 }) {
   try {
-    return await saveProject({
+    const saved = await saveProject({
       userId: params.userId,
       toolId: params.toolId,
       title: params.title,
@@ -113,6 +121,18 @@ export async function autoArchiveProject(params: {
       fileDownloadUrl: params.fileDownloadUrl,
       metadata: params.metadata,
     });
+
+    if (saved) {
+      await createNotification({
+        userId: params.userId,
+        title: `Project Ready: ${params.title.slice(0, 35)}${params.title.length > 35 ? '...' : ''}`,
+        message: `Your ${params.toolId.replace('-', ' ')} export (${params.fileType.toUpperCase()}) was compiled and archived to your project vault.`,
+        type: 'project',
+        link: '/projects',
+      }).catch((e) => console.warn('Project notification caught:', e));
+    }
+
+    return saved;
   } catch (err) {
     console.error('Failed to auto-archive project:', err);
     return null;
