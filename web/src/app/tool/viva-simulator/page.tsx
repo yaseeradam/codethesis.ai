@@ -213,7 +213,7 @@ export default function VivaSimulatorPage() {
         const initRes = await fetch('/api/viva/session/start', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ topic: 'Automated Hostel Allocation System', course: department })
+          body: JSON.stringify({ topic: researchTopic.trim() || 'Academic Research Dissertation', course: department })
         });
         const initData = await initRes.json();
         activeSessionId = initData.sessionId;

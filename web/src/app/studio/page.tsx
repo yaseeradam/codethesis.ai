@@ -125,30 +125,32 @@ function StudioMain() {
   }, [searchParams]);
 
   function handleDownloadMermaidStudio() {
+    const cleanTopic = topic.trim() || 'Automated Information System';
+    const endpointSlug = cleanTopic.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 20);
     const mmdContent = `sequenceDiagram
   autonumber
-  actor Client as Undergraduate Student
+  actor Client as User / Candidate
   participant Controller as Web / API Controller
   participant Coordinator as Transaction Lock Manager
-  participant DB as Database Engine (SQLite / PostgreSQL)
+  participant DB as Database Engine (PostgreSQL / SQLite)
 
-  Client->>Controller: POST /api/v1/hostel/allocate-bed
+  Client->>Controller: POST /api/v1/${endpointSlug}/process-transaction
   Controller->>Coordinator: Request Exclusive Row-Level Lock
-  Coordinator->>DB: SELECT * FROM rooms WHERE id = 101 FOR UPDATE
+  Coordinator->>DB: SELECT * FROM records WHERE status = 'pending' FOR UPDATE
   Note over DB,Coordinator: ACID Serializable Isolation Lock Acquired
-  alt Room Bedspace Available (occupied < capacity)
-    Coordinator->>DB: UPDATE rooms SET occupied = occupied + 1 WHERE id = 101
+  alt Validation Successful (Parameters Meet Domain Constraint)
+    Coordinator->>DB: UPDATE records SET status = 'processed', updated_at = NOW()
     DB-->>Coordinator: Rows affected: 1 (Committed)
-    Controller-->>Client: HTTP 201 Created (Bedspace Allotted)
-  else Room Bedspace Full
+    Controller-->>Client: HTTP 201 Created (Transaction Finalized)
+  else Validation Failed or Capacity Exceeded
     Coordinator->>DB: ROLLBACK Transaction
-    Controller-->>Client: HTTP 409 Conflict (Zero Over-allocation)
+    Controller-->>Client: HTTP 409 Conflict (Zero Over-allocation / Consistent State)
   end`;
     const blob = new Blob([mmdContent], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Architecture_Models_${topic.replace(/\s+/g, '_')}.mmd`;
+    a.download = `Architecture_Models_${cleanTopic.replace(/\s+/g, '_')}.mmd`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -551,7 +553,7 @@ pause
                   rows={2}
                   value={topic}
                   onChange={e => setTopic(e.target.value)}
-                  placeholder="e.g. Design and Implementation of an Automated Hostel Allocation System"
+                  placeholder="e.g. Design and Implementation of an Automated System"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
@@ -858,7 +860,7 @@ pause
                   <div className="w-3 h-3 rounded-full bg-rose-500" />
                   <div className="w-3 h-3 rounded-full bg-amber-500" />
                   <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-mono text-slate-400 ml-2">hostel_system_repository</span>
+                  <span className="text-xs font-mono text-slate-400 ml-2">{topic.trim() ? topic.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_') + '_repo' : 'project_repository'}</span>
                 </div>
 
                 <div className="flex items-center gap-2">

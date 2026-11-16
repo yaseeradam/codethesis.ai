@@ -367,10 +367,10 @@ export default function HomePage() {
                 ))}
               </div>
               <p className="text-xs text-slate-700 leading-relaxed font-medium">
-                &ldquo;I spent weeks stressing over Chapter 3 DFDs and database schemas for my hostel allocation project. CodeThesis compiled the whole 5 chapters in standard NUC format without a glitch.&rdquo;
+                &ldquo;I spent weeks stressing over Chapter 3 DFDs and database schemas for my final year software project. CodeThesis compiled the whole 5 chapters in standard NUC format without a glitch.&rdquo;
               </p>
               <div className="pt-2 border-t border-slate-200 text-xs">
-                <p className="font-bold text-slate-900">Umar Abdulrasheed</p>
+                <p className="font-bold text-slate-900">Bello Abubakar</p>
                 <p className="text-slate-500 text-[11px]">Computer Science, ABU Zaria</p>
               </div>
             </div>

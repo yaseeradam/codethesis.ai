@@ -46,31 +46,32 @@ export default function UmlDiagramsToolPage() {
       type: 'Behavioral UML',
       chapterNote: 'Standard requirement for Chapter 3: System Design & Functional Requirements.',
       mermaidCode: `usecaseDiagram
-  actor Student as "Undergraduate Student"
-  actor Admin as "Hostel Administrator"
-  actor Bursar as "University Bursary"
+  actor Client as "Primary User / Student"
+  actor Admin as "System Administrator"
+  actor Auditor as "Verification Authority"
 
-  package "Hostel Management System Boundary" {
-    usecase UC1 as "Apply for Bedspace"
-    usecase UC2 as "Select Hall & Room Preference"
-    usecase UC3 as "Remit Allocation Fee (Paystack)"
-    usecase UC4 as "Print Official Hostel Pass"
-    usecase UC5 as "Verify Student Clearance"
-    usecase UC6 as "Manage Room Capacity & Inventory"
-    usecase UC7 as "Log Facility Maintenance Ticket"
+  package "Automated System Boundary" {
+    usecase UC1 as "Authenticate & Access Controls"
+    usecase UC2 as "Submit Transaction / Request"
+    usecase UC3 as "Process Automated Validation"
+    usecase UC4 as "Generate Official Verifiable Reports"
+    usecase UC5 as "Verify Compliance & Credentials"
+    usecase UC6 as "Manage System Resources & Capacity"
+    usecase UC7 as "Log Telemetry & Security Audit Trail"
   }
 
-  Student --> UC1
-  Student --> UC2
-  Student --> UC3
-  Student --> UC4
-  Student --> UC7
+  Client --> UC1
+  Client --> UC2
+  Client --> UC3
+  Client --> UC4
+  Client --> UC7
 
   Admin --> UC5
   Admin --> UC6
   Admin --> UC7
 
-  Bursar --> UC3`,
+  Auditor --> UC3
+  Auditor --> UC5`,
       svgPreview: (
         <svg viewBox="0 0 850 480" className="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
           {/* Background grid */}
@@ -85,18 +86,18 @@ export default function UmlDiagramsToolPage() {
           {/* System Boundary */}
           <rect x="220" y="30" width="410" height="420" rx="16" fill="#FFFFFF" stroke="#3B82F6" strokeWidth="2" strokeDasharray="6 4" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.05))" />
           <text x="240" y="58" fill="#1E3A8A" fontSize="13" fontWeight="bold" fontFamily="system-ui">
-            SYSTEM BOUNDARY: HOSTEL ALLOCATION SUITE
+            SYSTEM BOUNDARY: AUTOMATED ARCHITECTURE SUITE
           </text>
 
           {/* Actors */}
-          {/* Student */}
+          {/* Client */}
           <g transform="translate(60, 180)">
             <circle cx="35" cy="20" r="16" fill="#DBEAFE" stroke="#1D4ED8" strokeWidth="2" />
             <line x1="35" y1="36" x2="35" y2="80" stroke="#1D4ED8" strokeWidth="2.5" />
             <line x1="10" y1="52" x2="60" y2="52" stroke="#1D4ED8" strokeWidth="2.5" />
             <line x1="35" y1="80" x2="15" y2="120" stroke="#1D4ED8" strokeWidth="2.5" />
             <line x1="35" y1="80" x2="55" y2="120" stroke="#1D4ED8" strokeWidth="2.5" />
-            <text x="35" y="145" textAnchor="middle" fill="#0F172A" fontSize="12" fontWeight="bold">Student Actor</text>
+            <text x="35" y="145" textAnchor="middle" fill="#0F172A" fontSize="12" fontWeight="bold">Primary User</text>
           </g>
 
           {/* Admin */}
@@ -106,48 +107,48 @@ export default function UmlDiagramsToolPage() {
             <line x1="10" y1="52" x2="60" y2="52" stroke="#7E22CE" strokeWidth="2.5" />
             <line x1="35" y1="80" x2="15" y2="120" stroke="#7E22CE" strokeWidth="2.5" />
             <line x1="35" y1="80" x2="55" y2="120" stroke="#7E22CE" strokeWidth="2.5" />
-            <text x="35" y="145" textAnchor="middle" fill="#0F172A" fontSize="12" fontWeight="bold">Hostel Admin</text>
+            <text x="35" y="145" textAnchor="middle" fill="#0F172A" fontSize="12" fontWeight="bold">System Admin</text>
           </g>
 
-          {/* Bursary */}
+          {/* Auditor */}
           <g transform="translate(710, 290)">
             <circle cx="35" cy="20" r="16" fill="#DCFCE7" stroke="#15803D" strokeWidth="2" />
             <line x1="35" y1="36" x2="35" y2="80" stroke="#15803D" strokeWidth="2.5" />
             <line x1="10" y1="52" x2="60" y2="52" stroke="#15803D" strokeWidth="2.5" />
             <line x1="35" y1="80" x2="15" y2="120" stroke="#15803D" strokeWidth="2.5" />
             <line x1="35" y1="80" x2="55" y2="120" stroke="#15803D" strokeWidth="2.5" />
-            <text x="35" y="145" textAnchor="middle" fill="#0F172A" fontSize="12" fontWeight="bold">Bursary Staff</text>
+            <text x="35" y="145" textAnchor="middle" fill="#0F172A" fontSize="12" fontWeight="bold">Audit Authority</text>
           </g>
 
           {/* Use Cases */}
           <g transform="translate(260, 85)">
             <rect width="330" height="42" rx="21" fill="#EFF6FF" stroke="#2563EB" strokeWidth="1.5" />
-            <text x="165" y="26" textAnchor="middle" fill="#1E40AF" fontSize="12" fontWeight="600">UC1: Apply for Bedspace & Verification</text>
+            <text x="165" y="26" textAnchor="middle" fill="#1E40AF" fontSize="12" fontWeight="600">UC1: Authenticate & Verify Credentials</text>
           </g>
 
           <g transform="translate(260, 145)">
             <rect width="330" height="42" rx="21" fill="#EFF6FF" stroke="#2563EB" strokeWidth="1.5" />
-            <text x="165" y="26" textAnchor="middle" fill="#1E40AF" fontSize="12" fontWeight="600">UC2: Select Hall & Room Preferences</text>
+            <text x="165" y="26" textAnchor="middle" fill="#1E40AF" fontSize="12" fontWeight="600">UC2: Submit Operational Request</text>
           </g>
 
           <g transform="translate(260, 205)">
-            <rect width="330" height="42" rx="21" fill="#FEF3C7" stroke="#D97706" strokeWidth="1.5" />
-            <text x="165" y="26" textAnchor="middle" fill="#92400E" fontSize="12" fontWeight="600">UC3: Remit Clearance Fee (Paystack API)</text>
+            <rect width="330" height="42" rx="21" fill="#EFF6FF" stroke="#2563EB" strokeWidth="1.5" />
+            <text x="165" y="26" textAnchor="middle" fill="#1E40AF" fontSize="12" fontWeight="600">UC3: Process Automated Validation</text>
           </g>
 
           <g transform="translate(260, 265)">
             <rect width="330" height="42" rx="21" fill="#EFF6FF" stroke="#2563EB" strokeWidth="1.5" />
-            <text x="165" y="26" textAnchor="middle" fill="#1E40AF" fontSize="12" fontWeight="600">UC4: Generate Digital Allocation Slip (QR)</text>
+            <text x="165" y="26" textAnchor="middle" fill="#1E40AF" fontSize="12" fontWeight="600">UC4: Generate Official Verifiable Reports</text>
           </g>
 
           <g transform="translate(260, 325)">
-            <rect width="330" height="42" rx="21" fill="#F3E8FF" stroke="#9333EA" strokeWidth="1.5" />
-            <text x="165" y="26" textAnchor="middle" fill="#6B21A8" fontSize="12" fontWeight="600">UC5: Manage Room Inventory & Vacancies</text>
+            <rect width="330" height="42" rx="21" fill="#EFF6FF" stroke="#2563EB" strokeWidth="1.5" />
+            <text x="165" y="26" textAnchor="middle" fill="#1E40AF" fontSize="12" fontWeight="600">UC5: System Administrative Telemetry</text>
           </g>
 
           <g transform="translate(260, 385)">
-            <rect width="330" height="42" rx="21" fill="#F0FDF4" stroke="#16A34A" strokeWidth="1.5" />
-            <text x="165" y="26" textAnchor="middle" fill="#15803D" fontSize="12" fontWeight="600">UC6: Log Facility Maintenance Report</text>
+            <rect width="330" height="42" rx="21" fill="#EFF6FF" stroke="#2563EB" strokeWidth="1.5" />
+            <text x="165" y="26" textAnchor="middle" fill="#1E40AF" fontSize="12" fontWeight="600">UC6: Resource Inventory & Audit Trails</text>
           </g>
 
           {/* Association Lines */}
@@ -257,56 +258,49 @@ export default function UmlDiagramsToolPage() {
       type: 'Structural UML',
       chapterNote: 'Indispensable for Chapter 3: Database Schema & Relational Integrity Specifications.',
       mermaidCode: `erDiagram
-  STUDENT ||--o{ ALLOCATION : "submits"
-  BEDSPACE ||--o{ ALLOCATION : "assigned_to"
-  HOSTEL_BLOCK ||--|{ ROOM : "contains"
-  ROOM ||--|{ BEDSPACE : "furnishes"
-  ALLOCATION ||--|| PAYMENT_TRANSACTION : "verified_by"
+  USER ||--o{ REQUEST : "submits"
+  REQUEST ||--|| TRANSACTION : "verified_by"
+  RESOURCE ||--|{ REQUEST : "allocated_for"
+  USER ||--o{ AUDIT_LOG : "triggers"
 
-  STUDENT {
-    string matric_number PK
+  USER {
+    string user_id PK
     string full_name
+    string email
     string department
-    int level
-    string phone_number
-    string institutional_email
+    string role
+    datetime created_at
   }
 
-  HOSTEL_BLOCK {
-    int block_id PK
-    string block_name
-    string gender_restriction
-    int total_floors
-  }
-
-  ROOM {
-    int room_id PK
-    int block_id FK
-    string room_number
+  RESOURCE {
+    int resource_id PK
+    string resource_name
+    string resource_type
     int capacity
+    string status
   }
 
-  BEDSPACE {
-    int bedspace_id PK
-    int room_id FK
-    string bed_label
-    string allocation_status
-  }
-
-  ALLOCATION {
-    string allocation_id PK
-    string matric_number FK
-    int bedspace_id FK
+  REQUEST {
+    string request_id PK
+    string user_id FK
+    int resource_id FK
     datetime applied_at
     string clearance_status
   }
 
-  PAYMENT_TRANSACTION {
+  TRANSACTION {
     string reference_code PK
-    string allocation_id FK
+    string request_id FK
     float amount_paid
     string channel
     string gateway_status
+  }
+
+  AUDIT_LOG {
+    int log_id PK
+    string user_id FK
+    string action_performed
+    datetime logged_at
   }`,
       svgPreview: (
         <svg viewBox="0 0 850 480" className="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
@@ -407,7 +401,7 @@ export default function UmlDiagramsToolPage() {
           </g>
           <g transform="translate(470, 70)">
             <rect width="280" height="50" rx="8" fill="#F0F9FF" stroke="#38BDF8" />
-            <text x="140" y="30" textAnchor="middle" fill="#0C4A6E" fontSize="12" fontWeight="600">💻 Hall Admin / Porter Workstation</text>
+            <text x="140" y="30" textAnchor="middle" fill="#0C4A6E" fontSize="12" fontWeight="600">💻 Administrator / Operator Console</text>
           </g>
 
           <rect x="50" y="170" width="750" height="130" rx="12" fill="#FFFFFF" stroke="#8B5CF6" strokeWidth="1.5" />
@@ -419,13 +413,13 @@ export default function UmlDiagramsToolPage() {
           </g>
           <g transform="translate(330, 215)">
             <rect width="190" height="60" rx="8" fill="#F5F3FF" stroke="#C4B5FD" />
-            <text x="95" y="30" textAnchor="middle" fill="#4C1D95" fontSize="11" fontWeight="bold">Allocation Core</text>
-            <text x="95" y="48" textAnchor="middle" fill="#6B21A8" fontSize="10">Row-Lock Concurrency</text>
+            <text x="95" y="30" textAnchor="middle" fill="#4C1D95" fontSize="11" fontWeight="bold">Processing Core</text>
+            <text x="95" y="48" textAnchor="middle" fill="#6B21A8" fontSize="10">ACID Concurrency</text>
           </g>
           <g transform="translate(580, 215)">
             <rect width="190" height="60" rx="8" fill="#F5F3FF" stroke="#C4B5FD" />
-            <text x="95" y="30" textAnchor="middle" fill="#4C1D95" fontSize="11" fontWeight="bold">Payment Daemon</text>
-            <text x="95" y="48" textAnchor="middle" fill="#6B21A8" fontSize="10">Paystack Webhooks</text>
+            <text x="95" y="30" textAnchor="middle" fill="#4C1D95" fontSize="11" fontWeight="bold">Integration Gateway</text>
+            <text x="95" y="48" textAnchor="middle" fill="#6B21A8" fontSize="10">Secure Webhooks</text>
           </g>
 
           <rect x="50" y="330" width="750" height="120" rx="12" fill="#FFFFFF" stroke="#10B981" strokeWidth="1.5" />
@@ -576,7 +570,7 @@ export default function UmlDiagramsToolPage() {
                 rows={2}
                 value={projectTitle}
                 onChange={e => setProjectTitle(e.target.value)}
-                placeholder="e.g. Automated Hostel Allocation and Facility Management System"
+                placeholder="e.g. Design and Implementation of an Automated System"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20"
               />
             </div>

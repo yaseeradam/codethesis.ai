@@ -140,7 +140,7 @@ export default function ThesisToolPage() {
                 rows={2}
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
-                placeholder="e.g. Design and Implementation of an Automated Hostel Allocation System"
+                placeholder="e.g. Design and Implementation of an Automated System"
                 className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all shadow-xs"
               />
             </div>

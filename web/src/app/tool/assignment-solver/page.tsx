@@ -167,7 +167,7 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
     }[];
     finalAnswer: string;
     provider?: string;
-  }>(presets[0]);
+  } | null>(null);
 
   // Auto-populate from authenticated user profile
   useEffect(() => {
@@ -191,6 +191,7 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
   }
 
   async function handleDownloadDocx() {
+    if (!activeSolution) return;
     setIsDownloading(true);
     await downloadAcademicFile(
       '/api/generate-assignment-docx',
@@ -214,7 +215,11 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
   }
 
   async function handleSolve() {
-    const questionToSolve = customQuestion.trim() || activeSolution.question;
+    const questionToSolve = customQuestion.trim() || activeSolution?.question || '';
+    if (!questionToSolve) {
+      setErrorBanner('Please enter an assignment question or select an example problem to solve.');
+      return;
+    }
     setIsSolving(true);
     try {
       const res = await fetch('/api/ai/solve-assignment', {
@@ -257,6 +262,7 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
   }
 
   function handleCopyAnswer() {
+    if (!activeSolution) return;
     const fullSolution = `${activeSolution.title}\n\nQuestion:\n${activeSolution.question}\n\nSteps:\n` +
       activeSolution.steps.map(s => `Step ${s.stepNumber}: ${s.stepTitle}\n${s.explanation}\n${s.mathSnippet}\n`).join('\n') +
       `\nFinal Result: ${activeSolution.finalAnswer}`;
@@ -411,102 +417,114 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
 
         {/* Right Derivation & Proof Canvas (8 Cols) */}
         <div className="lg:col-span-8 space-y-4">
-          <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
-            {/* Top Toolbar */}
-            <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-xs text-slate-900">{activeSolution.title}</span>
-                  {activeSolution.provider && (
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
-                      ✨ {activeSolution.provider}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[10px] text-slate-500">Complete Analytical Proof</span>
+          {!activeSolution ? (
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-12 text-center shadow-xs flex flex-col items-center justify-center min-h-[460px]">
+              <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 mb-4 shadow-inner">
+                <Calculator className="w-7 h-7 text-sky-600" />
               </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleCopyAnswer}
-                  className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'Copied' : 'Copy Proof'}</span>
-                </button>
-
-                <button
-                  onClick={handleDownloadDocx}
-                  disabled={isDownloading}
-                  className="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50"
-                >
-                  {isDownloading ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Compiling Solution...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download .DOCX</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              <h3 className="text-base font-bold text-slate-900 mb-1.5">No Assignment Solved Yet</h3>
+              <p className="text-xs text-slate-500 max-w-md mb-5 leading-relaxed">
+                Type your homework question, proof prompt, or engineering equation on the left, then click <strong>&ldquo;Solve Assignment with AI&rdquo;</strong> to generate complete step-by-step working.
+              </p>
             </div>
-
-            {/* Content Body */}
-            <div className="p-6 space-y-6">
-              {/* Question Statement Box */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs space-y-1">
-                <div className="font-bold text-slate-700 uppercase tracking-wider text-[10px]">
-                  Problem Statement
-                </div>
-                <div className="font-mono text-slate-800 whitespace-pre-wrap leading-relaxed text-[11px]">
-                  {activeSolution.question}
-                </div>
-              </div>
-
-              {/* Step by Step Breakdown */}
-              <div className="space-y-4">
-                <div className="font-bold text-xs text-slate-900 uppercase tracking-wider">
-                  Detailed Step-by-Step Derivation
-                </div>
-
-                {activeSolution.steps.map(step => (
-                  <div key={step.stepNumber} className="border border-slate-200 rounded-xl p-4 bg-white shadow-xs space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-sky-100 text-sky-800 font-black text-xs flex items-center justify-center">
-                        {step.stepNumber}
-                      </span>
-                      <h4 className="font-bold text-xs text-slate-900">{step.stepTitle}</h4>
-                    </div>
-
-                    <p className="text-xs text-slate-600 leading-relaxed pl-8">
-                      {step.explanation}
-                    </p>
-
-                    <div className="ml-8 bg-slate-950 text-emerald-400 p-3 rounded-lg font-mono text-[11px] overflow-x-auto border border-slate-800">
-                      <pre>{step.mathSnippet}</pre>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Final Answer Highlight Box */}
-              <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-4 flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+          ) : (
+            <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+              {/* Top Toolbar */}
+              <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
                 <div>
-                  <div className="font-bold text-xs text-emerald-900 uppercase tracking-wider">
-                    Final Verified Result
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-xs text-slate-900">{activeSolution.title}</span>
+                    {activeSolution.provider && (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                        ✨ {activeSolution.provider}
+                      </span>
+                    )}
                   </div>
-                  <div className="text-xs font-semibold text-emerald-800 mt-0.5">
-                    {activeSolution.finalAnswer}
+                  <span className="text-[10px] text-slate-500">Complete Analytical Proof</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleCopyAnswer}
+                    className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copied ? 'Copied' : 'Copy Proof'}</span>
+                  </button>
+
+                  <button
+                    onClick={handleDownloadDocx}
+                    disabled={isDownloading}
+                    className="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50"
+                  >
+                    {isDownloading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Compiling Solution...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download .DOCX</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Content Body */}
+              <div className="p-6 space-y-6">
+                {/* Question Statement Box */}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs space-y-1">
+                  <div className="font-bold text-slate-700 uppercase tracking-wider text-[10px]">
+                    Problem Statement
+                  </div>
+                  <div className="font-mono text-slate-800 whitespace-pre-wrap leading-relaxed text-[11px]">
+                    {activeSolution.question}
+                  </div>
+                </div>
+
+                {/* Step by Step Breakdown */}
+                <div className="space-y-4">
+                  <div className="font-bold text-xs text-slate-900 uppercase tracking-wider">
+                    Detailed Step-by-Step Derivation
+                  </div>
+
+                  {activeSolution.steps.map(step => (
+                    <div key={step.stepNumber} className="border border-slate-200 rounded-xl p-4 bg-white shadow-xs space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-sky-100 text-sky-800 font-black text-xs flex items-center justify-center">
+                          {step.stepNumber}
+                        </span>
+                        <h4 className="font-bold text-xs text-slate-900">{step.stepTitle}</h4>
+                      </div>
+
+                      <p className="text-xs text-slate-600 leading-relaxed pl-8">
+                        {step.explanation}
+                      </p>
+
+                      <div className="ml-8 bg-slate-950 text-emerald-400 p-3 rounded-lg font-mono text-[11px] overflow-x-auto border border-slate-800">
+                        <pre>{step.mathSnippet}</pre>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Final Answer Highlight Box */}
+                <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-4 flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-bold text-xs text-emerald-900 uppercase tracking-wider">
+                      Final Verified Result
+                    </div>
+                    <div className="text-xs font-semibold text-emerald-800 mt-0.5">
+                      {activeSolution.finalAnswer}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </AppLayout>

@@ -7,7 +7,7 @@ Usage:
     
     ct = CodeThesis(api_key="ct_live_...")
     balance = ct.get_balance()
-    diagram = ct.uml.generate(topic="Student Hostel Clearance System", diagram_type="sequence")
+    diagram = ct.uml.generate(topic="Distributed Enterprise Information System", diagram_type="sequence")
 """
 
 import json

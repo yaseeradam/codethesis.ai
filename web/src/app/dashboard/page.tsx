@@ -166,41 +166,7 @@ const ACADEMIC_TOOLS_9: AcademicTool9[] = [
   },
 ];
 
-const DEFAULT_PROJECTS: Project[] = [
-  {
-    id: 'proj-1',
-    toolId: 'thesis',
-    title: 'E-commerce Website Project',
-    fileType: 'docx',
-    date: 'Nov 13, 2025',
-    size: '2.5 MB',
-    tag: 'DOC',
-    tagColor: 'bg-blue-600 text-white',
-    href: '/tool/thesis',
-  },
-  {
-    id: 'proj-2',
-    toolId: 'viva-presentation',
-    title: 'Viva Presentation Deck',
-    fileType: 'pptx',
-    date: 'Nov 12, 2025',
-    size: '1.8 MB',
-    tag: 'PPT',
-    tagColor: 'bg-purple-600 text-white',
-    href: '/tool/viva-presentation',
-  },
-  {
-    id: 'proj-3',
-    toolId: 'software-builder',
-    title: 'Student Forum Software',
-    fileType: 'zip',
-    date: 'Nov 10, 2025',
-    size: '4.2 MB',
-    tag: 'ZIP',
-    tagColor: 'bg-emerald-600 text-white',
-    href: '/tool/software-builder',
-  },
-];
+const DEFAULT_PROJECTS: Project[] = [];
 
 const TESTIMONIALS = [
   {
@@ -306,13 +272,13 @@ function DashboardMain() {
             });
             setRecentProjects(mapped);
           } else {
-            setRecentProjects(DEFAULT_PROJECTS);
+            setRecentProjects([]);
           }
         } else {
-          setRecentProjects(DEFAULT_PROJECTS);
+          setRecentProjects([]);
         }
       } catch (err) {
-        setRecentProjects(DEFAULT_PROJECTS);
+        setRecentProjects([]);
       }
     }
 
@@ -983,40 +949,62 @@ function DashboardMain() {
                   </Link>
                 </div>
 
-                <div className="space-y-3">
-                  {(recentProjects.length > 0 ? recentProjects : DEFAULT_PROJECTS).slice(0, 3).map((proj) => (
-                    <div
-                      key={proj.id}
-                      className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors group"
+                {recentProjects.length === 0 ? (
+                  <div className="py-6 px-3 text-center space-y-2.5 rounded-xl border border-dashed border-slate-200 bg-slate-50/60">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
+                      <FolderGit2 className="w-4 h-4" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-bold text-slate-800">No projects yet</p>
+                      <p className="text-[11px] text-slate-400 max-w-[210px] mx-auto leading-normal">
+                        Your generated projects will appear here automatically.
+                      </p>
+                    </div>
+                    <Link
+                      href="/studio"
+                      prefetch={false}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                        <span
-                          className={`text-[9px] font-black px-2 py-1 rounded-md flex-shrink-0 ${proj.tagColor}`}
-                        >
-                          {proj.tag}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors" title={proj.title}>
-                            {proj.title}
-                          </p>
-                          <p className="text-[10px] text-slate-400">
-                            {proj.date} &bull; {proj.size}
-                          </p>
+                      <span>Create your first project</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {recentProjects.slice(0, 3).map((proj) => (
+                      <div
+                        key={proj.id}
+                        className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                          <span
+                            className={`text-[9px] font-black px-2 py-1 rounded-md flex-shrink-0 ${proj.tagColor}`}
+                          >
+                            {proj.tag}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors" title={proj.title}>
+                              {proj.title}
+                            </p>
+                            <p className="text-[10px] text-slate-400">
+                              {proj.date} &bull; {proj.size}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <Link
+                            href={proj.href}
+                            prefetch={false}
+                            className="text-[11px] font-semibold text-blue-600 hover:bg-blue-100 bg-blue-50 px-3 py-1 rounded-full border border-blue-100/80 transition-colors"
+                          >
+                            Open
+                          </Link>
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <Link
-                          href={proj.href}
-                          prefetch={false}
-                          className="text-[11px] font-semibold text-blue-600 hover:bg-blue-100 bg-blue-50 px-3 py-1 rounded-full border border-blue-100/80 transition-colors"
-                        >
-                          Open
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

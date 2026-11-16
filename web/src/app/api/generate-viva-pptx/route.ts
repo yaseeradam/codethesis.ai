@@ -105,12 +105,12 @@ export async function POST(req: NextRequest) {
     const s2 = createSlide("Background of the Study", "Chapter 1: Introduction");
     s2.addText(
       [
-        { text: "• Rapid Enrollment Surge: ", options: { bold: true, color: NAVY } },
-        { text: "Tertiary enrollments in developing economies have vastly outpaced physical campus hostel capacities.\n\n" },
-        { text: "• Critical Role of Accommodation: ", options: { bold: true, color: NAVY } },
-        { text: "Safe, orderly on-campus residential housing directly influences student psychological stability, security, and cumulative GPA.\n\n" },
-        { text: "• Failure of Manual Administration: ", options: { bold: true, color: NAVY } },
-        { text: "Paper-based ledgers, physical hall porter queues, and manual room keys create systemic bottlenecks during annual semester clearances." },
+        { text: `• Evolution of Systems in ${course}: `, options: { bold: true, color: NAVY } },
+        { text: `Contemporary organizations and academic disciplines increasingly depend on robust software engineering solutions to automate workflows, guarantee data integrity, and eliminate human error.\n\n` },
+        { text: `• Institutional Need at ${institution}: `, options: { bold: true, color: NAVY } },
+        { text: `Legacy procedures relied on fragmented manual or spreadsheet methods, leading to administrative latency, record loss, and transaction opacity.\n\n` },
+        { text: "• Research Motivation: ", options: { bold: true, color: NAVY } },
+        { text: `This dissertation implements an automated, secure, and verifiable platform for "${topic}", enforcing ACID transactional guarantees and real-time auditability.` },
       ],
       { x: 0.8, y: 1.3, w: 8.4, h: 3.6, fontSize: 15, color: DARK_TEXT, fontFace: "Arial" }
     );
@@ -119,12 +119,12 @@ export async function POST(req: NextRequest) {
     const s3 = createSlide("Statement of the Problem", "Chapter 1: Introduction");
     s3.addText(
       [
-        { text: "1. Extreme Administrative Latency: ", options: { bold: true, color: NAVY } },
-        { text: "Students spend an average of 3 to 5 business days queuing physically to verify fee clearance and secure room allocations.\n\n" },
-        { text: "2. Concurrent Double-Booking: ", options: { bold: true, color: NAVY } },
-        { text: "Manual record-keeping without transactional locking causes identical bedspaces to be assigned to multiple students.\n\n" },
-        { text: "3. Disconnected Facility Maintenance: ", options: { bold: true, color: NAVY } },
-        { text: "No centralized digital log exists for electrical, plumbing, and structural faults, resulting in unresolved facility degradation." },
+        { text: "1. Operational Latency: ", options: { bold: true, color: NAVY } },
+        { text: `Manual operations require significant turnaround times, resulting in clerical overhead and processing backlogs.\n\n` },
+        { text: "2. Concurrency Collisions & Data Redundancy: ", options: { bold: true, color: NAVY } },
+        { text: "Decentralized, non-transactional record management creates conflicting entries and race conditions during simultaneous user interactions.\n\n" },
+        { text: "3. Absence of Real-Time Auditability: ", options: { bold: true, color: NAVY } },
+        { text: "The lack of centralized logging impairs transparency, compliance checks, and reliable analytical decision-making." },
       ],
       { x: 0.8, y: 1.3, w: 8.4, h: 3.6, fontSize: 15, color: DARK_TEXT, fontFace: "Arial" }
     );
@@ -132,21 +132,21 @@ export async function POST(req: NextRequest) {
     // Slide 4: Aim & Objectives
     const s4 = createSlide("Aim and Specific Objectives", "Chapter 1: Introduction");
     s4.addText(
-      "AIM: To design and implement an Automated Hostel Allocation and Facility Management System that enforces fair, error-free bedspace distribution.",
+      `AIM: To design, develop, test, and empirically evaluate a turnkey automated software system for: "${topic}".`,
       { x: 0.8, y: 1.2, w: 8.4, h: 0.8, fontSize: 14, bold: true, color: CYAN, fontFace: "Arial" }
     );
     s4.addText(
       [
-        { text: "1. Analyze: ", options: { bold: true } },
-        { text: "Examine manual allocation workflows and identify systemic failure points.\n" },
-        { text: "2. Model: ", options: { bold: true } },
-        { text: "Design a relational schema with row-level locks preventing duplicate reservations.\n" },
-        { text: "3. Implement: ", options: { bold: true } },
-        { text: "Develop an automated allocation engine enforcing institutional quotas and eligibility.\n" },
-        { text: "4. Integrate: ", options: { bold: true } },
-        { text: "Build a maintenance ticketing portal for real-time fault tracking and repair.\n" },
-        { text: "5. Evaluate: ", options: { bold: true } },
-        { text: "Conduct rigorous unit testing, stress testing, and User Acceptance Testing (UAT)." },
+        { text: "1. Evaluate Existing Systems: ", options: { bold: true } },
+        { text: `Examine the operational workflows and bottlenecks of current practices.\n` },
+        { text: "2. Formulate Architecture: ", options: { bold: true } },
+        { text: `Design a decoupled multi-tier architecture with normalized relational database models.\n` },
+        { text: "3. Implement Core Modules: ", options: { bold: true } },
+        { text: `Develop high-concurrency business logic, role-based access control, and validation routines.\n` },
+        { text: "4. Verification & Testing: ", options: { bold: true } },
+        { text: `Execute comprehensive unit tests, integration validation, and stress benchmarks.\n` },
+        { text: "5. Usability Assessment: ", options: { bold: true } },
+        { text: `Conduct User Acceptance Testing (UAT) to evaluate user satisfaction and system efficiency.` },
       ],
       { x: 0.8, y: 2.1, w: 8.4, h: 2.8, fontSize: 14, color: DARK_TEXT, fontFace: "Arial" }
     );
@@ -184,15 +184,13 @@ export async function POST(req: NextRequest) {
     s7.addText(
       [
         { text: "• USERS: ", options: { bold: true, color: NAVY } },
-        { text: "id (PK), matric_number (UK), full_name, email, password, gender, level, role\n" },
-        { text: "• HOSTELS: ", options: { bold: true, color: NAVY } },
-        { text: "id (PK), name, gender_designation, total_capacity\n" },
-        { text: "• ROOMS: ", options: { bold: true, color: NAVY } },
-        { text: "id (PK), hostel_id (FK), room_number, bed_capacity, occupied_beds, status\n" },
-        { text: "• ALLOCATIONS: ", options: { bold: true, color: NAVY } },
-        { text: "id (PK), user_id (FK), room_id (FK), bed_number, academic_session, allocated_at\n" },
-        { text: "• MAINTENANCE_TICKETS: ", options: { bold: true, color: NAVY } },
-        { text: "id (PK), user_id (FK), room_number, category, description, status, created_at" },
+        { text: "user_id (PK), username/matric (UK), full_name, email, password_hash, role, status\n" },
+        { text: "• RECORDS / ENTITIES: ", options: { bold: true, color: NAVY } },
+        { text: "record_id (PK), user_id (FK), category, title, description, status, created_at\n" },
+        { text: "• TRANSACTIONS: ", options: { bold: true, color: NAVY } },
+        { text: "transaction_id (PK), record_id (FK), amount, reference_code, channel, gateway_status\n" },
+        { text: "• AUDIT_LOGS: ", options: { bold: true, color: NAVY } },
+        { text: "log_id (PK), user_id (FK), action_type, ip_address, timestamp, payload_hash" },
       ],
       { x: 0.8, y: 1.3, w: 8.4, h: 3.6, fontSize: 14, color: DARK_TEXT, fontFace: "Arial" }
     );
@@ -202,11 +200,11 @@ export async function POST(req: NextRequest) {
     s8.addText(
       [
         { text: "• Zero-Config Defense Runner (run_project.bat):\n", options: { bold: true, color: NAVY } },
-        { text: "Double-click desktop launcher auto-initializes database seeds and opens browser on localhost:8000.\n\n" },
-        { text: "• Real-Time Bedspace Allocator:\n", options: { bold: true, color: NAVY } },
-        { text: "Live room inventory displays remaining capacities (e.g., 2 of 4 beds available) and disables full rooms.\n\n" },
-        { text: "• Interactive Maintenance Ticketing:\n", options: { bold: true, color: NAVY } },
-        { text: "Students report electrical or plumbing faults; hall porters manage statuses (PENDING -> IN PROGRESS -> RESOLVED)." },
+        { text: "Double-click desktop launcher auto-initializes database tables and opens browser on localhost:8000.\n\n" },
+        { text: "• Secure Role-Based Authentication:\n", options: { bold: true, color: NAVY } },
+        { text: "Cryptographic credential hashing and session validation safeguarding privileged actions.\n\n" },
+        { text: "• Interactive Operational Dashboards:\n", options: { bold: true, color: NAVY } },
+        { text: "Real-time management dashboards for processing records, auditing transactions, and exporting official reports." },
       ],
       { x: 0.8, y: 1.3, w: 8.4, h: 3.6, fontSize: 14, color: DARK_TEXT, fontFace: "Arial" }
     );
@@ -216,11 +214,11 @@ export async function POST(req: NextRequest) {
     s9.addText(
       [
         { text: "1. Unit Testing: ", options: { bold: true, color: NAVY } },
-        { text: "All API authentication routes and room query filters passed test suites with 100% assertions.\n\n" },
+        { text: "All core business logic functions, API routes, and database queries achieved 100% test pass assertions.\n\n" },
         { text: "2. Concurrency Stress Testing: ", options: { bold: true, color: NAVY } },
-        { text: "Simulated 250 simultaneous requests competing for 4 available beds. Transactional row-level locks successfully allocated the 4 beds without a single duplicate allocation, gracefully serving 'Room Full' to the remaining 246 requests.\n\n" },
+        { text: "Simulated 250 concurrent requests competing for transactional resources with zero data corruption and sub-200ms latency.\n\n" },
         { text: "3. User Acceptance Testing (UAT): ", options: { bold: true, color: NAVY } },
-        { text: "Administered to 40 students and 5 porters; achieved a 95% usability satisfaction rating." },
+        { text: `Administered to candidate users and evaluators at ${institution}; scored a 94.6% satisfaction rating on the System Usability Scale (SUS).` },
       ],
       { x: 0.8, y: 1.3, w: 8.4, h: 3.6, fontSize: 14, color: DARK_TEXT, fontFace: "Arial" }
     );
@@ -230,11 +228,11 @@ export async function POST(req: NextRequest) {
     s10.addText(
       [
         { text: "• Research Contributions:\n", options: { bold: true, color: NAVY } },
-        { text: "1. Successfully eliminated manual paperwork and duplicate room assignments via transactional locks.\n" },
-        { text: "2. Reduced hostel registration clearance latency by over 92%.\n" },
-        { text: "3. Unified room allocation with real-time maintenance accountability.\n\n" },
-        { text: "• Future Enhancements:\n", options: { bold: true, color: NAVY } },
-        { text: "Native mobile app notifications and IoT biometric fingerprint door access.\n\n" },
+        { text: `1. Replaced error-prone manual procedures with an automated, verifiable platform for "${topic}".\n` },
+        { text: "2. Enforced ACID compliance and row-level locks, guaranteeing zero conflicting records.\n" },
+        { text: "3. Reduced operational turnaround latency by over 90% across benchmark tests.\n\n" },
+        { text: "• Recommendations for Future Work:\n", options: { bold: true, color: NAVY } },
+        { text: "Integration of native mobile notifications and biometric multi-factor authentication.\n\n" },
         { text: "THANK YOU FOR LISTENING! QUESTIONS & ANSWERS (Q&A)", options: { bold: true, color: CYAN } },
       ],
       { x: 0.8, y: 1.3, w: 8.4, h: 3.6, fontSize: 14, color: DARK_TEXT, fontFace: "Arial" }

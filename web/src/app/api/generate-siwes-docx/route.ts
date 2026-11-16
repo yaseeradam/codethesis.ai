@@ -336,7 +336,7 @@ export async function POST(req: NextRequest) {
             { day: "Monday", date: "Day 101", task: "Viva Defense Constraints & Examiner Environments", details: "Analyzed defense day failure risks: lack of campus internet, missing Python libraries, and restrictive examiner laptop policies." },
             { day: "Tuesday", date: "Day 102", task: "run_project.bat Windows Batch Launcher Engineering", details: "Authored standalone Windows batch script that checks Python installation, initializes SQLite database, and handles zero-pip execution." },
             { day: "Wednesday", date: "Day 103", task: "Automated Browser Auto-Launch Logic", details: "Added batch commands that wait 1.5 seconds for local HTTP server startup and automatically trigger default browser on http://localhost:8000." },
-            { day: "Thursday", date: "Day 104", task: "Database Seeding with Realistic Mock Records", details: "Wrote automated SQL seed script populating 8 hostels, 48 rooms, and realistic student records to ensure immediate visual demonstration." },
+            { day: "Thursday", date: "Day 104", task: "Database Seeding with Test Records", details: "Wrote automated SQL seed script populating core relational tables, transactions, and audit records to verify ACID concurrency controls." },
             { day: "Friday", date: "Day 105", task: "Zero-Dependency USB Flash Drive Packaging", details: "Packaged full codebase and launcher onto portable USB flash drive; executed test run on an offline Windows PC with 100% startup success." }
           ],
           weeklySummary: "Engineered a robust, zero-pip Windows batch launcher (run_project.bat) enabling seamless offline demonstration during project defense.",

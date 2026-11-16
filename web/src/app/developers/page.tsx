@@ -321,7 +321,7 @@ export default function DeveloperPortalPage() {
   -H "Authorization: Bearer ${sampleKey}" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "topic": "Design and Implementation of an Automated Hostel Allocation System",
+    "topic": "AI-Powered Financial Fraud Detection System using Graph Neural Networks",
     "chapter_number": 1,
     "department": "Computer Science",
     "institution": "Federal University of Technology, Akure"
@@ -334,7 +334,7 @@ headers = {
     "Content-Type": "application/json"
 }
 payload = {
-    "topic": "Design and Implementation of an Automated Hostel Allocation System",
+    "topic": "AI-Powered Financial Fraud Detection System using Graph Neural Networks",
     "chapter_number": 1,
     "department": "Computer Science",
     "institution": "Federal University of Technology, Akure"
@@ -351,7 +351,7 @@ print(data.get("content"))`,
     "Content-Type": "application/json"
   },
   body: JSON.stringify({
-    topic: "Design and Implementation of an Automated Hostel Allocation System",
+    topic: "Design and Implementation of an Enterprise Distributed Architecture",
     chapter_number: 1,
     department: "Computer Science",
     institution: "Federal University of Technology, Akure"
@@ -372,7 +372,7 @@ const ct = new CodeThesis({
 
 // 1. Generate Academic UML Diagram
 const diagram = await ct.uml.generate({
-  topic: 'Student Hostel Room Clearance System',
+  topic: 'Intelligent Distributed Financial Ledger',
   diagramType: 'sequence',
   department: 'Computer Science'
 });
@@ -381,7 +381,7 @@ console.log(diagram.mermaid_code);
 // 2. Check Thesis Similarity & Plagiarism Risk
 const audit = await ct.thesis.checkSimilarity({
   text: 'The primary architecture adopts an asynchronous event loop with ACID row locking...',
-  topic: 'Hostel System'
+  topic: 'Financial Audit Engine'
 });
 console.log(\`Similarity: \${audit.similarity_score}% - Verdict: \${audit.verdict}\`);
 

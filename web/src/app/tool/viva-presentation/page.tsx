@@ -360,7 +360,7 @@ export default function VivaPresentationPage() {
                 rows={2}
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
-                placeholder="e.g. Design and Implementation of an Automated Hostel Allocation System"
+                placeholder="e.g. Design and Implementation of an Automated System"
                 className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl p-2.5 text-xs text-slate-800 font-medium outline-none transition-all shadow-xs"
               />
             </div>
@@ -514,7 +514,7 @@ export default function VivaPresentationPage() {
                     <div>
                       <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">
                         <span>{institution.split(',')[0]}</span>
-                        <span>CSC 599 FINAL DEFENSE</span>
+                        <span>{course ? `${course.toUpperCase()} DEFENSE` : 'FINAL DEFENSE'}</span>
                       </div>
                       <h2 className="text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight leading-snug">
                         {activeSlide.title}
