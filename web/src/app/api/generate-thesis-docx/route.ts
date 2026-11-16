@@ -3,6 +3,14 @@ import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 import { generateAcademicAI, buildChapterUserPrompt } from "@/lib/ai";
 import { generateDynamicChapterText } from "@/lib/academic-chapters";
 import {
+  getArchitectureSvg,
+  getUseCaseSvg,
+  getErdSvg,
+  getLoginScreenshotSvg,
+  getDashboardScreenshotSvg,
+  renderSvgToPngBuffer,
+} from "@/lib/academic-diagrams";
+import {
   Document,
   Packer,
   Paragraph,
@@ -15,6 +23,7 @@ import {
   HeadingLevel,
   PageBreak,
   BorderStyle,
+  ImageRun,
 } from "docx";
 
 export async function POST(req: NextRequest) {
@@ -753,6 +762,83 @@ export async function POST(req: NextRequest) {
       new Paragraph({ children: [new PageBreak()] })
     );
 
+    // Helper to format an academic figure with centered image and APA caption
+    const createFigureParagraph = (pngBuffer: Buffer, caption: string, source: string = "Field Study (2026)") => {
+      return [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new ImageRun({
+              data: pngBuffer,
+              type: "png",
+              transformation: {
+                width: 580,
+                height: 330,
+              },
+            }),
+          ],
+          spacing: { before: 240, after: 120 },
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new TextRun({
+              text: caption,
+              bold: true,
+              size: 20, // 10pt
+              font: "Times New Roman",
+              color: "1e293b",
+            }),
+          ],
+          spacing: { before: 60, after: 40 },
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new TextRun({
+              text: `Source: ${source}`,
+              italics: true,
+              size: 18, // 9pt
+              font: "Times New Roman",
+              color: "64748b",
+            }),
+          ],
+          spacing: { before: 0, after: 240 },
+        }),
+      ];
+    };
+
+    // Helper to append Chapter 3 and Chapter 4 diagrams & screenshots
+    const appendChapterVisuals = async (chNum: number) => {
+      if (chNum === 3) {
+        try {
+          const archPng = await renderSvgToPngBuffer(getArchitectureSvg(topic, course));
+          const useCasePng = await renderSvgToPngBuffer(getUseCaseSvg(topic));
+          const erdPng = await renderSvgToPngBuffer(getErdSvg(topic));
+
+          docChildren.push(
+            ...createFigureParagraph(archPng, `Figure 3.1: High-Level Three-Tier Architecture of the Proposed System`),
+            ...createFigureParagraph(useCasePng, `Figure 3.2: UML Use Case Diagram for User and Administrative Roles`),
+            ...createFigureParagraph(erdPng, `Figure 3.3: Third Normal Form (3NF) Relational Database Schema`)
+          );
+        } catch (diagErr) {
+          console.warn("Failed to embed Chapter 3 vector diagrams:", diagErr);
+        }
+      } else if (chNum === 4) {
+        try {
+          const loginPng = await renderSvgToPngBuffer(getLoginScreenshotSvg(topic));
+          const dashPng = await renderSvgToPngBuffer(getDashboardScreenshotSvg(topic));
+
+          docChildren.push(
+            ...createFigureParagraph(loginPng, `Figure 4.1: Secure Role-Based Authentication Interface`),
+            ...createFigureParagraph(dashPng, `Figure 4.2: Administrator Central Operational Telemetry Dashboard`)
+          );
+        } catch (diagErr) {
+          console.warn("Failed to embed Chapter 4 software screenshots:", diagErr);
+        }
+      }
+    };
+
     // =========================================================================
     // 8. SYNTHESIZE CHAPTERS 1 THROUGH 5
     // =========================================================================
@@ -762,6 +848,7 @@ export async function POST(req: NextRequest) {
       const userChapterText = userChapters[ch];
       if (userChapterText && userChapterText.trim().length >= 800) {
         docChildren.push(...parseMarkdownToDocx(userChapterText));
+        await appendChapterVisuals(ch);
         docChildren.push(new Paragraph({ children: [new PageBreak()] }));
         continue;
       }
@@ -797,6 +884,7 @@ export async function POST(req: NextRequest) {
       }
 
       docChildren.push(...parseMarkdownToDocx(chapterMarkdown));
+      await appendChapterVisuals(ch);
       docChildren.push(new Paragraph({ children: [new PageBreak()] }));
     }
 
