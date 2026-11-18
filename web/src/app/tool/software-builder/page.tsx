@@ -53,7 +53,8 @@ import {
   GraduationCap,
   Star,
   ExternalLink,
-  Ban
+  Ban,
+  FileText
 } from 'lucide-react';
 
 interface SynthesisStage {
@@ -89,6 +90,110 @@ const SYNTHESIS_STAGES: SynthesisStage[] = [
     detail: 'Validating syntax integrity, generating 1-click launchers, and creating supervisor handbook...',
   },
 ];
+
+/* ─────────────────────────────────────────────────────────────
+   CUSTOM VECTOR SVG TECH & DATABASE ICONS (Zero Emojis)
+─────────────────────────────────────────────────────────────── */
+function PythonIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M11.91 2C6.73 2 7.05 4.25 7.05 4.25L7.06 6.59H12.02V7.37H5.16C5.16 7.37 2 7.01 2 12.16C2 17.31 4.77 17.06 4.77 17.06H6.42V14.74C6.42 14.74 6.33 11.95 9.17 11.95H14.07C14.07 11.95 16.79 12.04 16.79 9.39V4.53C16.79 4.53 17.18 2 11.91 2ZM9.49 3.51C10.02 3.51 10.45 3.94 10.45 4.47C10.45 5 10.02 5.43 9.49 5.43C8.96 5.43 8.53 5 8.53 4.47C8.53 3.94 8.96 3.51 9.49 3.51Z"
+        fill="#3776AB"
+      />
+      <path
+        d="M12.09 22C17.27 22 16.95 19.75 16.95 19.75L16.94 17.41H11.98V16.63H18.84C18.84 16.63 22 16.99 22 11.84C22 6.69 19.23 6.94 19.23 6.94H17.58V9.26C17.58 9.26 17.67 12.05 14.83 12.05H9.93C9.93 12.05 7.21 11.96 7.21 14.61V19.47C7.21 19.47 6.82 22 12.09 22ZM14.51 20.49C13.98 20.49 13.55 20.06 13.55 19.53C13.55 19 13.98 18.57 14.51 18.57C15.04 18.57 15.47 19 15.47 19.53C15.47 20.06 15.04 20.49 14.51 20.49Z"
+        fill="#FFD438"
+      />
+    </svg>
+  );
+}
+
+function PhpIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="16" cy="16" rx="15" ry="10" fill="#777BB4" />
+      <path
+        d="M8.5 13H11C12.5 13 13.2 13.8 13 15C12.8 16.2 11.8 17 10.3 17H9.2L8.5 20H7L8.5 13ZM9.6 15.8H10.4C11.1 15.8 11.6 15.5 11.7 15C11.8 14.5 11.4 14.2 10.8 14.2H10L9.6 15.8Z"
+        fill="white"
+      />
+      <path
+        d="M13.8 13H15.3L14.7 15.5H16.2C17.7 15.5 18.5 16.3 18.3 17.5C18.1 18.7 17.1 20 15.6 20H12.3L13.8 13ZM14.5 16.7L14 18.8H15.1C15.8 18.8 16.5 18.3 16.7 17.7C16.8 17.2 16.5 16.7 15.8 16.7H14.5Z"
+        fill="white"
+      />
+      <path
+        d="M19.5 13H22C23.5 13 24.2 13.8 24 15C23.8 16.2 22.8 17 21.3 17H20.2L19.5 20H18L19.5 13ZM20.6 15.8H21.4C22.1 15.8 22.6 15.5 22.7 15C22.8 14.5 22.4 14.2 21.8 14.2H21L20.6 15.8Z"
+        fill="white"
+      />
+    </svg>
+  );
+}
+
+function JavaScriptIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="24" height="24" rx="4" fill="#F7DF1E" />
+      <path
+        d="M7.5 18.5C6.5 18.5 5.8 18 5.4 17.2L6.8 16.3C7.1 16.8 7.5 17.1 8 17.1C8.6 17.1 9 16.7 9 15.8V11H10.8V15.8C10.8 17.5 9.8 18.5 7.5 18.5ZM13.8 18.5C12.3 18.5 11.3 17.6 11.3 16.3C11.3 15 12.2 14.4 13.6 13.8L14.2 13.5C14.8 13.2 15.2 12.9 15.2 12.4C15.2 11.9 14.8 11.6 14.1 11.6C13.4 11.6 12.9 11.9 12.6 12.5L11.2 11.6C11.7 10.6 12.8 10 14.2 10C15.8 10 17 10.9 17 12.3C17 13.6 16.1 14.3 14.7 14.9L14.1 15.1C13.5 15.4 13.2 15.7 13.2 16.2C13.2 16.7 13.6 17 14.3 17C15 17 15.5 16.6 15.8 16L17.1 17C16.4 18 15.3 18.5 13.8 18.5Z"
+        fill="#000000"
+      />
+    </svg>
+  );
+}
+
+function MySqlIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M21.5 12C20.8 9.5 18.5 8 16.2 8C14.5 8 13.2 8.7 12.3 9.6C11.5 8.7 10.2 8 8.5 8C5.5 8 3 10.5 3 13.5C3 17.5 7.5 20.5 12 21C16.5 20.5 21 17.5 21 13.5C21 13 21.2 12.5 21.5 12Z"
+        fill="#00758F"
+      />
+      <circle cx="9" cy="13" r="1.5" fill="white" />
+      <path
+        d="M12.5 10C14 10 15.5 11 16 12.5C16.5 14 16 15.5 15 16.5C14 17.5 12.5 17.5 11.5 17C10.5 16.5 10 15 10.5 13.5C11 12 11.5 10 12.5 10Z"
+        fill="#F29111"
+      />
+    </svg>
+  );
+}
+
+function PostgreSqlIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z"
+        fill="#336791"
+      />
+      <path
+        d="M17.2 16.5C16.5 17.2 15.2 17.8 13.8 17.8C11.5 17.8 9.8 16.5 9.2 15C8.8 14 8.8 12.5 9.5 11.5C10.2 10.5 11.5 10 13 10C14.2 10 15.2 10.4 16 11.1L15 12.3C14.5 11.8 13.8 11.5 13 11.5C12 11.5 11.2 11.9 10.8 12.5C10.4 13.2 10.4 14.1 10.7 14.8C11.1 15.7 12.2 16.3 13.5 16.3C14.3 16.3 15.1 16 15.6 15.5L17.2 16.5Z"
+        fill="white"
+      />
+    </svg>
+  );
+}
+
+function SqliteIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M4 6C4 4.34 7.58 3 12 3C16.42 3 20 4.34 20 6C20 7.66 16.42 9 12 9C7.58 9 4 7.66 4 6Z"
+        fill="#003B57"
+      />
+      <path
+        d="M4 10C4 11.66 7.58 13 12 13C16.42 13 20 11.66 20 10V8.2C18.2 9.3 15.2 10 12 10C8.8 10 5.8 9.3 4 8.2V10Z"
+        fill="#005B82"
+      />
+      <path
+        d="M4 14C4 15.66 7.58 17 12 17C16.42 17 20 15.66 20 14V12.2C18.2 13.3 15.2 14 12 14C8.8 14 5.8 13.3 4 12.2V14Z"
+        fill="#007DAF"
+      />
+      <path
+        d="M4 18C4 19.66 7.58 21 12 21C16.42 21 20 19.66 20 18V16.2C18.2 17.3 15.2 18 12 18C8.8 18 5.8 17.3 4 16.2V18Z"
+        fill="#00A2E0"
+      />
+    </svg>
+  );
+}
 
 export default function SoftwareBuilderPage() {
   const { user } = useAuth();
@@ -461,12 +566,13 @@ export default function SoftwareBuilderPage() {
 
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { name: 'Python', icon: '🐍' },
-                  { name: 'PHP', icon: '🐘' },
-                  { name: 'JavaScript', icon: '⚡' },
-                  { name: 'More ∨', isMore: true }
+                  { name: 'Python', icon: PythonIcon },
+                  { name: 'PHP', icon: PhpIcon },
+                  { name: 'JavaScript', icon: JavaScriptIcon },
+                  { name: 'More', isMore: true, icon: ChevronDown }
                 ].map((item) => {
-                  const isSelected = selectedTechStack === item.name;
+                  const isSelected = selectedTechStack === item.name || (item.isMore && !['Python', 'PHP', 'JavaScript'].includes(selectedTechStack));
+                  const IconComp = item.icon;
                   return (
                     <button
                       key={item.name}
@@ -484,7 +590,7 @@ export default function SoftwareBuilderPage() {
                           : 'bg-[#FAFBFD] border-slate-200/90 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
                       }`}
                     >
-                      {item.icon && <span className="text-xs">{item.icon}</span>}
+                      <IconComp className="w-3.5 h-3.5 flex-shrink-0" />
                       <span>{item.name}</span>
                     </button>
                   );
@@ -527,12 +633,13 @@ export default function SoftwareBuilderPage() {
 
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { name: 'MySQL', icon: '🐬' },
-                  { name: 'PostgreSQL', icon: '🐘' },
-                  { name: 'SQLite', icon: '🪶' },
-                  { name: 'None', icon: '🚫' }
+                  { name: 'MySQL', icon: MySqlIcon },
+                  { name: 'PostgreSQL', icon: PostgreSqlIcon },
+                  { name: 'SQLite', icon: SqliteIcon },
+                  { name: 'None', icon: Ban }
                 ].map((db) => {
                   const isSelected = selectedDatabase === db.name;
+                  const IconComp = db.icon;
                   return (
                     <button
                       key={db.name}
@@ -544,7 +651,7 @@ export default function SoftwareBuilderPage() {
                           : 'bg-[#FAFBFD] border-slate-200/90 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
                       }`}
                     >
-                      <span>{db.icon}</span>
+                      <IconComp className="w-3.5 h-3.5 flex-shrink-0" />
                       <span className="truncate">{db.name}</span>
                     </button>
                   );
@@ -621,9 +728,19 @@ export default function SoftwareBuilderPage() {
               <button
                 type="button"
                 onClick={() => setShowUploader(!showUploader)}
-                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
               >
-                {showUploader ? '▲ Hide Chapter 3 Extractor' : '📄 Have a Thesis Proposal or Chapter 3? Auto-extract fields'}
+                {showUploader ? (
+                  <>
+                    <ChevronUp className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Hide Chapter 3 Extractor</span>
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Have a Thesis Proposal or Chapter 3? Auto-extract fields</span>
+                  </>
+                )}
               </button>
             </div>
 

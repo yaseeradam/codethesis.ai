@@ -24,7 +24,9 @@ import {
   Tablet,
   CheckSquare,
   Activity,
-  Code2
+  Code2,
+  Gamepad2,
+  Bot
 } from 'lucide-react';
 
 interface TestCase {
@@ -366,10 +368,18 @@ export default function LiveTestingSimulator({
 
             {/* Instruction strip */}
             <div className="bg-[#161B22] px-4 py-2 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
-              <span>
-                {activeMode === 'interactive'
-                  ? '🎮 You are in Interactive Mode: click any button or form field directly!'
-                  : '🤖 Automated runner verifying responsive elements, forms, and tables in real DOM.'}
+              <span className="flex items-center gap-1.5">
+                {activeMode === 'interactive' ? (
+                  <>
+                    <Gamepad2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                    <span>You are in Interactive Mode: click any button or form field directly!</span>
+                  </>
+                ) : (
+                  <>
+                    <Bot className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                    <span>Automated runner verifying responsive elements, forms, and tables in real DOM.</span>
+                  </>
+                )}
               </span>
               <span className="font-mono text-cyan-400 text-[10px]">100% Real Interactive DOM</span>
             </div>
