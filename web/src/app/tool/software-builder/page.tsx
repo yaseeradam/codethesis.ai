@@ -381,127 +381,35 @@ export default function SoftwareBuilderPage() {
   };
 
   return (
-    <AppLayout hideHeader={false} activeItem="software-builder">
-      {/* Top Banner Notice */}
-      {successBanner && (
-        <div className="mb-4 p-3.5 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs flex items-center justify-between shadow-xs animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-            <span className="font-semibold">{successBanner}</span>
-          </div>
-          <button onClick={() => setSuccessBanner(null)} className="text-indigo-600/70 hover:text-indigo-900 font-bold">
-            &times;
-          </button>
-        </div>
-      )}
+    <AppLayout hideHeader={false} hideSidebar={true} fullWidth={true} hideFooter={true} activeItem="software-builder">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 h-auto lg:h-[calc(100vh-65px)] overflow-y-auto lg:overflow-hidden">
 
-      {/* Back to Home Button */}
-      <div className="mb-4">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#EEF0FD] hover:bg-[#E3E7FC] text-[#4F46E5] text-xs font-bold transition-all shadow-2xs"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Home</span>
-        </Link>
-      </div>
-
-      {/* ─────────────────────────────────────────────────────────────
-          1. HERO HEADER BANNER (Matching Visual Specification)
-      ─────────────────────────────────────────────────────────────── */}
-      <div className="relative mb-6 rounded-3xl overflow-hidden p-6 sm:p-8 bg-gradient-to-r from-[#F0F2FE] via-[#F4F3FF] to-[#ECEBFE] border border-[#E0E4FC] shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
-        {/* Left Title and Icon */}
-        <div className="flex items-center gap-4 sm:gap-5 z-10">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-[#6366F1] to-[#7C3AED] flex items-center justify-center text-white shadow-xl shadow-indigo-500/25 flex-shrink-0">
-            <Code2 className="w-8 h-8 text-white stroke-[2.2]" />
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Software Builder
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl font-medium leading-relaxed">
-              Build complete software packages, domain database schemas, and seed records with ease.
-            </p>
-          </div>
-        </div>
-
-        {/* Right 3D Laptop & Rocket Illustration */}
-        <div className="relative w-full md:w-80 h-32 flex items-center justify-center md:justify-end pr-2 select-none pointer-events-none">
-          <div className="relative w-64 h-32 flex items-center justify-center">
-            {/* Ambient Purple Glow */}
-            <div className="absolute w-40 h-28 bg-purple-400/20 rounded-full blur-2xl -top-2 right-4"></div>
-            
-            {/* 3D Floating Document Cards */}
-            <div className="absolute left-2 top-4 w-16 h-20 rounded-xl bg-white/80 backdrop-blur-md border border-white/60 shadow-lg p-2 rotate-[-12deg] flex flex-col justify-between">
-              <div className="w-8 h-2 rounded bg-indigo-200"></div>
-              <div className="space-y-1">
-                <div className="w-full h-1.5 rounded bg-slate-200"></div>
-                <div className="w-10 h-1.5 rounded bg-slate-200"></div>
-              </div>
-              <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center">
-                <Code2 className="w-3 h-3 text-indigo-600" />
-              </div>
-            </div>
-
-            {/* 3D Laptop Base & Screen */}
-            <div className="relative z-10 w-44 h-28 flex flex-col items-center">
-              {/* Laptop Screen */}
-              <div className="w-36 h-22 rounded-t-xl bg-[#0F172A] border-2 border-slate-700/80 shadow-2xl p-2 flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950"></div>
-                <div className="relative z-10 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                </div>
-                <div className="relative z-10 flex items-center justify-center text-center my-auto">
-                  <span className="font-mono text-base font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 drop-shadow-[0_0_12px_rgba(99,102,241,0.8)]">
-                    &lt;/&gt;
-                  </span>
-                </div>
-                <div className="relative z-10 w-full h-1 bg-indigo-500/30 rounded-full"></div>
-              </div>
-              {/* Laptop Base */}
-              <div className="w-44 h-2.5 bg-gradient-to-b from-slate-300 to-slate-400 rounded-b-xl shadow-lg border-t border-slate-200"></div>
-            </div>
-
-            {/* 3D Rocket Launching */}
-            <div className="absolute right-0 -top-2 z-20 animate-bounce duration-1000">
-              <div className="relative flex flex-col items-center rotate-45">
-                <div className="w-10 h-14 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-t-full shadow-xl flex items-center justify-center border-t border-white/40">
-                  <div className="w-4 h-4 rounded-full bg-white/30 border border-white/60"></div>
-                </div>
-                {/* Rocket Thrust Flame */}
-                <div className="w-4 h-6 bg-gradient-to-b from-amber-400 via-orange-500 to-transparent rounded-b-full blur-[1px]"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ─────────────────────────────────────────────────────────────
-          2. TWO-COLUMN WORKSPACE (Left: Form | Right: Preview/Code)
-      ─────────────────────────────────────────────────────────────── */}
-      <div className={`grid grid-cols-1 lg:grid-cols-12 gap-6 items-start ${isFullscreen ? 'fixed inset-4 z-50 bg-[#F8F9FE] p-6 overflow-y-auto rounded-3xl shadow-2xl' : ''}`}>
-        
-        {/* ── LEFT COLUMN: PROJECT PARAMETERS CARD (5 cols) ── */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-sm space-y-5">
-            {/* Header: Project Parameters + Reset All */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2 text-sm font-black text-slate-900 tracking-tight">
+        {/* ─────────────────────────────────────────────────────────────
+            1. LEFT SIDEBAR: PROJECT PARAMETERS
+        ─────────────────────────────────────────────────────────────── */}
+        <aside className="w-full lg:w-[380px] xl:w-[420px] 2xl:w-[450px] flex-shrink-0 bg-white border-r border-slate-200/90 flex flex-col h-auto lg:h-full overflow-hidden z-20 shadow-xs">
+          
+          {/* Header: Project Parameters + Reset All */}
+          <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
+            <div className="flex items-center gap-2.5 text-sm font-black text-slate-900 tracking-tight">
+              <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
                 <Sliders className="w-4 h-4 text-indigo-600" />
-                <span>Project Parameters</span>
               </div>
-              <button
-                type="button"
-                onClick={handleResetAll}
-                className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer"
-              >
-                <RotateCw className="w-3.5 h-3.5" />
-                <span>Reset All</span>
-              </button>
+              <span>Project Parameters</span>
             </div>
+            <button
+              type="button"
+              onClick={handleResetAll}
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer"
+              title="Reset parameters to defaults"
+            >
+              <RotateCw className="w-3.5 h-3.5" />
+              <span>Reset All</span>
+            </button>
+          </div>
 
+          {/* Scrollable Form Body */}
+          <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-5">
             {/* Section 1: Application Details */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
@@ -544,7 +452,7 @@ export default function SoftwareBuilderPage() {
             </div>
 
             {/* Section 2: Tech Stack */}
-            <div className="space-y-2 pt-1 border-t border-slate-100">
+            <div className="space-y-2 pt-2 border-t border-slate-100">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                 <Code2 className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Tech Stack</span>
@@ -610,7 +518,7 @@ export default function SoftwareBuilderPage() {
             </div>
 
             {/* Section 3: Database */}
-            <div className="space-y-2 pt-1 border-t border-slate-100">
+            <div className="space-y-2 pt-2 border-t border-slate-100">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                 <Database className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Database</span>
@@ -644,7 +552,7 @@ export default function SoftwareBuilderPage() {
             </div>
 
             {/* Section 4: Academic Department */}
-            <div className="space-y-2 pt-1 border-t border-slate-100">
+            <div className="space-y-2 pt-2 border-t border-slate-100">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                 <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Academic Department</span>
@@ -658,7 +566,7 @@ export default function SoftwareBuilderPage() {
             </div>
 
             {/* Section 5: Features (Optional) */}
-            <div className="space-y-2.5 pt-1 border-t border-slate-100">
+            <div className="space-y-2.5 pt-2 border-t border-slate-100">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                 <Star className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Features (Optional)</span>
@@ -707,7 +615,26 @@ export default function SoftwareBuilderPage() {
               </div>
             </div>
 
-            {/* Bottom Generate Button */}
+            {/* Proposal / Chapter 3 Extraction Link */}
+            <div className="pt-2 border-t border-slate-100 text-center">
+              <button
+                type="button"
+                onClick={() => setShowUploader(!showUploader)}
+                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+              >
+                {showUploader ? '▲ Hide Chapter 3 Extractor' : '📄 Have a Thesis Proposal or Chapter 3? Auto-extract fields'}
+              </button>
+            </div>
+
+            {showUploader && (
+              <div className="p-4 border border-indigo-100 rounded-2xl bg-[#FAFBFD] animate-in fade-in">
+                <ProjectDocumentUploader onAnalysisComplete={handleAnalysisComplete} />
+              </div>
+            )}
+          </div>
+
+          {/* Sticky Sidebar Footer: Generate Button */}
+          <div className="p-4 sm:p-5 bg-white border-t border-slate-150 flex-shrink-0 shadow-[0_-4px_16px_rgba(0,0,0,0.03)]">
             <button
               type="button"
               onClick={handleBuildSoftware}
@@ -726,28 +653,110 @@ export default function SoftwareBuilderPage() {
                 </>
               )}
             </button>
+          </div>
+        </aside>
 
-            {/* Proposal / Chapter 3 Extraction Link */}
-            <div className="pt-1 text-center">
-              <button
-                type="button"
-                onClick={() => setShowUploader(!showUploader)}
-                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
-              >
-                {showUploader ? '▲ Hide Chapter 3 Extractor' : '📄 Have a Thesis Proposal or Chapter 3? Auto-extract fields'}
+        {/* ─────────────────────────────────────────────────────────────
+            2. RIGHT MAIN WORKSPACE CANVAS
+        ─────────────────────────────────────────────────────────────── */}
+        <main className="flex-1 min-w-0 h-auto lg:h-full overflow-y-auto bg-[#F8FAFC] p-4 sm:p-6 lg:p-8 space-y-6">
+
+          {/* Top Banner Notice */}
+          {successBanner && (
+            <div className="p-3.5 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs flex items-center justify-between shadow-xs animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                <span className="font-semibold">{successBanner}</span>
+              </div>
+              <button onClick={() => setSuccessBanner(null)} className="text-indigo-600/70 hover:text-indigo-900 font-bold">
+                &times;
               </button>
             </div>
+          )}
 
-            {showUploader && (
-              <div className="p-4 border border-indigo-100 rounded-2xl bg-[#FAFBFD] animate-in fade-in">
-                <ProjectDocumentUploader onAnalysisComplete={handleAnalysisComplete} />
-              </div>
-            )}
+          {/* Back to Home Button */}
+          <div>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#EEF0FD] hover:bg-[#E3E7FC] text-[#4F46E5] text-xs font-bold transition-all shadow-2xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Home</span>
+            </Link>
           </div>
-        </div>
 
-        {/* ── RIGHT COLUMN: OUTPUT WORKSPACE CARD (7 cols) ── */}
-        <div className="lg:col-span-7 space-y-4">
+          {/* Hero Header Banner */}
+          <div className="relative rounded-3xl overflow-hidden p-6 sm:p-8 bg-gradient-to-r from-[#F0F2FE] via-[#F4F3FF] to-[#ECEBFE] border border-[#E0E4FC] shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Left Title and Icon */}
+            <div className="flex items-center gap-4 sm:gap-5 z-10">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-[#6366F1] to-[#7C3AED] flex items-center justify-center text-white shadow-xl shadow-indigo-500/25 flex-shrink-0">
+                <Code2 className="w-8 h-8 text-white stroke-[2.2]" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                  Software Builder
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl font-medium leading-relaxed">
+                  Build complete software packages, domain database schemas, and seed records with ease.
+                </p>
+              </div>
+            </div>
+
+            {/* Right 3D Laptop & Rocket Illustration */}
+            <div className="relative w-full md:w-80 h-32 flex items-center justify-center md:justify-end pr-2 select-none pointer-events-none">
+              <div className="relative w-64 h-32 flex items-center justify-center">
+                {/* Ambient Purple Glow */}
+                <div className="absolute w-40 h-28 bg-purple-400/20 rounded-full blur-2xl -top-2 right-4"></div>
+                
+                {/* 3D Floating Document Cards */}
+                <div className="absolute left-2 top-4 w-16 h-20 rounded-xl bg-white/80 backdrop-blur-md border border-white/60 shadow-lg p-2 rotate-[-12deg] flex flex-col justify-between">
+                  <div className="w-8 h-2 rounded bg-indigo-200"></div>
+                  <div className="space-y-1">
+                    <div className="w-full h-1.5 rounded bg-slate-200"></div>
+                    <div className="w-10 h-1.5 rounded bg-slate-200"></div>
+                  </div>
+                  <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <Code2 className="w-3 h-3 text-indigo-600" />
+                  </div>
+                </div>
+
+                {/* 3D Laptop Base & Screen */}
+                <div className="relative z-10 w-44 h-28 flex flex-col items-center">
+                  {/* Laptop Screen */}
+                  <div className="w-36 h-22 rounded-t-xl bg-[#0F172A] border-2 border-slate-700/80 shadow-2xl p-2 flex flex-col justify-between relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950"></div>
+                    <div className="relative z-10 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    </div>
+                    <div className="relative z-10 flex items-center justify-center text-center my-auto">
+                      <span className="font-mono text-base font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 drop-shadow-[0_0_12px_rgba(99,102,241,0.8)]">
+                        &lt;/&gt;
+                      </span>
+                    </div>
+                    <div className="relative z-10 w-full h-1 bg-indigo-500/30 rounded-full"></div>
+                  </div>
+                  {/* Laptop Base */}
+                  <div className="w-44 h-2.5 bg-gradient-to-b from-slate-300 to-slate-400 rounded-b-xl shadow-lg border-t border-slate-200"></div>
+                </div>
+
+                {/* 3D Rocket Launching */}
+                <div className="absolute right-0 -top-2 z-20 animate-bounce duration-1000">
+                  <div className="relative flex flex-col items-center rotate-45">
+                    <div className="w-10 h-14 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-t-full shadow-xl flex items-center justify-center border-t border-white/40">
+                      <div className="w-4 h-4 rounded-full bg-white/30 border border-white/60"></div>
+                    </div>
+                    {/* Rocket Thrust Flame */}
+                    <div className="w-4 h-6 bg-gradient-to-b from-amber-400 via-orange-500 to-transparent rounded-b-full blur-[1px]"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Output Workspace Wrapper */}
+          <div className={`space-y-4 ${isFullscreen ? 'fixed inset-4 z-50 bg-[#F8F9FE] p-6 overflow-y-auto rounded-3xl shadow-2xl' : ''}`}>
           
           {/* Top Tabs Bar (Live Preview | Code Files | Download | Share | Fullscreen) */}
           <div className="bg-white border border-slate-200/90 rounded-2xl p-1.5 shadow-2xs flex items-center justify-between gap-2 select-none">
@@ -1107,7 +1116,8 @@ export default function SoftwareBuilderPage() {
             </div>
           )}
 
-        </div>
+          </div>
+        </main>
       </div>
 
       {/* QA Testing Simulator Modal */}

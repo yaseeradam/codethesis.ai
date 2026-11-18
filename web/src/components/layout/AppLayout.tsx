@@ -40,6 +40,9 @@ interface AppLayoutProps {
   title?: string;
   subtitle?: string;
   hideHeader?: boolean;
+  hideSidebar?: boolean;
+  fullWidth?: boolean;
+  hideFooter?: boolean;
 }
 
 interface NavItem {
@@ -59,6 +62,9 @@ export default function AppLayout({
   title,
   subtitle,
   hideHeader = false,
+  hideSidebar = false,
+  fullWidth = false,
+  hideFooter = false,
 }: AppLayoutProps) {
   const { user, logout } = useAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -108,11 +114,12 @@ export default function AppLayout({
       {/* ─────────────────────────────────────────────────────────────
           1. LEFT FIXED SIDEBAR (Midnight Navy #070F2B) - Desktop
       ─────────────────────────────────────────────────────────────── */}
-      <aside
-        className={`bg-[#070F2B] text-slate-300 flex-shrink-0 hidden lg:flex flex-col justify-between p-3.5 h-full border-r border-slate-800/80 relative overflow-hidden z-20 transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? 'lg:w-[76px]' : 'lg:w-[270px]'
-        }`}
-      >
+      {!hideSidebar && (
+        <aside
+          className={`bg-[#070F2B] text-slate-300 flex-shrink-0 hidden lg:flex flex-col justify-between p-3.5 h-full border-r border-slate-800/80 relative overflow-hidden z-20 transition-all duration-300 ease-in-out ${
+            isSidebarCollapsed ? 'lg:w-[76px]' : 'lg:w-[270px]'
+          }`}
+        >
         {/* Subtle Ambient Cyan Glow Orb at Bottom Left */}
         <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
 
@@ -321,11 +328,12 @@ export default function AppLayout({
           )}
         </div>
       </aside>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
           MOBILE SLIDE-OVER DRAWER (Midnight Navy #070F2B)
       ─────────────────────────────────────────────────────────────── */}
-      {isMobileMenuOpen && (
+      {!hideSidebar && isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
             className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
@@ -441,18 +449,38 @@ export default function AppLayout({
       {/* ─────────────────────────────────────────────────────────────
           2. MAIN CONTENT AREA (Academic Slate #F1F5F9)
       ─────────────────────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
+      <main className={`flex-1 flex flex-col min-w-0 h-full ${fullWidth ? 'overflow-hidden' : 'overflow-y-auto'}`}>
         {!hideHeader && (
           <header className="sticky top-0 z-30 bg-[#F1F5F9]/90 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/80 gap-3 transition-colors duration-200">
-            {/* Left Search Cluster & Mobile Hamburger */}
+            {/* Left Search Cluster & Mobile Hamburger or Brand */}
             <div className="flex items-center gap-3 w-full max-w-lg">
-              <button
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2 rounded-xl bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900 shadow-xs flex items-center justify-center flex-shrink-0 cursor-pointer"
-                aria-label="Open Navigation Menu"
-              >
-                <Menu className="w-4 h-4" />
-              </button>
+              {!hideSidebar ? (
+                <button
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="lg:hidden p-2 rounded-xl bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900 shadow-xs flex items-center justify-center flex-shrink-0 cursor-pointer"
+                  aria-label="Open Navigation Menu"
+                >
+                  <Menu className="w-4 h-4" />
+                </button>
+              ) : (
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2.5 mr-2 text-slate-800 hover:text-indigo-600 font-bold text-sm transition-colors flex-shrink-0 group"
+                  title="Return to Dashboard"
+                >
+                  <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-cyan-400/30 shadow-xs flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <Image
+                      src="/assets/logo_codethesis_3d.jpg"
+                      alt="CodeThesis AI"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <span className="hidden sm:inline font-black tracking-tight text-slate-900 group-hover:text-indigo-600">
+                    CodeThesis <span className="bg-gradient-to-r from-cyan-500 to-indigo-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-2xs">AI</span>
+                  </span>
+                </Link>
+              )}
               <div className="relative w-full">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
@@ -499,34 +527,42 @@ export default function AppLayout({
         )}
 
         {/* Page Content Viewport */}
-        <div className="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col justify-between">
-          <div>
-            {title && (
-              <div className="mb-6">
-                <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                  {title}
-                </h1>
-                {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
-              </div>
-            )}
+        {fullWidth ? (
+          <div className="flex-1 w-full min-h-0 flex flex-col overflow-hidden">
             {children}
           </div>
+        ) : (
+          <div className="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col justify-between">
+            <div>
+              {title && (
+                <div className="mb-6">
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                    {title}
+                  </h1>
+                  {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
+                </div>
+              )}
+              {children}
+            </div>
 
-          {/* Minimal Academic Footer */}
-          <footer className="mt-12 pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-700">CodeThesis AI</span>
-              <span>•</span>
-              <span>Commercial Academic SaaS for Nigerian Tertiary Institutions</span>
-            </div>
-            <div className="flex items-center gap-4 text-[11px] font-medium">
-              <Link href="/terms" className="hover:text-slate-900 transition-colors">Terms of Service</Link>
-              <Link href="/privacy" className="hover:text-slate-900 transition-colors">Privacy Policy</Link>
-              <Link href="/contact" className="hover:text-slate-900 transition-colors">Campus Liaisons</Link>
-              <Link href="/auth/login" className="hover:text-slate-900 transition-colors">Student Login</Link>
-            </div>
-          </footer>
-        </div>
+            {/* Minimal Academic Footer */}
+            {!hideFooter && (
+              <footer className="mt-12 pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-700">CodeThesis AI</span>
+                  <span>•</span>
+                  <span>Commercial Academic SaaS for Nigerian Tertiary Institutions</span>
+                </div>
+                <div className="flex items-center gap-4 text-[11px] font-medium">
+                  <Link href="/terms" className="hover:text-slate-900 transition-colors">Terms of Service</Link>
+                  <Link href="/privacy" className="hover:text-slate-900 transition-colors">Privacy Policy</Link>
+                  <Link href="/contact" className="hover:text-slate-900 transition-colors">Campus Liaisons</Link>
+                  <Link href="/auth/login" className="hover:text-slate-900 transition-colors">Student Login</Link>
+                </div>
+              </footer>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
