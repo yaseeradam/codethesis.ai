@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAcademicAI } from '@/lib/ai';
+import { getCurrentUser } from '@/lib/auth';
+import { deductUserCredits, getUserById } from '@/lib/db';
 import {
   detectDomainBlueprint,
   generateSchemaSql,
@@ -12,6 +14,21 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (user) {
+      const dbUser = await getUserById(user.id);
+      if (dbUser && dbUser.credits < 2) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Insufficient academic credits. Synthesizing turnkey software requires 2 credits.',
+            currentBalance: dbUser.credits,
+          },
+          { status: 402 }
+        );
+      }
+    }
+
     const body = await req.json().catch(() => ({}));
     const {
       topic = 'Academic Enterprise System',
@@ -40,20 +57,21 @@ DEPARTMENT: "${course}"
 ${specContext}
 
 CRITICAL ARCHITECTURE REQUIREMENT:
-Design a REAL, highly specific software blueprint specifically for "${cleanTopic}".
-Do NOT use generic names like "Record" or "Item". Use authentic domain-specific entities (e.g. if Poultry Farm: Incubators, EggBatches; if Court System: CourtCases, LegalHearings; if Blood Bank: Donors, BloodUnits; if Car Rental: Vehicles, Bookings).
+Design a REAL, highly specific, authentic software blueprint specifically tailored for "${cleanTopic}".
+Strictly NEVER use generic placeholders like "Record", "Item", "Entry", "Data1".
+Always use authentic domain-specific entities (e.g., if Poultry Farm: "FlockBatch", "EggIncubation"; if Court/Judiciary: "LegalCase", "CourtHearing"; if Hospital/Blood Bank: "BloodDonor", "TransfusionBatch"; if Transportation: "VehicleUnit", "TransitRoute"; if FinTech/Cooperative: "SavingsAccount", "LoanApplication").
 
 Respond strictly in valid JSON matching this schema:
 {
-  "systemName": "Formal system title",
-  "tagline": "Clear professional summary of the software purpose",
+  "systemName": "Formal authoritative system title",
+  "tagline": "Clear professional summary of the software purpose and capabilities",
   "category": "Domain classification",
-  "primaryEntity": "Singular entity name (e.g. Vehicle, Patient, Case, Donor)",
-  "primaryEntityPlural": "Plural entity name (e.g. Vehicles, Patients, Cases, Donors)",
-  "secondaryEntity": "Secondary entity name (e.g. MaintenanceLog, TriageLog, HearingDocket)",
+  "primaryEntity": "Singular domain entity name (e.g. Donor, Patient, Vehicle, Case, Scholar)",
+  "primaryEntityPlural": "Plural domain entity name (e.g. Donors, Patients, Vehicles, Cases, Scholars)",
+  "secondaryEntity": "Secondary entity name (e.g. TransfusionLog, TriageRecord, MaintenanceDocket)",
   "kpis": [
-    {"label": "KPI 1 Label", "value": "Metric value", "change": "+12% this month", "icon": "Activity"},
-    {"label": "KPI 2 Label", "value": "Metric value", "change": "Active operations", "icon": "CheckCircle"},
+    {"label": "KPI 1 Label", "value": "Metric value", "change": "+14% this month", "icon": "Activity"},
+    {"label": "KPI 2 Label", "value": "Metric value", "change": "Operational status", "icon": "CheckCircle"},
     {"label": "KPI 3 Label", "value": "Metric value", "change": "Pending items", "icon": "Clock"},
     {"label": "KPI 4 Label", "value": "Metric value", "change": "Efficiency rating", "icon": "TrendingUp"}
   ],
@@ -69,7 +87,9 @@ Respond strictly in valid JSON matching this schema:
   "seedRecords": [
     {"id": 1, "field_name_in_snake_case": "Realistic domain value 1", "category": "Category A", "metric_value": 85.0, "assigned_to": "Engr. A. T. Sulaiman", "status": "Active"},
     {"id": 2, "field_name_in_snake_case": "Realistic domain value 2", "category": "Category B", "metric_value": 92.5, "assigned_to": "Dr. Chidi N. Okoro", "status": "Completed"},
-    {"id": 3, "field_name_in_snake_case": "Realistic domain value 3", "category": "Category A", "metric_value": 78.0, "assigned_to": "Hajiya Maryam Sani", "status": "Pending"}
+    {"id": 3, "field_name_in_snake_case": "Realistic domain value 3", "category": "Category A", "metric_value": 78.0, "assigned_to": "Hajiya Maryam Sani", "status": "Pending"},
+    {"id": 4, "field_name_in_snake_case": "Realistic domain value 4", "category": "Category C", "metric_value": 64.2, "assigned_to": "Mr. Olumide Adeleke", "status": "Active"},
+    {"id": 5, "field_name_in_snake_case": "Realistic domain value 5", "category": "Category B", "metric_value": 91.0, "assigned_to": "Barrister Fatima Bello", "status": "Completed"}
   ]
 }`;
 
@@ -80,9 +100,9 @@ Respond strictly in valid JSON matching this schema:
         generateAcademicAI({
           prompt: aiArchitectPrompt,
           temperature: 0.25,
-          maxTokens: 2500,
+          maxTokens: 3000,
         }),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 12000)),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 28000)),
       ]);
 
       if (aiRes && aiRes.content) {
@@ -144,10 +164,23 @@ Respond strictly in valid JSON matching this schema:
     const extras = generateManifestAndLaunchers(blueprint, cleanTopic, effectiveStack);
     Object.assign(files, extras);
 
+    let remainingCredits: number | undefined;
+    if (user) {
+      try {
+        const deductResult = await deductUserCredits(user.id, 'softwareBuilder');
+        if (deductResult.success) {
+          remainingCredits = deductResult.remainingCredits;
+        }
+      } catch (deductErr) {
+        console.warn('Credits deduction error on build-software:', deductErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       topic: cleanTopic,
       techStack: effectiveStack,
+      remainingCredits,
       blueprint: {
         category: blueprint.category,
         systemName: blueprint.systemName,

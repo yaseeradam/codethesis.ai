@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authorizeAndDeductCredits, ToolKey } from '@/lib/credits';
 import { generateAcademicAI, buildChapterUserPrompt } from '@/lib/ai';
+import { checkRateLimit } from '@/lib/rateLimiter';
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'anon';
+    const rateCheck = await checkRateLimit({
+      keyId: `ai_generate_${clientIp}`,
+      limitPerMinute: 25,
+    });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'High traffic rate limit exceeded. Please wait a few seconds before generating again.' },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfter || 15) } }
+      );
+    }
+
     const rawBody: any = await req.json();
     const type = rawBody.type || (rawBody.toolId === 'thesis' ? 'thesis_chapter' : rawBody.toolId === 'assignment' ? 'assignment' : 'freeform');
     const topic = rawBody.topic || rawBody.context?.topic || rawBody.projectName || '';

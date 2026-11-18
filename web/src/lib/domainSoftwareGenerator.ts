@@ -863,10 +863,10 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${bp.systemName}</title>
+  <title>${bp.systemName} — Academic Defense Portal</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide / FontAwesome Icons -->
+  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
     tailwind.config = {
@@ -875,9 +875,9 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
         extend: {
           colors: {
             brand: { 50: '#ecfeff', 500: '#06b6d4', 600: '#0891b2', 700: '#0e7490', 900: '#164e63' },
-            darkbg: '#0F172A',
-            panel: '#1E293B',
-            card: '#334155'
+            darkbg: '#0B1120',
+            panel: '#151F32',
+            card: '#1E293B'
           }
         }
       }
@@ -891,164 +891,264 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
 </head>
 <body class="bg-[#090D16] text-slate-100 min-h-screen flex flex-col antialiased">
 
-  <!-- Top Navigation Bar -->
-  <header class="bg-[#111827] border-b border-slate-800 sticky top-0 z-30 px-4 lg:px-8 py-3.5 shadow-xl">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-bold text-lg">
-          <i class="fa-solid fa-microchip"></i>
+  <!-- =========================================================================
+       VIEW 1: DEFENSE AUTHENTICATION & ACCESS CONTROL PORTAL (LOGIN SCREEN)
+       ========================================================================= -->
+  <div id="loginPortalView" class="hidden min-h-screen flex flex-col items-center justify-center p-4 bg-radial from-[#131D38] via-[#090D16] to-[#05070D]">
+    <div class="w-full max-w-md bg-[#111827] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+      <!-- Glow ambient header -->
+      <div class="absolute -top-16 -right-16 w-36 h-36 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+      
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-bold text-xl">
+          <i class="fa-solid fa-shield-halved"></i>
         </div>
         <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-base lg:text-lg font-bold text-white tracking-tight">${bp.systemName}</h1>
-            <span class="hidden sm:inline-block text-[11px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800/60 font-semibold">
-              v1.0.4 Defense
-            </span>
+          <h2 class="text-base font-bold text-white tracking-tight">${bp.systemName}</h2>
+          <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/60 font-semibold">
+            Role-Based Access Control
+          </span>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-400 mb-6 leading-relaxed">
+        Academic Defense Demonstration &amp; Security Gateway. Authenticate as Lead Administrator or External Examiner to inspect records.
+      </p>
+
+      <!-- Role Selector Tabs -->
+      <div class="grid grid-cols-2 gap-2 mb-4 bg-[#1E293B]/70 p-1 rounded-xl text-xs">
+        <button type="button" onclick="selectLoginRole('Administrator')" id="btnRoleAdmin" class="py-1.5 px-3 rounded-lg font-bold bg-cyan-500 text-slate-950 transition">
+          Administrator
+        </button>
+        <button type="button" onclick="selectLoginRole('Examiner')" id="btnRoleExaminer" class="py-1.5 px-3 rounded-lg font-bold text-slate-400 hover:text-white transition">
+          Examiner / Supervisor
+        </button>
+      </div>
+
+      <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Institutional Email</label>
+          <div class="relative">
+            <i class="fa-solid fa-envelope absolute left-3 top-3 text-slate-500 text-xs"></i>
+            <input
+              type="email"
+              id="loginEmail"
+              required
+              value="admin@defense.edu.ng"
+              class="w-full bg-[#1F2937] border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            />
           </div>
-          <p class="text-xs text-slate-400 hidden sm:block">${bp.tagline}</p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <!-- Live Status Indicator -->
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-mono font-medium">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>SYSTEM ACTIVE</span>
         </div>
 
-        <!-- Role Badge -->
-        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-300">
-          <i class="fa-solid fa-user-shield text-cyan-400"></i>
-          <span id="currentRole">Lead Administrator</span>
-        </div>
-
-        <!-- Quick Action: Add Record -->
-        <button onclick="openModal()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs tracking-wide transition shadow-lg shadow-cyan-500/20 active:scale-95">
-          <i class="fa-solid fa-plus"></i>
-          <span>Add ${entitySingular}</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Content Container -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
-
-    <!-- KPI Metrics Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="kpiContainer">
-      <!-- Injected by JavaScript -->
-    </div>
-
-    <!-- Operational Controls Bar -->
-    <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg">
-      <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto flex-1">
-        <!-- Search Input -->
-        <div class="relative w-full sm:w-80">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Search ${bp.primaryEntityPlural.toLowerCase()}..."
-            oninput="handleSearch()"
-            class="w-full bg-[#1F2937] border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500 transition"
-          />
-        </div>
-
-        <!-- Category Filter -->
-        <select
-          id="categoryFilter"
-          onchange="handleFilter()"
-          class="w-full sm:w-auto bg-[#1F2937] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 transition"
-        >
-          <option value="">All Categories</option>
-          ${bp.categories.map(c => `<option value="${c}">${c}</option>`).join('')}
-        </select>
-
-        <!-- Status Filter -->
-        <select
-          id="statusFilter"
-          onchange="handleFilter()"
-          class="w-full sm:w-auto bg-[#1F2937] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 transition"
-        >
-          <option value="">All Statuses</option>
-          ${bp.statuses.map(s => `<option value="${s}">${s}</option>`).join('')}
-        </select>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex items-center gap-2 w-full md:w-auto justify-end">
-        <button onclick="exportCSV()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition">
-          <i class="fa-solid fa-file-csv text-emerald-400"></i>
-          <span>Export CSV</span>
-        </button>
-        <button onclick="resetData()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition">
-          <i class="fa-solid fa-rotate text-cyan-400"></i>
-          <span>Reload</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Data Table Card -->
-    <div class="bg-[#111827] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
         <div>
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-database text-cyan-400"></i>
-            <span>Active ${bp.primaryEntityPlural} Ledger</span>
-          </h2>
-          <p class="text-[11px] text-slate-400 mt-0.5">Showing verified records in database storage</p>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Passcode / Token</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-500 text-xs"></i>
+            <input
+              type="password"
+              id="loginPassword"
+              required
+              value="defense2026"
+              class="w-full bg-[#1F2937] border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            />
+          </div>
         </div>
-        <span class="text-xs font-mono text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-full border border-cyan-800/60" id="recordCount">
-          0 Records
-        </span>
-      </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-[#1F2937] text-slate-300 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-800">
-            <tr>
-              <th class="py-3 px-4"># ID</th>
-              ${bp.schemaFields.map(f => `<th class="py-3 px-4">${f.label}</th>`).join('')}
-              <th class="py-3 px-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody" class="divide-y divide-slate-800 text-slate-300">
-            <!-- Populated via JavaScript -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Table Footer / Pagination -->
-      <div class="px-6 py-3 border-t border-slate-800 bg-[#161F2E] flex items-center justify-between text-xs text-slate-400">
-        <span>Displaying live reactive dataset</span>
-        <div class="flex items-center gap-2">
-          <button class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 disabled:opacity-40" disabled>Previous</button>
-          <span class="px-2 font-mono text-cyan-400">Page 1 of 1</span>
-          <button class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 disabled:opacity-40" disabled>Next</button>
+        <!-- 1-Click Autofill Demo helper -->
+        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px] flex items-center justify-between text-slate-400">
+          <span>⚡ Demo Passcode: <strong class="text-cyan-400">defense2026</strong></span>
+          <button type="button" onclick="autofillDemoCreds()" class="text-cyan-400 hover:underline font-bold">
+            Autofill
+          </button>
         </div>
-      </div>
+
+        <button
+          type="submit"
+          class="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 active:scale-95 transition cursor-pointer"
+        >
+          Sign In &amp; Enter System Dashboard
+        </button>
+
+        <button
+          type="button"
+          onclick="toggleView('dashboard')"
+          class="w-full py-2 text-slate-400 hover:text-white text-xs transition text-center"
+        >
+          &larr; Skip Authentication &amp; Open Live Ledger
+        </button>
+      </form>
     </div>
+  </div>
 
-    <!-- Academic System Info Banner -->
-    <div class="bg-gradient-to-r from-cyan-950/40 via-blue-950/30 to-purple-950/20 border border-cyan-900/40 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-          <i class="fa-solid fa-graduation-cap"></i>
+  <!-- =========================================================================
+       VIEW 2: MAIN DASHBOARD & REACTIVE SYSTEM LEDGER
+       ========================================================================= -->
+  <div id="mainDashboardView" class="flex-1 flex flex-col">
+    <!-- Top Navigation Bar -->
+    <header class="bg-[#111827] border-b border-slate-800 sticky top-0 z-30 px-4 lg:px-8 py-3.5 shadow-xl">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-bold text-lg">
+            <i class="fa-solid fa-microchip"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base lg:text-lg font-bold text-white tracking-tight">${bp.systemName}</h1>
+              <span class="hidden sm:inline-block text-[11px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800/60 font-semibold">
+                v1.0.4 Defense
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">${bp.tagline}</p>
+          </div>
         </div>
-        <div>
-          <span class="font-semibold text-white">CodeThesis Academic Defense Framework</span>
-          <p class="text-slate-400">Ready for university project defense presentation with live parameter mutation</p>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Role Badge -->
+          <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-300">
+            <i class="fa-solid fa-user-shield text-cyan-400"></i>
+            <span id="currentRole">Lead Administrator</span>
+          </div>
+
+          <!-- Quick Action: Add Record -->
+          <button onclick="openModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs tracking-wide transition shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer">
+            <i class="fa-solid fa-plus"></i>
+            <span class="hidden sm:inline">Add</span> ${entitySingular}
+          </button>
+
+          <!-- Toggle To Defense Login Screen -->
+          <button
+            onclick="toggleView('login')"
+            title="Demonstrate Login Screen & Auth Guard"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition border border-slate-700 cursor-pointer"
+          >
+            <i class="fa-solid fa-right-from-bracket text-amber-400"></i>
+            <span class="hidden md:inline">Lock / Logout</span>
+          </button>
         </div>
       </div>
-      <div class="flex items-center gap-2 font-mono text-[11px] text-cyan-300">
-        <i class="fa-solid fa-server"></i>
-        <span>Stack: ${techStack}</span>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
+
+      <!-- KPI Metrics Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="kpiContainer">
+        <!-- Injected by JavaScript -->
       </div>
-    </div>
 
-  </main>
+      <!-- Operational Controls Bar -->
+      <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg">
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto flex-1">
+          <!-- Search Input -->
+          <div class="relative w-full sm:w-80">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search ${bp.primaryEntityPlural.toLowerCase()}..."
+              oninput="handleSearch()"
+              class="w-full bg-[#1F2937] border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500 transition"
+            />
+          </div>
 
-  <!-- Add New Entity Modal -->
+          <!-- Category Filter -->
+          <select
+            id="categoryFilter"
+            onchange="handleFilter()"
+            class="w-full sm:w-auto bg-[#1F2937] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 transition"
+          >
+            <option value="">All Categories</option>
+            ${bp.categories.map(c => `<option value="${c}">${c}</option>`).join('')}
+          </select>
+
+          <!-- Status Filter -->
+          <select
+            id="statusFilter"
+            onchange="handleFilter()"
+            class="w-full sm:w-auto bg-[#1F2937] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 transition"
+          >
+            <option value="">All Statuses</option>
+            ${bp.statuses.map(s => `<option value="${s}">${s}</option>`).join('')}
+          </select>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+          <button onclick="exportCSV()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition cursor-pointer">
+            <i class="fa-solid fa-file-csv text-emerald-400"></i>
+            <span>Export CSV</span>
+          </button>
+          <button onclick="resetData()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition cursor-pointer">
+            <i class="fa-solid fa-rotate text-cyan-400"></i>
+            <span>Reload</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Data Table Card -->
+      <div class="bg-[#111827] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+        <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-database text-cyan-400"></i>
+              <span>Active ${bp.primaryEntityPlural} Ledger</span>
+            </h2>
+            <p class="text-[11px] text-slate-400 mt-0.5">Showing verified records in database storage</p>
+          </div>
+          <span class="text-xs font-mono text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-full border border-cyan-800/60" id="recordCount">
+            0 Records
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#1F2937] text-slate-300 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4"># ID</th>
+                ${bp.schemaFields.map(f => `<th class="py-3 px-4">${f.label}</th>`).join('')}
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody" class="divide-y divide-slate-800 text-slate-300">
+              <!-- Populated via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Table Footer / Pagination -->
+        <div class="px-6 py-3 border-t border-slate-800 bg-[#161F2E] flex items-center justify-between text-xs text-slate-400">
+          <span>Displaying live reactive dataset</span>
+          <div class="flex items-center gap-2">
+            <button class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 disabled:opacity-40" disabled>Previous</button>
+            <span class="px-2 font-mono text-cyan-400">Page 1 of 1</span>
+            <button class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 disabled:opacity-40" disabled>Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Academic System Info Banner -->
+      <div class="bg-gradient-to-r from-cyan-950/40 via-blue-950/30 to-purple-950/20 border border-cyan-900/40 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <div>
+            <span class="font-semibold text-white">CodeThesis Academic Defense Framework</span>
+            <p class="text-slate-400">Ready for university project defense presentation with live parameter mutation</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 font-mono text-[11px] text-cyan-300">
+          <i class="fa-solid fa-server"></i>
+          <span>Stack: ${techStack}</span>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 1: ADD NEW ENTITY MODAL
+       ========================================================================= -->
   <div id="addModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-[#111827] border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
       <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-[#161F2E]">
@@ -1095,10 +1195,10 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
         }).join('')}
 
         <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
-          <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition cursor-pointer">
             Cancel
           </button>
-          <button type="submit" class="px-5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs tracking-wide shadow-lg shadow-cyan-500/20 transition">
+          <button type="submit" class="px-5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs tracking-wide shadow-lg shadow-cyan-500/20 transition cursor-pointer">
             Save Record to Ledger
           </button>
         </div>
@@ -1106,8 +1206,38 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
     </div>
   </div>
 
+  <!-- =========================================================================
+       MODAL 2: IN-PAGE INSPECT RECORD MODAL (Replaces intrusive alert())
+       ========================================================================= -->
+  <div id="inspectModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#111827] border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-[#161F2E]">
+        <div class="flex items-center gap-2 text-white font-bold text-sm">
+          <i class="fa-solid fa-file-lines text-cyan-400"></i>
+          <span id="inspectModalTitle">Verified Record Details</span>
+        </div>
+        <button onclick="closeInspectModal()" class="text-slate-400 hover:text-white transition cursor-pointer">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto" id="inspectModalBody">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="px-6 py-3 border-t border-slate-800 bg-[#161F2E] flex items-center justify-between">
+        <span class="text-[11px] font-mono text-emerald-400">
+          <i class="fa-solid fa-check-circle mr-1"></i>ACID Integrity Confirmed
+        </span>
+        <button onclick="closeInspectModal()" class="px-4 py-1.5 rounded-lg bg-cyan-500 text-slate-950 font-bold text-xs hover:bg-cyan-400 transition cursor-pointer">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 rounded-xl bg-slate-900 border border-cyan-500/40 text-white text-xs shadow-2xl flex items-center gap-3 animate-bounce">
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 rounded-xl bg-slate-900 border border-cyan-500/40 text-white text-xs shadow-2xl flex items-center gap-3">
     <i class="fa-solid fa-circle-check text-cyan-400 text-base"></i>
     <span id="toastMessage">Record saved successfully.</span>
   </div>
@@ -1118,6 +1248,47 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
     let records = ${initialDataJson};
     const schemaFields = ${fieldsJson};
     let kpis = ${kpisJson};
+    let activeRole = 'Lead Administrator';
+
+    function selectLoginRole(role) {
+      activeRole = role === 'Examiner' ? 'Supervisor / External Examiner' : 'Lead Administrator';
+      const btnAdmin = document.getElementById('btnRoleAdmin');
+      const btnExaminer = document.getElementById('btnRoleExaminer');
+      if (role === 'Examiner') {
+        btnExaminer.className = 'py-1.5 px-3 rounded-lg font-bold bg-cyan-500 text-slate-950 transition';
+        btnAdmin.className = 'py-1.5 px-3 rounded-lg font-bold text-slate-400 hover:text-white transition';
+        document.getElementById('loginEmail').value = 'supervisor@defense.edu.ng';
+      } else {
+        btnAdmin.className = 'py-1.5 px-3 rounded-lg font-bold bg-cyan-500 text-slate-950 transition';
+        btnExaminer.className = 'py-1.5 px-3 rounded-lg font-bold text-slate-400 hover:text-white transition';
+        document.getElementById('loginEmail').value = 'admin@defense.edu.ng';
+      }
+    }
+
+    function autofillDemoCreds() {
+      document.getElementById('loginEmail').value = 'admin@defense.edu.ng';
+      document.getElementById('loginPassword').value = 'defense2026';
+      showToast('Demo administrative credentials filled.');
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      document.getElementById('currentRole').innerText = activeRole;
+      toggleView('dashboard');
+      showToast('Authenticated as ' + activeRole + '.');
+    }
+
+    function toggleView(view) {
+      const login = document.getElementById('loginPortalView');
+      const dash = document.getElementById('mainDashboardView');
+      if (view === 'login') {
+        dash.classList.add('hidden');
+        login.classList.remove('hidden');
+      } else {
+        login.classList.add('hidden');
+        dash.classList.remove('hidden');
+      }
+    }
 
     function renderKPIs() {
       const container = document.getElementById('kpiContainer');
@@ -1158,10 +1329,10 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
         const id = row.id || (idx + 1);
         const cells = schemaFields.map(f => {
           const val = row[f.name] ?? '-';
-          if (typeof val === 'string' && (val.includes('Available') || val.includes('Optimal') || val.includes('Completed') || val.includes('Active') || val.includes('Mitigated'))) {
+          if (typeof val === 'string' && (val.includes('Available') || val.includes('Optimal') || val.includes('Completed') || val.includes('Active') || val.includes('Mitigated') || val.includes('Good Standing'))) {
             return \`<td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800/60 font-medium text-[11px]">\${val}</span></td>\`;
           }
-          if (typeof val === 'string' && (val.includes('Alert') || val.includes('Critical') || val.includes('Flagged') || val.includes('Quarantine'))) {
+          if (typeof val === 'string' && (val.includes('Alert') || val.includes('Critical') || val.includes('Flagged') || val.includes('Quarantine') || val.includes('Probation'))) {
             return \`<td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-800/60 font-medium text-[11px]">\${val}</span></td>\`;
           }
           return \`<td class="py-3 px-4 font-medium">\${val}</td>\`;
@@ -1173,10 +1344,10 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
             \${cells}
             <td class="py-3 px-4 text-right">
               <div class="flex items-center justify-end gap-1.5">
-                <button onclick="inspectRow(\${id})" title="Inspect Details" class="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-cyan-300 transition">
+                <button onclick="inspectRow(\${id})" title="Inspect Details" class="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-cyan-300 transition cursor-pointer">
                   <i class="fa-solid fa-eye"></i>
                 </button>
-                <button onclick="deleteRow(\${id})" title="Archive Record" class="p-1.5 rounded hover:bg-rose-950/80 text-slate-400 hover:text-rose-400 transition">
+                <button onclick="deleteRow(\${id})" title="Archive Record" class="p-1.5 rounded hover:bg-rose-950/80 text-slate-400 hover:text-rose-400 transition cursor-pointer">
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
               </div>
@@ -1252,7 +1423,28 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
     function inspectRow(id) {
       const rec = records.find(r => r.id === id);
       if (!rec) return;
-      alert(\`[VERIFIED RECORD #\${id}]\n\${JSON.stringify(rec, null, 2)}\`);
+
+      document.getElementById('inspectModalTitle').innerText = '${entitySingular} #' + id + ' Record File';
+      const container = document.getElementById('inspectModalBody');
+      
+      const gridHtml = Object.entries(rec).map(([key, val]) => \`
+        <div class="bg-[#1F2937]/70 p-3 rounded-xl border border-slate-700/60">
+          <span class="text-[10px] uppercase font-mono text-slate-400 block mb-0.5">\${key.replace(/_/g, ' ')}</span>
+          <span class="text-xs font-semibold text-white break-words">\${val}</span>
+        </div>
+      \`).join('');
+
+      container.innerHTML = \`
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+          \${gridHtml}
+        </div>
+      \`;
+
+      document.getElementById('inspectModal').classList.remove('hidden');
+    }
+
+    function closeInspectModal() {
+      document.getElementById('inspectModal').classList.add('hidden');
     }
 
     function deleteRow(id) {

@@ -160,18 +160,23 @@ export default function SoftwareBuilderPage() {
     // Stage progression timers for realistic multi-step feedback on the page
     const timer1 = setTimeout(() => {
       setCurrentStageIndex(1);
-      setProgressPercent(40);
-    }, 2200);
+      setProgressPercent(35);
+    }, 2000);
 
     const timer2 = setTimeout(() => {
       setCurrentStageIndex(2);
-      setProgressPercent(68);
-    }, 5500);
+      setProgressPercent(60);
+    }, 5000);
 
     const timer3 = setTimeout(() => {
       setCurrentStageIndex(3);
-      setProgressPercent(88);
-    }, 9000);
+      setProgressPercent(82);
+    }, 8500);
+
+    const timer4 = setTimeout(() => {
+      setCurrentStageIndex(3);
+      setProgressPercent(92);
+    }, 13000);
 
     try {
       const res = await fetch('/api/ai/build-software', {
@@ -188,10 +193,15 @@ export default function SoftwareBuilderPage() {
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
+      clearTimeout(timer4);
 
       const data = await res.json();
       if (!data.success || !data.files) {
         throw new Error(data.error || 'Software synthesis service returned incomplete package.');
+      }
+
+      if (typeof data.remainingCredits === 'number' && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('credits-updated', { detail: { credits: data.remainingCredits } }));
       }
 
       // Final completion stage
@@ -209,13 +219,14 @@ export default function SoftwareBuilderPage() {
         setIsBuilding(false);
         setIsGenerated(true);
         setActiveMainTab('sandbox');
-      }, 700);
+      }, 900);
 
     } catch (err: any) {
       console.warn('Backend API build error, utilizing client domain synthesis engine:', err);
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
+      clearTimeout(timer4);
 
       const fallbackFiles = buildDomainSoftware(topic.trim(), effectiveTechStack, course);
       setGeneratedFiles(fallbackFiles);
@@ -230,7 +241,7 @@ export default function SoftwareBuilderPage() {
         setIsBuilding(false);
         setIsGenerated(true);
         setActiveMainTab('sandbox');
-      }, 700);
+      }, 900);
     }
   }
 
@@ -264,6 +275,10 @@ export default function SoftwareBuilderPage() {
       const data = await res.json();
       if (!data.success) {
         throw new Error(data.error || 'Failed to modify code.');
+      }
+
+      if (typeof data.remainingCredits === 'number' && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('credits-updated', { detail: { credits: data.remainingCredits } }));
       }
 
       setGeneratedFiles((prev) => ({

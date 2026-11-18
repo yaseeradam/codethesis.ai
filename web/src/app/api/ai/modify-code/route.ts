@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAcademicAI } from '@/lib/ai';
+import { getCurrentUser } from '@/lib/auth';
+import { deductUserCredits, getUserById } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (user) {
+      const dbUser = await getUserById(user.id);
+      if (dbUser && dbUser.credits < 1) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Insufficient academic credits. Modifying code with AI requires 1 credit.',
+            currentBalance: dbUser.credits,
+          },
+          { status: 402 }
+        );
+      }
+    }
+
     const body = await req.json().catch(() => ({}));
     const {
       fileName = 'server.py',
@@ -94,11 +111,24 @@ Respond strictly in valid JSON format with this exact structure:
       throw new Error('AI did not return valid modified code.');
     }
 
+    let remainingCredits: number | undefined;
+    if (user) {
+      try {
+        const deductResult = await deductUserCredits(user.id, 'softwareBuilder');
+        if (deductResult.success) {
+          remainingCredits = deductResult.remainingCredits;
+        }
+      } catch (deductErr) {
+        console.warn('Credits deduction error on modify-code:', deductErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       fileName: parsedResult.fileName || fileName,
       explanation: parsedResult.explanation || 'Code successfully modified according to prompt.',
       modifiedCode: parsedResult.modifiedCode,
+      remainingCredits,
     });
   } catch (error: any) {
     console.error('Code modification error:', error);
