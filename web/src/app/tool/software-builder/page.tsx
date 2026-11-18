@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import AppLayout from '@/components/layout/AppLayout';
 import CourseSelect from '@/components/ui/CourseSelect';
 import LiveTestingSimulator from '@/components/software/LiveTestingSimulator';
@@ -702,55 +703,17 @@ export default function SoftwareBuilderPage() {
               </div>
             </div>
 
-            {/* Right 3D Laptop & Rocket Illustration */}
-            <div className="relative w-full md:w-80 h-32 flex items-center justify-center md:justify-end pr-2 select-none pointer-events-none">
-              <div className="relative w-64 h-32 flex items-center justify-center">
-                {/* Ambient Purple Glow */}
-                <div className="absolute w-40 h-28 bg-purple-400/20 rounded-full blur-2xl -top-2 right-4"></div>
-                
-                {/* 3D Floating Document Cards */}
-                <div className="absolute left-2 top-4 w-16 h-20 rounded-xl bg-white/80 backdrop-blur-md border border-white/60 shadow-lg p-2 rotate-[-12deg] flex flex-col justify-between">
-                  <div className="w-8 h-2 rounded bg-indigo-200"></div>
-                  <div className="space-y-1">
-                    <div className="w-full h-1.5 rounded bg-slate-200"></div>
-                    <div className="w-10 h-1.5 rounded bg-slate-200"></div>
-                  </div>
-                  <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <Code2 className="w-3 h-3 text-indigo-600" />
-                  </div>
-                </div>
-
-                {/* 3D Laptop Base & Screen */}
-                <div className="relative z-10 w-44 h-28 flex flex-col items-center">
-                  {/* Laptop Screen */}
-                  <div className="w-36 h-22 rounded-t-xl bg-[#0F172A] border-2 border-slate-700/80 shadow-2xl p-2 flex flex-col justify-between relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950"></div>
-                    <div className="relative z-10 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    </div>
-                    <div className="relative z-10 flex items-center justify-center text-center my-auto">
-                      <span className="font-mono text-base font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 drop-shadow-[0_0_12px_rgba(99,102,241,0.8)]">
-                        &lt;/&gt;
-                      </span>
-                    </div>
-                    <div className="relative z-10 w-full h-1 bg-indigo-500/30 rounded-full"></div>
-                  </div>
-                  {/* Laptop Base */}
-                  <div className="w-44 h-2.5 bg-gradient-to-b from-slate-300 to-slate-400 rounded-b-xl shadow-lg border-t border-slate-200"></div>
-                </div>
-
-                {/* 3D Rocket Launching */}
-                <div className="absolute right-0 -top-2 z-20 animate-bounce duration-1000">
-                  <div className="relative flex flex-col items-center rotate-45">
-                    <div className="w-10 h-14 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-t-full shadow-xl flex items-center justify-center border-t border-white/40">
-                      <div className="w-4 h-4 rounded-full bg-white/30 border border-white/60"></div>
-                    </div>
-                    {/* Rocket Thrust Flame */}
-                    <div className="w-4 h-6 bg-gradient-to-b from-amber-400 via-orange-500 to-transparent rounded-b-full blur-[1px]"></div>
-                  </div>
-                </div>
+            {/* Right 3D Laptop & Rocket Illustration (Futuristic Coding Launchpad) */}
+            <div className="relative w-full md:w-80 lg:w-96 h-36 sm:h-40 flex items-center justify-center md:justify-end pr-2 select-none pointer-events-none">
+              <div className="relative w-full h-full flex items-center justify-center md:justify-end">
+                <Image
+                  src="/assets/software_builder_hero_3d.png"
+                  alt="Futuristic Coding Launchpad"
+                  width={400}
+                  height={225}
+                  priority
+                  className="object-contain max-h-full drop-shadow-xl"
+                />
               </div>
             </div>
           </div>
@@ -824,39 +787,16 @@ export default function SoftwareBuilderPage() {
             <div className="bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-12 shadow-sm flex flex-col justify-between min-h-[580px] text-center">
               <div className="my-auto flex flex-col items-center justify-center py-6">
                 
-                {/* 3D Browser & Play Button Floating Graphic */}
-                <div className="relative mb-6 select-none">
-                  {/* Background Soft Glow */}
-                  <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-2xl"></div>
-
-                  {/* 3D Browser Card */}
-                  <div className="relative w-44 h-32 rounded-2xl bg-gradient-to-b from-[#FAFBFD] to-[#EFF2FE] border border-indigo-200/80 shadow-xl p-3 flex flex-col justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-rose-400"></span>
-                      <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                      <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    </div>
-
-                    <div className="text-center font-mono font-extrabold text-2xl text-indigo-600/70 tracking-widest">
-                      &lt;/&gt;
-                    </div>
-
-                    <div className="w-full h-1.5 bg-indigo-200/40 rounded-full"></div>
-                  </div>
-
-                  {/* 3D Purple Play Button */}
-                  <div className="absolute -bottom-3 -right-3 w-14 h-14 rounded-full bg-gradient-to-tr from-[#6366F1] to-[#7C3AED] shadow-xl shadow-indigo-500/40 flex items-center justify-center text-white border-2 border-white cursor-pointer hover:scale-105 transition-transform">
-                    <Play className="w-6 h-6 fill-white text-white ml-0.5" />
-                  </div>
-
-                  {/* Floating Cursor Pointer */}
-                  <div className="absolute -bottom-2 -left-3 w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-500/30">
-                    <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[12px] border-b-white rotate-[-35deg]"></div>
-                  </div>
-
-                  {/* Sparkling Star */}
-                  <div className="absolute -top-3 -right-2 text-indigo-500 text-lg">✦</div>
-                  <div className="absolute -top-1 -left-4 text-purple-400 text-sm">✦</div>
+                {/* 3D Browser & Play Button Floating Graphic (Live Preview Across Devices) */}
+                <div className="relative w-64 sm:w-80 h-44 sm:h-52 mb-6 mx-auto flex items-center justify-center select-none">
+                  <Image
+                    src="/assets/software_builder_preview_3d.png"
+                    alt="Live Preview Across Devices"
+                    width={400}
+                    height={240}
+                    priority
+                    className="object-contain max-h-full drop-shadow-xl"
+                  />
                 </div>
 
                 {/* Headline & Description */}
