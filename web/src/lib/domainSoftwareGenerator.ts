@@ -240,8 +240,154 @@ export function detectDomainBlueprint(topic: string, course?: string): DomainBlu
     };
   }
 
-  // 6. Security / Cyber / Forensics / Biometric / Voting / Access Control
-  if (t.includes('security') || t.includes('cyber') || t.includes('forensic') || t.includes('biometric') || t.includes('voting') || t.includes('access') || t.includes('crime') || t.includes('police')) {
+  // 6. Campus E-Voting & Biometric Accreditation (Covenant University Model)
+  if (t.includes('voting') || t.includes('election') || t.includes('ballot') || t.includes('voter')) {
+    return {
+      domainKey: 'campus_evoting',
+      category: 'E-Governance & Electoral Informatics',
+      systemName: 'Biometric & Token-Based Campus E-Voting & Accreditation System',
+      tagline: 'Cryptographic voter accreditation, real-time ballot tallying, and tamper-evident audit ledger',
+      primaryEntity: 'Accredited Voter',
+      primaryEntityPlural: 'Accredited Voters',
+      secondaryEntity: 'Cast Ballot Ledger',
+      kpis: [
+        { label: 'Registered Voters', value: '3,450', change: '84.2% accredited', icon: 'UserCheck' },
+        { label: 'Ballots Cast', value: '2,905', change: 'Zero invalid votes', icon: 'Vote' },
+        { label: 'Active Contested Posts', value: '8 Offices', change: 'SUG & Departmental', icon: 'Award' },
+        { label: 'Audit Hash Verification', value: '100% Valid', change: 'SHA-256 sealed', icon: 'ShieldCheck' },
+      ],
+      categories: ['SUG President', 'Vice President', 'General Secretary', 'Public Relations Officer', 'Director of Socials', 'Faculty Representative'],
+      statuses: ['Accredited & Voted', 'Accredited (Ready to Vote)', 'Accreditation Pending', 'Disqualified', 'Voter Expired'],
+      schemaFields: [
+        { name: 'voter_name', type: 'TEXT', label: 'Voter Full Name', sample: 'Chinedu Stanley Okeke', required: true },
+        { name: 'matric_no', type: 'TEXT', label: 'Matriculation Number', sample: 'CU/2021/CSC/042', required: true },
+        { name: 'department', type: 'TEXT', label: 'Department', sample: 'Computer Science', required: true },
+        { name: 'voter_pin', type: 'TEXT', label: 'One-Time Token (OTP)', sample: 'VT-98214', required: true },
+        { name: 'contested_category', type: 'TEXT', label: 'Ballot Track', sample: 'SUG President', required: true },
+        { name: 'voting_status', type: 'TEXT', label: 'Accreditation Status', sample: 'Accredited & Voted', required: true },
+      ],
+      seedRecords: [
+        { id: 1, voter_name: 'Chinedu Stanley Okeke', matric_no: 'CU/2021/CSC/042', department: 'Computer Science', voter_pin: 'VT-98214', contested_category: 'SUG President', voting_status: 'Accredited & Voted', date_logged: '2026-11-18 10:14' },
+        { id: 2, voter_name: 'Amina Fatima Bello', matric_no: 'CU/2021/CSC/089', department: 'Software Engineering', voter_pin: 'VT-98215', contested_category: 'SUG President', voting_status: 'Accredited & Voted', date_logged: '2026-11-18 10:22' },
+        { id: 3, voter_name: 'Tunde Victor Adeleke', matric_no: 'CU/2020/CSC/115', department: 'Information Technology', voter_pin: 'VT-98216', contested_category: 'Vice President', voting_status: 'Accredited (Ready to Vote)', date_logged: '2026-11-18 10:45' },
+        { id: 4, voter_name: 'Grace Ngozi Eze', matric_no: 'CU/2022/CSC/014', department: 'Cyber Security', voter_pin: 'VT-98217', contested_category: 'General Secretary', voting_status: 'Accredited & Voted', date_logged: '2026-11-18 11:02' },
+        { id: 5, voter_name: 'Babajide Femi Ogunlesi', matric_no: 'CU/2021/CSC/201', department: 'Computer Science', voter_pin: 'VT-98218', contested_category: 'Director of Socials', voting_status: 'Accreditation Pending', date_logged: '2026-11-18 11:15' },
+      ],
+      workflowActions: ['Accredit Voter via OTP', 'Cast Encrypted Ballot', 'Generate Real-Time Election Broadsheet', 'Export Certified Audit Ledger'],
+    };
+  }
+
+  // 7. Student Clearance & Asset Return System (Obafemi Awolowo University Model)
+  if (t.includes('clearance') || t.includes('asset management') || (t.includes('asset') && t.includes('system'))) {
+    return {
+      domainKey: 'student_clearance',
+      category: 'Institutional Administration & Records Clearance',
+      systemName: 'Automated Multi-Departmental Final Year Student Clearance System',
+      tagline: 'Library, bursary, sport, departmental dues, and certificate release workflow',
+      primaryEntity: 'Clearance Candidate',
+      primaryEntityPlural: 'Clearance Candidates',
+      secondaryEntity: 'Departmental Clearance Ledger',
+      kpis: [
+        { label: 'Graduating Candidates', value: '1,840', change: '2024/2025 Session', icon: 'GraduationCap' },
+        { label: 'Fully Cleared Students', value: '1,420', change: 'Certificates issued', icon: 'CheckCircle2' },
+        { label: 'Pending Departmental Dues', value: '64 Pending', change: 'Library/Sports holds', icon: 'Clock' },
+        { label: 'Bursary Clearance Rate', value: '98.5%', change: 'Paystack reconciled', icon: 'Coins' },
+      ],
+      categories: ['BSc Computer Science', 'BSc Software Engineering', 'BTech Cyber Security', 'BSc Information Technology', 'Postgraduate PGD/MSc'],
+      statuses: ['Fully Cleared (Approved)', 'Bursary Cleared (Library Hold)', 'Departmental Review', 'Hostel Asset Hold', 'Clearance Certificate Issued'],
+      schemaFields: [
+        { name: 'student_name', type: 'TEXT', label: 'Candidate Full Name', sample: 'Haruna Yakubu Danbatta', required: true },
+        { name: 'matric_no', type: 'TEXT', label: 'Matriculation Number', sample: 'OAU/CSC/19/2041', required: true },
+        { name: 'academic_session', type: 'TEXT', label: 'Graduation Session', sample: '2024/2025 Session', required: true },
+        { name: 'departmental_dues', type: 'TEXT', label: 'Departmental Dues', sample: 'Cleared (₦5,000 Paid)', required: true },
+        { name: 'library_books_held', type: 'INTEGER', label: 'Outstanding Library Books', sample: '0', required: true },
+        { name: 'clearance_certificate_code', type: 'TEXT', label: 'Digital Certificate Hash', sample: 'CLR-OAU-2026-9042', required: true },
+      ],
+      seedRecords: [
+        { id: 1, student_name: 'Haruna Yakubu Danbatta', matric_no: 'OAU/CSC/19/2041', academic_session: '2024/2025 Session', departmental_dues: 'Cleared (₦5,000 Paid)', library_books_held: 0, clearance_certificate_code: 'CLR-OAU-2026-9042', date_logged: '2026-11-12' },
+        { id: 2, student_name: 'Blessing Olufunke Adeyemi', matric_no: 'OAU/CSC/19/2088', academic_session: '2024/2025 Session', departmental_dues: 'Cleared (₦5,000 Paid)', library_books_held: 0, clearance_certificate_code: 'CLR-OAU-2026-9088', date_logged: '2026-11-14' },
+        { id: 3, student_name: 'Emeka Christian Nwosu', matric_no: 'OAU/CSC/19/2114', academic_session: '2024/2025 Session', departmental_dues: 'Pending Verification', library_books_held: 1, clearance_certificate_code: 'PENDING_LIBRARY', date_logged: '2026-11-15' },
+        { id: 4, student_name: 'Zainab Abubakar Sanusi', matric_no: 'OAU/CSC/19/2145', academic_session: '2024/2025 Session', departmental_dues: 'Cleared (₦5,000 Paid)', library_books_held: 0, clearance_certificate_code: 'CLR-OAU-2026-9145', date_logged: '2026-11-16' },
+      ],
+      workflowActions: ['Approve Bursary Dues', 'Sign Off Library Books', 'Issue Tamper-Proof Clearance Certificate', 'Export Senate Broadsheet'],
+    };
+  }
+
+  // 8. AI Academic Performance & At-Risk Prediction (UNILAG Model)
+  if (t.includes('predict') || t.includes('at-risk') || t.includes('at risk') || (t.includes('analytics') && (t.includes('student') || t.includes('grade')))) {
+    return {
+      domainKey: 'academic_at_risk_prediction',
+      category: 'Educational Data Mining & Learning Analytics',
+      systemName: 'AI Early Academic Risk & Degree Class Prediction System',
+      tagline: 'Machine learning forecasts for graduating degree class and proactive advisor intervention',
+      primaryEntity: 'Student Learning Profile',
+      primaryEntityPlural: 'Student Learning Profiles',
+      secondaryEntity: 'Risk Factor Feature Vector',
+      kpis: [
+        { label: 'Cohort Size Evaluated', value: '1,841', change: 'Across 7 departments', icon: 'Users' },
+        { label: 'Model Prediction Accuracy', value: '92.4%', change: 'Stacking ensemble', icon: 'Activity' },
+        { label: 'At-Risk Interventions Flagged', value: '88 Students', change: 'Early warning triggered', icon: 'AlertTriangle' },
+        { label: 'Projected First Class', value: '142 Candidates', change: '+14% improvement', icon: 'Award' },
+      ],
+      categories: ['High Risk (CGPA < 2.00)', 'Moderate Risk (2.00 - 2.99)', 'Good Standing (3.00 - 4.49)', 'First Class Track (4.50 - 5.00)'],
+      statuses: ['Advisory Session Scheduled', 'Tutor Assigned', 'Stable Progress', 'Critical Escalation', 'Dean Cleared'],
+      schemaFields: [
+        { name: 'student_name', type: 'TEXT', label: 'Student Full Name', sample: 'Oluwaseun David Bakare', required: true },
+        { name: 'matric_no', type: 'TEXT', label: 'Matriculation Number', sample: 'UL/19/CSC/081', required: true },
+        { name: 'year1_gpa', type: 'REAL', label: 'Year 1 GPA', sample: '2.14', required: true },
+        { name: 'year2_gpa', type: 'REAL', label: 'Year 2 GPA', sample: '2.40', required: true },
+        { name: 'predicted_degree_class', type: 'TEXT', label: 'AI Predicted Class', sample: 'Second Class Lower (2:2)', required: true },
+        { name: 'risk_classification', type: 'TEXT', label: 'Intervention Priority', sample: 'Moderate Risk (2.00 - 2.99)', required: true },
+      ],
+      seedRecords: [
+        { id: 1, student_name: 'Oluwaseun David Bakare', matric_no: 'UL/19/CSC/081', year1_gpa: 2.14, year2_gpa: 2.40, predicted_degree_class: 'Second Class Lower (2:2)', risk_classification: 'Moderate Risk (2.00 - 2.99)', date_logged: '2026-11-10' },
+        { id: 2, student_name: 'Chidubem Michael Okoli', matric_no: 'UL/19/CSC/104', year1_gpa: 4.65, year2_gpa: 4.82, predicted_degree_class: 'First Class Honours', risk_classification: 'First Class Track (4.50 - 5.00)', date_logged: '2026-11-12' },
+        { id: 3, student_name: 'Khadijah Aliyu Garba', matric_no: 'UL/20/CSC/028', year1_gpa: 1.82, year2_gpa: 1.95, predicted_degree_class: 'Third Class / Pass', risk_classification: 'High Risk (CGPA < 2.00)', date_logged: '2026-11-14' },
+        { id: 4, student_name: 'Adewale Samuel Fashola', matric_no: 'UL/19/CSC/142', year1_gpa: 3.45, year2_gpa: 3.68, predicted_degree_class: 'Second Class Upper (2:1)', risk_classification: 'Good Standing (3.00 - 4.49)', date_logged: '2026-11-16' },
+      ],
+      workflowActions: ['Trigger Academic Warning Email', 'Assign Level Adviser Mentor', 'Export Linear Regression Scatter Plot', 'Generate Dean Intervention Roster'],
+    };
+  }
+
+  // 9. Campus CBT Examination & Instant Scoring System (UI / JAMB Model)
+  if (t.includes('cbt') || (t.includes('exam') && (t.includes('computer') || t.includes('test') || t.includes('online')))) {
+    return {
+      domainKey: 'campus_cbt',
+      category: 'Computer-Based Testing & Assessment Analytics',
+      systemName: 'Secure Campus Computer-Based Testing (CBT) & Instant Result Scoring System',
+      tagline: 'High-concurrency anti-cheat examination console, automated marking engine, and instant broadsheet analytics',
+      primaryEntity: 'Candidate Exam Session',
+      primaryEntityPlural: 'Candidate Exam Sessions',
+      secondaryEntity: 'Question Item Bank',
+      kpis: [
+        { label: 'Active Examinees', value: '1,240 Students', change: 'Batch 2 In-Progress', icon: 'Users' },
+        { label: 'Questions Delivered', value: '4,800 Items', change: 'Randomized shuffling', icon: 'FileText' },
+        { label: 'Mean Cohort Score', value: '68.4%', change: 'Pass threshold 50%', icon: 'Award' },
+        { label: 'Integrity Violations', value: '0 Malpractice', change: 'Tab lock enabled', icon: 'ShieldCheck' },
+      ],
+      categories: ['CSC 401: Software Engineering', 'GST 111: Communication in English', 'MTH 201: Mathematical Methods', 'CSC 302: Operating Systems', 'CIT 411: Artificial Intelligence'],
+      statuses: ['Submitted & Graded', 'Exam In Progress', 'Time Expired (Auto-Submitted)', 'Flagged for Review', 'Awaiting Candidate Verification'],
+      schemaFields: [
+        { name: 'candidate_name', type: 'TEXT', label: 'Candidate Full Name', sample: 'Ibrahim Musa Danjuma', required: true },
+        { name: 'matric_no', type: 'TEXT', label: 'Matriculation Number', sample: 'UI/2021/CSC/092', required: true },
+        { name: 'course_code', type: 'TEXT', label: 'Course Code & Title', sample: 'CSC 401: Software Engineering', required: true },
+        { name: 'score_obtained', type: 'INTEGER', label: 'Raw Score (/100)', sample: '78', required: true },
+        { name: 'time_spent_mins', type: 'INTEGER', label: 'Time Spent (Mins)', sample: '44', required: true },
+        { name: 'session_status', type: 'TEXT', label: 'Session Status', sample: 'Submitted & Graded', required: true },
+      ],
+      seedRecords: [
+        { id: 1, candidate_name: 'Ibrahim Musa Danjuma', matric_no: 'UI/2021/CSC/092', course_code: 'CSC 401: Software Engineering', score_obtained: 78, time_spent_mins: 44, session_status: 'Submitted & Graded', date_logged: '2026-11-18 09:45' },
+        { id: 2, candidate_name: 'Chioma Patricia Okafor', matric_no: 'UI/2021/CSC/015', course_code: 'CSC 401: Software Engineering', score_obtained: 86, time_spent_mins: 52, session_status: 'Submitted & Graded', date_logged: '2026-11-18 09:55' },
+        { id: 3, candidate_name: 'Bolaji Emmanuel Adeyemi', matric_no: 'UI/2021/CSC/112', course_code: 'CSC 401: Software Engineering', score_obtained: 64, time_spent_mins: 60, session_status: 'Submitted & Graded', date_logged: '2026-11-18 10:00' },
+        { id: 4, candidate_name: 'Aisha Haliru Mohammed', matric_no: 'UI/2021/CSC/048', course_code: 'CSC 401: Software Engineering', score_obtained: 92, time_spent_mins: 38, session_status: 'Submitted & Graded', date_logged: '2026-11-18 10:10' },
+        { id: 5, candidate_name: 'Favour Kelechi Nnamdi', matric_no: 'UI/2021/CSC/073', course_code: 'CSC 401: Software Engineering', score_obtained: 58, time_spent_mins: 59, session_status: 'Submitted & Graded', date_logged: '2026-11-18 10:15' },
+      ],
+      workflowActions: ['Submit & Auto-Grade Exam', 'Export Senate-Approved Broadsheet', 'Audit Session Log & Malpractice Flags', 'Re-open Proctoring Session'],
+    };
+  }
+
+  // 9. Security / Cyber / Forensics / Biometric / Access Control
+  if (t.includes('security') || t.includes('cyber') || t.includes('forensic') || t.includes('biometric') || t.includes('access') || t.includes('crime') || t.includes('police')) {
     return {
       domainKey: 'security_forensics',
       category: 'Cyber Security & Digital Forensics',
