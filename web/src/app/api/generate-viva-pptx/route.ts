@@ -24,9 +24,10 @@ export async function POST(req: NextRequest) {
     const isRedownload = req.headers.get('x-codethesis-redownload') === 'true' || body.isRedownload === true;
     const creditCheck = await authorizeAndDeductCredits('vivaPresentation', { skipDeduction: isRedownload });
     if (!creditCheck.allowed) {
+      const status = !creditCheck.userId ? 401 : 402;
       return NextResponse.json(
         { error: creditCheck.errorMessage, cost: creditCheck.cost, remainingCredits: creditCheck.remainingCredits },
-        { status: 402 }
+        { status }
       );
     }
 

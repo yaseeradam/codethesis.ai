@@ -14,11 +14,10 @@ export async function GET(req: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({
-        success: true,
-        notifications: [],
-        unreadCount: 0,
-      });
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     const url = new URL(req.url);
