@@ -65,92 +65,6 @@ interface SynthesisStage {
   detail: string;
 }
 
-interface NigerianFYPTemplate {
-  id: string;
-  badge: string;
-  institution: string;
-  name: string;
-  department: string;
-  techStack: string;
-  database: string;
-  description: string;
-  features: {
-    userAuth: boolean;
-    adminDashboard: boolean;
-    paymentIntegration: boolean;
-    reportsAnalytics: boolean;
-  };
-}
-
-const NIGERIAN_FYP_TEMPLATES: NigerianFYPTemplate[] = [
-  {
-    id: 'covenant-evoting',
-    badge: 'SUG & Faculty Elections',
-    institution: 'Covenant University (CU)',
-    name: 'Biometric & Token-Based Campus E-Voting & Accreditation System',
-    department: 'Computer Science',
-    techStack: 'Python',
-    database: 'SQLite',
-    description: 'Cryptographic voter accreditation with one-time verification tokens (OTP), multi-post ballot tallying (SUG President, VP, General Sec), and SHA-256 tamper-evident election broadsheet.',
-    features: { userAuth: true, adminDashboard: true, paymentIntegration: false, reportsAnalytics: true }
-  },
-  {
-    id: 'oau-clearance',
-    badge: 'Multi-Department Clearance',
-    institution: 'Obafemi Awolowo University (OAU)',
-    name: 'Automated Multi-Departmental Final Year Student Clearance System',
-    department: 'Computer Science',
-    techStack: 'PHP',
-    database: 'MySQL',
-    description: 'Digital clearance workflow connecting Bursary, University Library, Sports Council, and Academic Departments with automated clearance certificate issuance and debt verification.',
-    features: { userAuth: true, adminDashboard: true, paymentIntegration: true, reportsAnalytics: true }
-  },
-  {
-    id: 'unilag-academic-risk',
-    badge: 'Machine Learning Analytics',
-    institution: 'University of Lagos (UNILAG)',
-    name: 'AI Early Academic Risk & Graduating Degree Class Prediction System',
-    department: 'Computer Science',
-    techStack: 'Python',
-    database: 'SQLite',
-    description: 'Predictive analytics pipeline using student 100L/200L CGPA, course failure trends, and attendance features to forecast graduating class (1st, 2:1, 2:2) with proactive advisory alerts.',
-    features: { userAuth: true, adminDashboard: true, paymentIntegration: false, reportsAnalytics: true }
-  },
-  {
-    id: 'futa-fraud-detection',
-    badge: 'FinTech & Cyber Security',
-    institution: 'Federal University of Technology, Akure (FUTA)',
-    name: 'Real-Time Financial Transaction Fraud Detection & Risk Scoring System',
-    department: 'Cyber Security',
-    techStack: 'Python',
-    database: 'PostgreSQL',
-    description: 'Machine learning ensemble monitoring live credit card and debit transactions, detecting anomaly velocity spikes, geographic hops, and flagging unauthorized fund movements.',
-    features: { userAuth: true, adminDashboard: true, paymentIntegration: true, reportsAnalytics: true }
-  },
-  {
-    id: 'abu-clinic-emr',
-    badge: 'Health Informatics',
-    institution: 'Ahmadu Bello University (ABU)',
-    name: 'University Health Services Clinic & Electronic Medical Records (EMR) System',
-    department: 'Information Technology',
-    techStack: 'PHP',
-    database: 'MySQL',
-    description: 'Campus clinic outpatient triage, digital prescription dispensing, student blood group / genotype registry, and NHIS medical records management for university health centers.',
-    features: { userAuth: true, adminDashboard: true, paymentIntegration: false, reportsAnalytics: true }
-  },
-  {
-    id: 'ui-cbt-exam',
-    badge: 'E-Assessment & Scoring',
-    institution: 'University of Ibadan (UI)',
-    name: 'Secure Campus Computer-Based Testing (CBT) & Instant Result Scoring System',
-    department: 'Computer Science',
-    techStack: 'JavaScript',
-    database: 'SQLite',
-    description: 'Anti-cheat timed examination portal with randomized question banks, automated grading, student matriculation lockouts, and instant senate-format result sheet compilation.',
-    features: { userAuth: true, adminDashboard: true, paymentIntegration: false, reportsAnalytics: true }
-  }
-];
-
 const SYNTHESIS_STAGES: SynthesisStage[] = [
   {
     step: 1,
@@ -294,7 +208,6 @@ export default function SoftwareBuilderPage() {
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   // Form Inputs (matching new design)
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [applicationName, setApplicationName] = useState('');
   const [applicationDescription, setApplicationDescription] = useState('');
   const [selectedTechStack, setSelectedTechStack] = useState<'Python' | 'PHP' | 'JavaScript' | string>('Python');
@@ -371,24 +284,7 @@ export default function SoftwareBuilderPage() {
     setTimeout(() => setSuccessBanner(null), 6000);
   };
 
-  const handleSelectTemplate = (templateId: string) => {
-    setSelectedTemplateId(templateId);
-    const found = NIGERIAN_FYP_TEMPLATES.find((t) => t.id === templateId);
-    if (!found) return;
-
-    setApplicationName(found.name);
-    setApplicationDescription(found.description);
-    setSelectedTechStack(found.techStack);
-    setSelectedDatabase(found.database as any);
-    setCourse(found.department);
-    setFeatures(found.features);
-    setCustomStackInput('');
-    setSuccessBanner(`Loaded ${found.institution} blueprint: "${found.name}". Click "Generate Software" to build.`);
-    setTimeout(() => setSuccessBanner(null), 5000);
-  };
-
   const handleResetAll = () => {
-    setSelectedTemplateId('');
     setApplicationName('');
     setApplicationDescription('');
     setSelectedTechStack('Python');
@@ -670,48 +566,6 @@ export default function SoftwareBuilderPage() {
 
           {/* Scrollable Form Body */}
           <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-5">
-            {/* Curated Nigerian University Blueprints */}
-            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#EEF0FE] via-[#F5F3FF] to-[#FAF5FF] border border-indigo-100 shadow-2xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-950">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Curated University Blueprints</span>
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-white/90 border border-indigo-100 px-2 py-0.5 rounded-full shadow-2xs">
-                  Nigerian FYP
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 leading-snug">
-                Select an authentic Nigerian university project template to auto-populate production schemas and Viva seeds:
-              </p>
-              <div className="relative">
-                <select
-                  value={selectedTemplateId}
-                  onChange={(e) => handleSelectTemplate(e.target.value)}
-                  disabled={isBuilding}
-                  className="w-full appearance-none bg-white border border-indigo-200/80 hover:border-indigo-400 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-500/10 rounded-xl px-3 py-2 pr-8 text-xs text-slate-800 font-semibold outline-none transition-all cursor-pointer shadow-2xs disabled:opacity-60"
-                >
-                  <option value="">-- Choose Authentic Nigerian FYP Template --</option>
-                  {NIGERIAN_FYP_TEMPLATES.map((tmpl) => (
-                    <option key={tmpl.id} value={tmpl.id}>
-                      {tmpl.badge} • {tmpl.institution}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-              {selectedTemplateId && (
-                <div className="pt-1 flex items-center justify-between text-[11px] text-indigo-700 font-medium bg-white/70 p-2 rounded-lg border border-indigo-100">
-                  <span className="truncate max-w-[210px] font-semibold">
-                    {NIGERIAN_FYP_TEMPLATES.find((t) => t.id === selectedTemplateId)?.institution}
-                  </span>
-                  <span className="font-bold text-[10px] uppercase bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded">
-                    Active
-                  </span>
-                </div>
-              )}
-            </div>
-
             {/* Section 1: Application Details */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
