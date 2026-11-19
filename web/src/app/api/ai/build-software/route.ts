@@ -32,8 +32,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const {
       topic = 'Academic Enterprise System',
+      description = '',
       techStack = 'Python (Zero-Pip) + SQLite',
       course = 'Computer Science',
+      features = {},
+      architectureAnswers = {},
       spec = null,
     } = body;
 
@@ -49,12 +52,18 @@ export async function POST(req: NextRequest) {
 
     // 1. Prepare AI prompt to architect custom domain specification
     const specContext = spec ? `\nUSER PROPOSAL / SPECIFICATION:\n${typeof spec === 'string' ? spec : JSON.stringify(spec).slice(0, 1000)}` : '';
+    const answersContext = architectureAnswers && Object.keys(architectureAnswers).length > 0
+      ? `\nUSER-SPECIFIED ARCHITECTURAL & DEFENSE DECISIONS:\n${Object.entries(architectureAnswers)
+          .map(([k, v]) => `- ${k.replace(/_/g, ' ').toUpperCase()}: "${v}"`)
+          .join('\n')}\nCRITICAL: You MUST strictly incorporate these exact architectural decisions, access models, and features directly into the schemaFields, workflowActions, categories, and entities below!`
+      : '';
     
     const aiArchitectPrompt = `You are a Principal Software Architect synthesizing turnkey university degree software.
 PROJECT TOPIC: "${cleanTopic}"
 TARGET TECH STACK: "${effectiveStack}"
 DEPARTMENT: "${course}"
 ${specContext}
+${answersContext}
 
 CRITICAL ARCHITECTURE REQUIREMENT:
 Design a REAL, highly specific, authentic software blueprint specifically tailored for "${cleanTopic}".
@@ -141,6 +150,11 @@ Respond strictly in valid JSON matching this schema:
     // Fallback if AI was unavailable or invalid
     if (!blueprint) {
       blueprint = detectDomainBlueprint(cleanTopic, course);
+    }
+
+    // Attach user architectural decisions
+    if (architectureAnswers && typeof architectureAnswers === 'object' && Object.keys(architectureAnswers).length > 0) {
+      blueprint.userDecisions = architectureAnswers;
     }
 
     // Ensure seed records exist

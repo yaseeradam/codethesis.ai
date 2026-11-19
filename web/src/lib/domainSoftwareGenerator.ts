@@ -18,6 +18,7 @@ export interface DomainBlueprint {
   statuses: string[];
   seedRecords: Record<string, any>[];
   workflowActions: string[];
+  userDecisions?: Record<string, string>;
 }
 
 export function detectDomainBlueprint(topic: string, course?: string): DomainBlueprint {
@@ -513,6 +514,14 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 4. Architectural Configuration & Defense Specifications
+CREATE TABLE IF NOT EXISTS system_specifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    decision_key TEXT NOT NULL,
+    decision_value TEXT NOT NULL,
+    configured_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Optimized Indices for Defense Demonstrations and High Query Performance
 CREATE INDEX IF NOT EXISTS idx_${table}_status ON ${table}(${bp.schemaFields[bp.schemaFields.length - 1]?.name || 'id'});
 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp);
@@ -534,6 +543,13 @@ export function generateSeedSql(bp: DomainBlueprint, topic: string): string {
     return `INSERT INTO ${table} (${colNames}) VALUES (${vals});`;
   }).join('\n');
 
+  const decisionsSql = bp.userDecisions && Object.keys(bp.userDecisions).length > 0
+    ? `\n-- Student Architecture & Defense Decisions Configured\n` +
+      Object.entries(bp.userDecisions).map(([k, v]) => 
+        `INSERT INTO system_specifications (decision_key, decision_value) VALUES ('${k}', '${String(v).replace(/'/g, "''")}');`
+      ).join('\n')
+    : '';
+
   return `-- ==============================================================================
 -- CodeThesis AI — Database Pre-Populated Defense Seed Records
 -- System: ${bp.systemName}
@@ -553,6 +569,7 @@ ${inserts}
 INSERT INTO audit_logs (entity_id, action_performed, performed_by, hash_signature) VALUES
 (1, 'INITIAL_SYSTEM_SEED_IMPORT', 'System Kernel', '7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069'),
 (2, 'SECURITY_CRYPTOGRAPHIC_VERIFICATION', 'admin', 'c2b4e89101112131415161718192021222324252627282930313233343536373');
+${decisionsSql}
 `;
 }
 
@@ -912,6 +929,16 @@ class AcademicHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
+        if path == "/api/defense/specifications":
+            self.send_json_response({
+                "system": "${bp.systemName}",
+                "topic": "${topic.trim()}",
+                "domain": "${bp.category}",
+                "architectureDecisions": ${JSON.stringify(bp.userDecisions || {})},
+                "verifiedDefenseCompliance": True
+            })
+            return
+
         if path == "/api/stats":
             conn = sqlite3.connect(DB_FILE)
             cur = conn.cursor()
@@ -1155,6 +1182,16 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
             <span id="currentRole">Lead Administrator</span>
           </div>
 
+          <!-- Defense Architecture Spec Button -->
+          <button
+            onclick="openArchitectureModal()"
+            title="Inspect Verified Academic Architecture & Defense Parameters"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 text-xs transition border border-indigo-700/60 cursor-pointer"
+          >
+            <i class="fa-solid fa-layer-group text-indigo-400"></i>
+            <span class="hidden sm:inline">Defense Spec</span>
+          </button>
+
           <!-- Quick Action: Add Record -->
           <button onclick="openModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs tracking-wide transition shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer">
             <i class="fa-solid fa-plus"></i>
@@ -1382,6 +1419,60 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
     </div>
   </div>
 
+  <!-- =========================================================================
+       MODAL 3: DEFENSE ARCHITECTURE SPECIFICATIONS MODAL
+       ========================================================================= -->
+  <div id="architectureModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#111827] border border-indigo-700/60 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-gradient-to-r from-indigo-950 to-[#161F2E]">
+        <div class="flex items-center gap-2 text-white font-bold text-sm">
+          <i class="fa-solid fa-layer-group text-indigo-400"></i>
+          <span>Academic System Architecture &amp; Defense Specifications</span>
+        </div>
+        <button onclick="closeArchitectureModal()" class="text-slate-400 hover:text-white transition cursor-pointer">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <p class="text-xs text-slate-300 leading-relaxed">
+          The following core technical parameters were configured by the candidate to govern database relations, access control tiers, and viva defense workflows:
+        </p>
+
+        <div class="space-y-2.5">
+          ${bp.userDecisions && Object.keys(bp.userDecisions).length > 0 ? Object.entries(bp.userDecisions).map(([key, val]) => `
+            <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-400 font-mono">
+                  ${key.replace(/_/g, ' ')}
+                </span>
+                <span class="text-[10px] font-bold uppercase bg-emerald-950 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full">
+                  Configured
+                </span>
+              </div>
+              <p class="text-xs text-white font-medium">${String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+            </div>
+          `).join('') : `
+            <div class="p-4 rounded-xl bg-slate-800/60 border border-slate-700 text-xs text-slate-400">
+              Standard Academic Architecture: Multi-tier role permissions, standalone SQLite engine, and tamper-evident audit ledger.
+            </div>
+          `}
+        </div>
+
+        <div class="p-3 rounded-xl bg-indigo-950/40 border border-indigo-800/40 text-[11px] text-indigo-300 flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-indigo-400"></i>
+          <span>Ready for examination defense before supervisor, internal &amp; external examiners.</span>
+        </div>
+      </div>
+
+      <div class="px-6 py-3 border-t border-slate-800 bg-[#161F2E] flex items-center justify-end">
+        <button onclick="closeArchitectureModal()" class="px-4 py-1.5 rounded-lg bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-500 transition cursor-pointer">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 rounded-xl bg-slate-900 border border-cyan-500/40 text-white text-xs shadow-2xl flex items-center gap-3">
     <i class="fa-solid fa-circle-check text-cyan-400 text-base"></i>
@@ -1534,6 +1625,16 @@ export function generateFrontendHtml(bp: DomainBlueprint, topic: string, techSta
     function closeModal() {
       document.getElementById('addModal').classList.add('hidden');
       document.getElementById('recordForm').reset();
+    }
+
+    function openArchitectureModal() {
+      const modal = document.getElementById('architectureModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeArchitectureModal() {
+      const modal = document.getElementById('architectureModal');
+      if (modal) modal.classList.add('hidden');
     }
 
     function handleFormSubmit(e) {

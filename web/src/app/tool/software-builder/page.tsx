@@ -8,6 +8,8 @@ import CourseSelect from '@/components/ui/CourseSelect';
 import LiveTestingSimulator from '@/components/software/LiveTestingSimulator';
 import LiveAppSandbox from '@/components/software/LiveAppSandbox';
 import ProjectDocumentUploader from '@/components/software/ProjectDocumentUploader';
+import RequirementClarificationModal from '@/components/software/RequirementClarificationModal';
+import { ClarificationQuestion } from '@/app/api/ai/clarify-requirements/route';
 import { useAuth } from '@/context/AuthContext';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
 import { buildDomainSoftware } from '@/lib/domainSoftwareGenerator';
@@ -333,6 +335,15 @@ export default function SoftwareBuilderPage() {
   // Testing Simulator state
   const [showTestingSimulator, setShowTestingSimulator] = useState(false);
 
+  // Requirement Clarification & Pre-flight Analysis state
+  const [showClarificationModal, setShowClarificationModal] = useState(false);
+  const [isAnalyzingRequirements, setIsAnalyzingRequirements] = useState(false);
+  const [clarificationData, setClarificationData] = useState<{
+    summary: string;
+    questions: ClarificationQuestion[];
+  }>({ summary: '', questions: [] });
+  const [confirmedArchitectureAnswers, setConfirmedArchitectureAnswers] = useState<Record<string, string>>({});
+
   // Computed effective stack string for generator
   const effectiveTechStack = customStackInput
     ? customStackInput
@@ -394,13 +405,49 @@ export default function SoftwareBuilderPage() {
     setTimeout(() => setSuccessBanner(null), 3000);
   };
 
-  async function handleBuildSoftware() {
+  async function handleInitiateGeneration() {
     if (!applicationName.trim()) {
       setSuccessBanner('Please enter an Application Name to begin generation.');
       setTimeout(() => setSuccessBanner(null), 3500);
       return;
     }
 
+    setIsAnalyzingRequirements(true);
+    try {
+      const res = await fetch('/api/ai/clarify-requirements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: applicationName.trim(),
+          description: applicationDescription.trim(),
+          techStack: effectiveTechStack,
+          course: course || 'Computer Science',
+          features,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && Array.isArray(data.questions) && data.questions.length > 0) {
+        setClarificationData({
+          summary: data.summary || '',
+          questions: data.questions,
+        });
+        setShowClarificationModal(true);
+      } else {
+        // Fallback directly to build
+        executeBuildSoftware({});
+      }
+    } catch (err) {
+      console.warn('Clarification check failed, proceeding directly to software build:', err);
+      executeBuildSoftware({});
+    } finally {
+      setIsAnalyzingRequirements(false);
+    }
+  }
+
+  async function executeBuildSoftware(architectureAnswers: Record<string, string> = {}) {
+    setConfirmedArchitectureAnswers(architectureAnswers);
+    setShowClarificationModal(false);
     setIsBuilding(true);
     setCurrentStageIndex(0);
     setProgressPercent(15);
@@ -436,6 +483,7 @@ export default function SoftwareBuilderPage() {
           techStack: effectiveTechStack,
           course: course || 'Computer Science',
           features,
+          architectureAnswers,
           spec: analyzedSpec,
         }),
       });
@@ -469,6 +517,8 @@ export default function SoftwareBuilderPage() {
         setIsBuilding(false);
         setIsGenerated(true);
         setActiveTab('preview');
+        setSuccessBanner(`Software architecture & turnkey codebase successfully compiled for "${applicationName.trim()}"!`);
+        setTimeout(() => setSuccessBanner(null), 6000);
       }, 900);
 
     } catch (err: any) {
@@ -901,14 +951,19 @@ export default function SoftwareBuilderPage() {
           <div className="p-4 sm:p-5 bg-white border-t border-slate-150 flex-shrink-0 shadow-[0_-4px_16px_rgba(0,0,0,0.03)]">
             <button
               type="button"
-              onClick={handleBuildSoftware}
-              disabled={!applicationName.trim() || isBuilding}
+              onClick={handleInitiateGeneration}
+              disabled={!applicationName.trim() || isBuilding || isAnalyzingRequirements}
               className="w-full bg-gradient-to-r from-[#4F46E5] via-[#4338CA] to-[#3B82F6] hover:from-[#4338CA] hover:to-[#2563EB] text-white font-black py-3.5 px-5 rounded-2xl text-xs sm:text-sm shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2.5 transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
             >
               {isBuilding ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-white" />
                   <span>Synthesizing Architecture...</span>
+                </>
+              ) : isAnalyzingRequirements ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Reviewing Parameters & Scope...</span>
                 </>
               ) : (
                 <>
@@ -1322,6 +1377,19 @@ export default function SoftwareBuilderPage() {
           </div>
         </main>
       </div>
+
+      {/* AI Architectural Clarification Modal */}
+      <RequirementClarificationModal
+        isOpen={showClarificationModal}
+        topic={applicationName.trim()}
+        department={course}
+        summary={clarificationData.summary}
+        questions={clarificationData.questions}
+        onConfirm={(answers) => executeBuildSoftware(answers)}
+        onSkip={() => executeBuildSoftware({})}
+        onClose={() => setShowClarificationModal(false)}
+        isBuilding={isBuilding}
+      />
 
       {/* QA Testing Simulator Modal */}
       {showTestingSimulator && (
