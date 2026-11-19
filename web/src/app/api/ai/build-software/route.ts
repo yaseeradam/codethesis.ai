@@ -15,18 +15,26 @@ import {
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
-    if (user) {
-      const dbUser = await getUserById(user.id);
-      if (dbUser && dbUser.credits < 2) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Insufficient academic credits. Synthesizing turnkey software requires 2 credits.',
-            currentBalance: dbUser.credits,
-          },
-          { status: 402 }
-        );
-      }
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Authentication required. Please sign in to synthesize turnkey software.',
+        },
+        { status: 401 }
+      );
+    }
+
+    const dbUser = await getUserById(user.id);
+    if (!dbUser || dbUser.credits < 2) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Insufficient academic credits. Synthesizing turnkey software requires 2 credits.',
+          currentBalance: dbUser?.credits ?? 0,
+        },
+        { status: 402 }
+      );
     }
 
     const body = await req.json().catch(() => ({}));

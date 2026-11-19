@@ -2,9 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authorizeAndDeductCredits, ToolKey } from '@/lib/credits';
 import { generateAcademicAI, buildChapterUserPrompt } from '@/lib/ai';
 import { checkRateLimit } from '@/lib/rateLimiter';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
+    const sessionUser = await getCurrentUser();
+    if (!sessionUser) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please sign in to generate academic research content.' },
+        { status: 401 }
+      );
+    }
+
     const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'anon';
     const rateCheck = await checkRateLimit({
       keyId: `ai_generate_${clientIp}`,

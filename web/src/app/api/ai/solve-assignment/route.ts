@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { solveAcademicProblem } from '@/lib/ai';
 import { authorizeAndDeductCredits } from '@/lib/credits';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required. Please sign in to solve coursework assignments.' },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
-    const { problem, department = 'Computer Science / Engineering', institution, deductCredits = false } = body;
+    const { problem, department = 'Computer Science / Engineering', institution, deductCredits = true } = body;
 
     if (!problem || !problem.trim()) {
       return NextResponse.json({ success: false, error: 'Problem statement is required' }, { status: 400 });

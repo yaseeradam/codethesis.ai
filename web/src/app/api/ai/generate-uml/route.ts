@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateMermaidDiagram } from '@/lib/ai';
 import { authorizeAndDeductCredits } from '@/lib/credits';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required. Please sign in to generate UML models.' },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
-    const { topic, diagramType = 'sequence', department = 'Computer Science / Engineering', deductCredits = false } = body;
+    const { topic, diagramType = 'sequence', department = 'Computer Science / Engineering', deductCredits = true } = body;
 
     if (!topic || !topic.trim()) {
       return NextResponse.json({ success: false, error: 'Thesis topic is required' }, { status: 400 });

@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserByEmail, verifyPassword, logAuthEvent } from '@/lib/db';
 import { createSessionToken, COOKIE_NAME } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rateLimiter';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || '127.0.0.1';
+    const rateCheck = await checkRateLimit({
+      keyId: `login_attempt_${ip}`,
+      limitPerMinute: 10,
+    });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many login attempts. Please wait 1 minute before trying again.' },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfter || 60) } }
+      );
+    }
+
     let body: any = {};
     try {
       body = await req.json();
@@ -12,7 +25,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { email, password } = body;
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || undefined;
     const userAgent = req.headers.get('user-agent') || undefined;
 
     // Standard Real Credential Login
