@@ -296,6 +296,28 @@ def run_audit():
 
     # 5.2 Word DOCX Thesis Compiler
     results["total"] += 1
+    sample_academic_text = (
+        "## 1.1 Introduction\n\n"
+        "In contemporary tertiary academic institutions, automated computing architectures provide unprecedented efficacy "
+        "in optimizing operational workflows, institutional resource allocations, and rigorous candidate data tracking. "
+        "The Nigerian university system demands high-fidelity architectural solutions that adhere to national academic frameworks "
+        "and stringent administrative standards. By deploying localized relational persistence schemas, robust cryptographic verification, "
+        "and cross-platform execution harnesses, this research demonstrates verifiable fidelity and operational resilience.\n\n"
+        "### 1.2 Statement of the Problem\n\n"
+        "Traditional legacy systems suffer from synchronization delays, lack of unified schema validation, and vulnerability to concurrency anomalies. "
+        "This project establishes a verified computational pipeline that mitigates these systemic shortcomings through systematic verification.\n\n"
+        "### 1.3 Objectives of the Study\n\n"
+        "1. To formulate a normalized relational persistence model adhering strictly to Third Normal Form (3NF).\n"
+        "2. To construct an automated oral defense test suite validating end-to-end data pipelines.\n"
+        "3. To deploy a high-performance web interface compliant with WCAG accessibility and sub-100ms response latencies.\n\n"
+        "| Parameter | Target SLA | Empirical Observed Metric |\n"
+        "|---|---|---|\n"
+        "| API Latency | < 250ms | 42.8ms |\n"
+        "| Database Integrity | 3NF Normalization | Verified via Foreign Key Cascade |\n"
+        "| Test Coverage | 100% Core Endpoints | 5/5 Automated Viva Assertions Passing |\n\n"
+        "The empirical findings derived from continuous integration test fixtures corroborate that the proposed architecture "
+        "satisfies all rigorous institutional and viva panel expectations without relying on external cloud dependencies."
+    )
     docx_payload = {
         "topic": "Design and Implementation of an E-Voting System",
         "department": "Computer Science",
@@ -304,7 +326,11 @@ def run_audit():
         "supervisorName": "Dr. A. B. Olumide",
         "isRedownload": True,
         "chapters": {
-            "ch1": "This thesis explores secure decentralized voting protocols in Nigerian universities."
+            "ch1": sample_academic_text,
+            "ch2": sample_academic_text.replace("1.1 Introduction", "2.1 Literature Review"),
+            "ch3": sample_academic_text.replace("1.1 Introduction", "3.1 System Methodology"),
+            "ch4": sample_academic_text.replace("1.1 Introduction", "4.1 Implementation and Testing"),
+            "ch5": sample_academic_text.replace("1.1 Introduction", "5.1 Summary and Conclusion"),
         }
     }
     res = send_request("POST", "/api/generate-thesis-docx", docx_payload, headers={"Cookie": auth_cookie})
