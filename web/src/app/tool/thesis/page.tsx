@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import CourseSelect from '@/components/ui/CourseSelect';
 import InstitutionSelect from '@/components/ui/InstitutionSelect';
+import AcademicTextRenderer from '@/components/ui/AcademicTextRenderer';
 
 export default function ThesisToolPage() {
   const { user } = useAuth();
@@ -281,12 +282,12 @@ export default function ThesisToolPage() {
                 </button>
               </div>
             ) : (
-              <div className="p-6 rounded-2xl bg-white border border-slate-200 text-slate-800 font-serif leading-relaxed text-xs sm:text-sm whitespace-pre-line shadow-xs text-justify">
+              <div className="p-6 rounded-2xl bg-white border border-slate-200 text-slate-800 font-serif leading-relaxed text-xs sm:text-sm shadow-xs">
                 <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs mb-3 font-sans pb-2 border-b border-amber-100">
                   <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
                   <span>Synthesized AI Research Text for Chapter {activeChapter}</span>
                 </div>
-                {aiCustomContent[activeChapter]}
+                <AcademicTextRenderer content={aiCustomContent[activeChapter]} chapterNumber={activeChapter} />
               </div>
             )}
           </div>

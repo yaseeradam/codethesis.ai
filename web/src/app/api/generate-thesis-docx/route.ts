@@ -3,6 +3,12 @@ import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
 import { generateAcademicAI, buildChapterUserPrompt } from "@/lib/ai";
 import { generateDynamicChapterText } from "@/lib/academic-chapters";
 import {
+  convertLatexFormula,
+  sanitizeAcademicTextMath,
+  isMathEquation,
+  extractCleanEquation,
+} from "@/lib/mathConverter";
+import {
   getArchitectureSvg,
   getUseCaseSvg,
   getErdSvg,
@@ -83,8 +89,10 @@ export async function POST(req: NextRequest) {
 
     // --- Helper Functions for Academic Typography (NUC / APA Format) ---
     const parseInlineMarkdownToRuns = (text: string): TextRun[] => {
-      // First clean leading markdown hashes or stray backticks
-      const cleanText = text.replace(/^#+\s*/, "").trim();
+      // First convert any inline LaTeX equations into clean academic math notation
+      const cleanMathText = sanitizeAcademicTextMath(text);
+      // Clean leading markdown hashes or stray backticks
+      const cleanText = cleanMathText.replace(/^#+\s*/, "").trim();
       const runs: TextRun[] = [];
 
       // Tokenize by inline markdown markers: ***bold italic***, **bold**, *italic*, `code`
@@ -175,6 +183,32 @@ export async function POST(req: NextRequest) {
         spacing: { before: 100, after: 120, line: lineSpacing }, // 1.5 line spacing
         children: parseInlineMarkdownToRuns(text),
       });
+
+    let equationCounter = 1;
+    const academicEquation = (rawMath: string, chapterNum = 3) => {
+      const { formula, label } = extractCleanEquation(rawMath, `(Eq. ${chapterNum}.${equationCounter++})`);
+      return new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 200, after: 200, line: 360 },
+        children: [
+          new TextRun({
+            text: `        ${formula}        `,
+            italics: true,
+            bold: true,
+            size: 26, // 13pt
+            font: "Times New Roman",
+            color: "0B132B",
+          }),
+          new TextRun({
+            text: `    ${label}`,
+            bold: true,
+            size: 22, // 11pt
+            font: "Times New Roman",
+            color: "475569",
+          }),
+        ],
+      });
+    };
 
     const academicHeading1 = (title: string, subtitle?: string) => {
       const cleanTitle = title.replace(/^#+\s*/, "").replace(/[*_#`]/g, "").trim();
@@ -399,6 +433,12 @@ export async function POST(req: NextRequest) {
             );
             continue;
           }
+        }
+
+        // 5b. Mathematical Equation: starts with "$$", "\[", or "[EQUATION:" or is a math equation
+        if (isMathEquation(line)) {
+          elements.push(academicEquation(line, 3));
+          continue;
         }
 
         // 6. Normal paragraph with inline markdown parsed into TextRuns and stripped of asterisks/hashes

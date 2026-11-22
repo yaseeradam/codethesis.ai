@@ -64,7 +64,6 @@ interface NavItem {
 
 const primaryNavItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-sky-400' },
-  { id: 'studio', label: 'Academic Studio', href: '/studio', icon: GraduationCap, color: 'text-cyan-400' },
   { id: 'thesis', label: 'Thesis Generator', href: '/tool/thesis', icon: FileText, color: 'text-amber-400' },
   { id: 'software-builder', label: 'Software Builder', href: '/tool/software-builder', icon: Code2, color: 'text-emerald-400' },
   { id: 'uml-diagrams', label: 'UML Diagrams', href: '/tool/uml-diagrams', icon: GitFork, color: 'text-purple-400' },
@@ -92,14 +91,6 @@ interface AcademicTool9 {
 }
 
 const ACADEMIC_TOOLS_9: AcademicTool9[] = [
-  {
-    id: 'studio',
-    name: 'Academic Studio',
-    description: 'Complete workspace for your academic project.',
-    href: '/studio',
-    icon: GraduationCap,
-    gradient: 'from-cyan-400 to-blue-500',
-  },
   {
     id: 'thesis',
     name: '5-Chapter Thesis',
@@ -163,6 +154,14 @@ const ACADEMIC_TOOLS_9: AcademicTool9[] = [
     href: '/tool/assignment-solver',
     icon: Calculator,
     gradient: 'from-sky-400 to-cyan-600',
+  },
+  {
+    id: 'projects',
+    name: 'Project Vault',
+    description: 'Archived repos & downloads.',
+    href: '/projects',
+    icon: FolderGit2,
+    gradient: 'from-cyan-400 to-blue-500',
   },
 ];
 
@@ -230,7 +229,7 @@ function DashboardMain() {
             const mapped: Project[] = data.projects.slice(0, 3).map((p: any) => {
               let tag = 'DOC';
               let tagColor = 'bg-blue-600 text-white';
-              let href = '/studio';
+              let href = '/tool/thesis';
               let size = p.metadata?.size || '2.5 MB';
 
               if (p.toolId === 'software-builder' || p.toolId === 'softwareBuilder' || p.fileType === 'zip') {
@@ -785,7 +784,7 @@ function DashboardMain() {
 
                 <div className="flex flex-wrap items-center gap-2.5">
                   <Link
-                    href="/studio"
+                    href="/tool/thesis"
                     prefetch={false}
                     className="bg-[#00A3FF] hover:bg-[#0092E6] text-white font-bold px-5 py-2 rounded-full text-xs shadow-md shadow-cyan-500/30 flex items-center gap-1.5 transition-transform active:scale-95"
                   >
@@ -845,7 +844,7 @@ function DashboardMain() {
                 </div>
 
                 <Link
-                  href="/studio"
+                  href="/tool/thesis"
                   prefetch={false}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors group flex-shrink-0"
                 >
@@ -961,7 +960,7 @@ function DashboardMain() {
                       </p>
                     </div>
                     <Link
-                      href="/studio"
+                      href="/tool/thesis"
                       prefetch={false}
                       className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline"
                     >
@@ -1074,7 +1073,7 @@ function DashboardMain() {
 
                 <div className="pt-2">
                   <Link
-                    href="/studio"
+                    href="/tool/thesis"
                     prefetch={false}
                     className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold px-4 py-1.5 rounded-full text-xs shadow-md gold-shimmer inline-flex items-center gap-1.5 transition-transform active:scale-95"
                   >
@@ -1269,7 +1268,7 @@ function DashboardMain() {
                   Close
                 </button>
                 <Link
-                  href="/studio"
+                  href="/tool/thesis"
                   onClick={() => setShowDemoModal(false)}
                   className="px-4 py-2 rounded-xl text-xs font-semibold bg-sky-600 hover:bg-sky-700 text-white shadow-xs"
                 >

@@ -57,7 +57,7 @@ export default function ProjectsPage() {
         if (data.success && Array.isArray(data.projects)) {
           const mappedDb: ProjectItem[] = data.projects.map((p: any) => {
             let category: ProjectItem['category'] = 'thesis';
-            let studioUrl = '/studio';
+            let studioUrl = '/tool/thesis';
             if (p.toolId === 'software-builder' || p.toolId === 'softwareBuilder') {
               category = 'software';
               studioUrl = '/tool/software-builder';
@@ -265,11 +265,11 @@ export default function ProjectsPage() {
             </div>
 
             <Link
-              href="/studio"
+              href="/tool/thesis"
               className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-xs font-bold shadow-xs hover:opacity-95 active:scale-95 transition-all flex items-center gap-1.5 flex-shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span>Create Project</span>
+              <span>Create Thesis</span>
             </Link>
           </div>
         </div>
@@ -292,11 +292,11 @@ export default function ProjectsPage() {
               </p>
             </div>
             <Link
-              href="/studio"
+              href="/tool/thesis"
               className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-xs font-bold shadow-xs transition-transform active:scale-95"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Launch Studio</span>
+              <span>Launch 5-Chapter Thesis</span>
             </Link>
           </div>
         ) : (

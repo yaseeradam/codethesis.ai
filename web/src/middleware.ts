@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server';
 
 const PROTECTED_PREFIXES = [
   '/dashboard',
-  '/studio',
   '/tool',
   '/projects',
   '/settings',
@@ -59,6 +58,11 @@ export async function middleware(request: NextRequest) {
   const token = sessionCookie?.value;
   const payload = token ? await verifySessionTokenEdge(token) : null;
   const isAuthenticated = Boolean(payload);
+
+  // Redirect deprecated /studio to /tool/thesis
+  if (pathname === '/studio' || pathname.startsWith('/studio/')) {
+    return NextResponse.redirect(new URL('/tool/thesis', request.url));
+  }
 
   // Allow unauthenticated access to password recovery routes
   if (pathname.startsWith('/auth/forgot-password') || pathname.startsWith('/auth/reset-password')) {

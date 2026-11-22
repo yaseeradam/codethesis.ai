@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Packer, BorderStyle } from "docx";
 import { authorizeAndDeductCredits, autoArchiveProject } from "@/lib/credits";
+import { convertLatexFormula, sanitizeAcademicTextMath } from "@/lib/mathConverter";
 
 export async function POST(req: NextRequest) {
   try {
@@ -176,13 +177,17 @@ export async function POST(req: NextRequest) {
     const stepsToRender = steps && steps.length > 0 ? steps : defaultSteps;
 
     stepsToRender.forEach((step: any, idx: number) => {
+      const stepTitle = step.title || step.stepTitle || `Step ${idx + 1}`;
+      const stepExplanation = sanitizeAcademicTextMath(step.explanation || "");
+      const stepMath = convertLatexFormula(step.calculation || step.mathSnippet || "");
+
       sections.push(
         new Paragraph({
           heading: HeadingLevel.HEADING_3,
           spacing: { before: 200, after: 60 },
           children: [
             new TextRun({
-              text: `${step.title}`,
+              text: `${stepTitle}`,
               bold: true,
               size: 24,
               font: "Times New Roman",
@@ -194,7 +199,7 @@ export async function POST(req: NextRequest) {
           spacing: { after: 60 },
           children: [
             new TextRun({
-              text: step.explanation,
+              text: stepExplanation,
               size: 24,
               font: "Times New Roman",
             }),
@@ -211,7 +216,7 @@ export async function POST(req: NextRequest) {
               color: "166534",
             }),
             new TextRun({
-              text: step.calculation,
+              text: stepMath,
               size: 22,
               font: "Times New Roman",
               italics: true,

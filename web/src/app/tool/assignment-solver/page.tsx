@@ -6,6 +6,7 @@ import CourseSelect from '@/components/ui/CourseSelect';
 import InstitutionSelect from '@/components/ui/InstitutionSelect';
 import { useAuth } from '@/context/AuthContext';
 import { downloadAcademicFile } from '@/lib/downloadHelper';
+import { convertLatexFormula, sanitizeAcademicTextMath } from '@/lib/mathConverter';
 import {
   Calculator,
   Download,
@@ -500,11 +501,11 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
                       </div>
 
                       <p className="text-xs text-slate-600 leading-relaxed pl-8">
-                        {step.explanation}
+                        {sanitizeAcademicTextMath(step.explanation)}
                       </p>
 
                       <div className="ml-8 bg-slate-950 text-emerald-400 p-3 rounded-lg font-mono text-[11px] overflow-x-auto border border-slate-800">
-                        <pre>{step.mathSnippet}</pre>
+                        <pre>{convertLatexFormula(step.mathSnippet)}</pre>
                       </div>
                     </div>
                   ))}
@@ -518,7 +519,7 @@ V2 = Det([[0.75, 3], [-0.5, 3]]) / 0.21875 = (2.25 + 1.5) / 0.21875 = 3.75 / 0.2
                       Final Verified Result
                     </div>
                     <div className="text-xs font-semibold text-emerald-800 mt-0.5">
-                      {activeSolution.finalAnswer}
+                      {convertLatexFormula(activeSolution.finalAnswer)}
                     </div>
                   </div>
                 </div>

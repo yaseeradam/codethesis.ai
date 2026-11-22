@@ -43,7 +43,7 @@ export default function SupportPage() {
     },
     {
       q: 'Can I regenerate specific sections when my supervisor requests chapter corrections?',
-      a: 'Absolutely. Inside the Academic Studio (/studio), you can highlight or toggle any individual subsection (such as Chapter 1 Problem Statement, or Chapter 3 UML Sequence Diagram) and click "Re-synthesize Section" without regenerating the entire dissertation.',
+      a: 'Absolutely. Inside the 5-Chapter Thesis Generator (/tool/thesis), you can synthesize and review any individual chapter (such as Chapter 1 Introduction, or Chapter 3 System Methodology) and click "Download Full (.docx)" to compile the complete thesis.',
       category: 'Revisions & Studio'
     },
     {

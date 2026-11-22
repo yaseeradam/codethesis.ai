@@ -24,6 +24,8 @@ export function getGroqPoolKeys(): string[] {
   return combined.length > 0 ? combined : GROQ_API_KEYS;
 }
 
+import { convertLatexFormula, sanitizeAcademicTextMath } from './mathConverter';
+
 export interface AIResponse {
   content: string;
   provider: string;
@@ -403,7 +405,7 @@ You MUST respond strictly in the following JSON format without code blocks:
       "stepNumber": 1,
       "stepTitle": "<Descriptive step heading>",
       "explanation": "<In-depth academic reasoning and justification of this step>",
-      "mathSnippet": "<Formulas, equations, matrix decomposition, or code snippet for this step>"
+      "mathSnippet": "<Formulas, equations, matrix decomposition, or code snippet. Strictly NO raw LaTeX ($$, $, \\frac); use clean readable math notation e.g. S = 1 / [1 + d(F_q, F_t)] or O(n log n)>"
     }
   ],
   "finalAnswer": "<One or two sentences stating the final verified numerical/theoretical conclusion>"
@@ -420,11 +422,16 @@ You MUST respond strictly in the following JSON format without code blocks:
     if (match) {
       const parsed = JSON.parse(match[0]);
       if (parsed.steps && Array.isArray(parsed.steps) && parsed.steps.length > 0) {
+        const sanitizedSteps = parsed.steps.map((st: any) => ({
+          ...st,
+          explanation: sanitizeAcademicTextMath(st.explanation || ''),
+          mathSnippet: convertLatexFormula(st.mathSnippet || ''),
+        }));
         return {
           title: parsed.title || 'Coursework Analytical Solution',
           problem: params.problem,
-          steps: parsed.steps,
-          finalAnswer: parsed.finalAnswer || 'Problem solved with full analytical verification.',
+          steps: sanitizedSteps,
+          finalAnswer: convertLatexFormula(parsed.finalAnswer || 'Problem solved with full analytical verification.'),
           provider: aiRes.provider,
         };
       }
@@ -545,6 +552,9 @@ CRITICAL FORMATTING & EXTENSIVE LENGTH REQUIREMENTS:
 1. NO RAW MARKDOWN SYMBOLS: Do NOT use asterisks (**) or hashes (##) or bullet asterisks (*). Write section titles clearly in plain Title Case on their own line without asterisks or hashes (e.g. "1.1 Background of the Study").
 2. EXHAUSTIVE ACADEMIC LENGTH: A shallow summary is strictly forbidden. For EVERY single subsection, write at least 3 to 5 dense, multi-paragraph scholarly analyses containing empirical data, theoretical justifications, citations, and domain-specific arguments. Make this chapter comprehensive, deep, and extensive (~3,500 to 4,500 words).
 3. FORMAL ACADEMIC PROSE: Use scholarly third-person academic English, formal APA 7th citations, and deep computational/engineering depth.
+4. NO RAW LATEX MATH MARKUP: Strictly do NOT output raw LaTeX math markup (such as $$, $, \\frac{...}{...}, \\sum, \\sqrt, or \\begin{equation}). Format all mathematical formulas and equations using clean, universally readable standard academic notation with explicit equation numbering on its own centered line:
+   (Equation 3.1)    S = 1 / [1 + d(F_q, F_t)]
+   where d(F_q, F_t) is the distance function between feature vectors F_q and F_t.
 `;
 
   if (chapterNumber === 1) {
