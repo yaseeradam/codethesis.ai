@@ -39,7 +39,13 @@ import {
   PositionalTabLeader,
   PositionalTabRelativeTo,
 } from "docx";
-import { extractDomainFromTopic, cleanThesisTopicTitle, stripTrailingReferences } from "@/lib/thesisHelpers";
+import {
+  extractDomainFromTopic,
+  cleanThesisTopicTitle,
+  stripTrailingReferences,
+  getDomainTailoredCodeAndDdl,
+  getDomainReferences,
+} from "@/lib/thesisHelpers";
 
 export async function POST(req: NextRequest) {
   try {
@@ -548,6 +554,7 @@ export async function POST(req: NextRequest) {
     const createSignatureTable = (rows: { name: string; title: string; dept?: string; dateLabel?: string }[]) =>
       new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
+        columnWidths: [6200, 2800],
         borders: {
           top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
           bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
@@ -573,7 +580,7 @@ export async function POST(req: NextRequest) {
                     spacing: { before: 240, after: 40 },
                     children: [
                       new TextRun({
-                        text: "________________________________________________",
+                        text: "____________________________________",
                         font: "Times New Roman",
                         size: 22,
                         color: "333333",
@@ -636,7 +643,7 @@ export async function POST(req: NextRequest) {
                     spacing: { before: 240, after: 40 },
                     children: [
                       new TextRun({
-                        text: "________________________",
+                        text: "____________________",
                         font: "Times New Roman",
                         size: 22,
                         color: "333333",
@@ -743,17 +750,42 @@ export async function POST(req: NextRequest) {
     );
 
     // =========================================================================
-    // 5. ABSTRACT (Dynamically crafted for the specific topic)
+    // 5. ABSTRACT (Synthesized uniquely with AI for the specific topic)
     // =========================================================================
-    const abstractText1 = `This project dissertation presents the design and implementation of an automated, robust technological solution for ${cleanTopic}${caseStudy ? ` with application to ${caseStudy}` : ` (${effectiveCaseStudy})`}, submitted in partial fulfillment of the requirements for the degree of Bachelor of Science in ${course} at ${institution}. In modern operational and enterprise environments, conventional paper-based and legacy manual workflows are inherently susceptible to administrative friction, human transcription errors, operational delays, data redundancy, and a fundamental lack of real-time auditability. These chronic limitations impede decision-making, increase transactional turnaround latency, and compromise data integrity.`;
-    const abstractText2 = `To resolve these operational bottlenecks, an automated digital framework was developed adopting modern software engineering standards. The system integrates a decoupled presentation interface, a resilient business logic coordinator, and an ACID-compliant relational persistence layer utilizing Python, SQL relational databases, and responsive web technologies. The core engine implements automated constraint satisfaction, structured validation protocols, and comprehensive role-based access control (RBAC) to ensure seamless transaction processing and secure record management.`;
-    const abstractText3 = `The Software Development Life Cycle (SDLC) methodology was adopted across requirements gathering, system design, architectural modeling, implementation, and empirical testing. Comprehensive multi-tier evaluation was conducted, encompassing unit verification, integration testing, and User Acceptance Testing (UAT). Empirical benchmarking demonstrated a 100% transaction integrity rate under concurrent simulated user requests, with average response latency below 50 milliseconds. The system achieved a System Usability Scale (SUS) score exceeding 88%, representing a significant enhancement in operational efficiency, transparency, and data accessibility compared to legacy procedures.`;
+    const defaultAbs1 = `This project dissertation presents the design and implementation of an automated, robust technological solution for ${cleanTopic}${caseStudy ? ` with application to ${caseStudy}` : ` (${effectiveCaseStudy})`}, submitted in partial fulfillment of the requirements for the degree of Bachelor of Science in ${course} at ${institution}. In modern operational and enterprise environments, conventional paper-based and legacy manual workflows are inherently susceptible to administrative friction, human transcription errors, operational delays, data redundancy, and a fundamental lack of real-time auditability. These chronic limitations impede decision-making, increase transactional turnaround latency, and compromise data integrity.`;
+    const defaultAbs2 = `To resolve these operational bottlenecks, an automated digital framework was developed adopting modern software engineering standards. The system integrates a decoupled presentation interface, a resilient business logic coordinator, and an ACID-compliant relational persistence layer utilizing Python, SQL relational databases, and responsive web technologies. The core engine implements automated constraint satisfaction, structured validation protocols, and comprehensive role-based access control (RBAC) to ensure seamless transaction processing and secure record management.`;
+    const defaultAbs3 = `The Software Development Life Cycle (SDLC) methodology was adopted across requirements gathering, system design, architectural modeling, implementation, and empirical testing. Comprehensive multi-tier evaluation was conducted, encompassing unit verification, integration testing, and User Acceptance Testing (UAT). Empirical benchmarking demonstrated a 100% transaction integrity rate under concurrent simulated user requests, with average response latency below 50 milliseconds. The system achieved a System Usability Scale (SUS) score exceeding 88%, representing a significant enhancement in operational efficiency, transparency, and data accessibility compared to legacy procedures.`;
+
+    let abstractParas = [defaultAbs1, defaultAbs2, defaultAbs3];
+    try {
+      const absRes = await generateAcademicAI({
+        prompt: `Write an authoritative, publication-grade 3-paragraph academic dissertation ABSTRACT (300-450 words) for: "${topic}".
+Degree-Awarding University: "${institution}"
+Course / Department: "${course}"
+Operational Case Study: "${effectiveCaseStudy}"
+
+Paragraph 1: Background of the operational domain, specific real-world challenges at ${effectiveCaseStudy}, and the problem statement.
+Paragraph 2: The engineering methodology, technical architecture, programming environments, and core features implemented.
+Paragraph 3: Empirical evaluation methodology, multi-tier testing results, benchmark latencies, System Usability Scale (SUS) outcome, and institutional impact.
+Do NOT use raw markdown symbols (no **, ##). Write 3 clear, distinct scholarly paragraphs.`,
+        temperature: 0.78,
+        maxTokens: 1200,
+        preferredProvider: "gemini",
+      });
+
+      if (absRes && absRes.content && absRes.content.length > 400 && !absRes.content.includes("codethesis-academic-heuristic")) {
+        const splitParas = absRes.content.split(/\n\s*\n/).map((p: string) => p.replace(/^#+\s*/, "").replace(/[*_#`]/g, "").trim()).filter((p: string) => p.length > 40);
+        if (splitParas.length >= 2) {
+          abstractParas = splitParas;
+        }
+      }
+    } catch (absErr) {
+      console.warn("AI abstract synthesis fallback to domain template:", absErr);
+    }
 
     docChildren.push(
       ...academicHeading1("ABSTRACT"),
-      academicPara(abstractText1),
-      academicPara(abstractText2),
-      academicPara(abstractText3),
+      ...abstractParas.map((p: string) => academicPara(p)),
       new Paragraph({
         spacing: { before: 240 },
         children: [
@@ -764,7 +796,7 @@ export async function POST(req: NextRequest) {
             font: "Times New Roman",
           }),
           new TextRun({
-            text: `${cleanTopic || topic}, Automated System, Relational Database Normalization, Software Architecture, Empirical Evaluation, User Acceptance Testing (UAT).`,
+            text: `${cleanTopic || topic}, ${effectiveCaseStudy}, Automated System, Relational Database Normalization, Software Architecture, Empirical Evaluation, User Acceptance Testing (UAT).`,
             italics: true,
             size: 22,
             font: "Times New Roman",
@@ -1209,21 +1241,15 @@ export async function POST(req: NextRequest) {
     };
 
     // =========================================================================
-    // 8. SYNTHESIZE CHAPTERS 1 THROUGH 5
+    // 8. SYNTHESIZE CHAPTERS 1 THROUGH 5 CONCURRENTLY
     // =========================================================================
-    for (let ch = 1; ch <= 5; ch++) {
-      // Check if user already generated this chapter on frontend
-      // If it exists AND is sufficiently long (not a 2-sentence stub!), use it
+    const chapterPromises = [1, 2, 3, 4, 5].map(async (ch) => {
       const userChapterText = userChapters[ch];
       if (userChapterText && userChapterText.trim().length >= 800) {
-        const textToRender = ch < 5 ? stripTrailingReferences(userChapterText) : userChapterText;
-        docChildren.push(...parseMarkdownToDocx(textToRender));
-        await appendChapterVisuals(ch);
-        docChildren.push(new Paragraph({ children: [new PageBreak()] }));
-        continue;
+        return { ch, markdown: userChapterText };
       }
 
-      // If not generated or if userText is too short, synthesize dynamically with Groq AI Pool or dynamic generator
+      // Synthesize dynamically with Gemini 2.5 Flash
       let chapterMarkdown = "";
       try {
         const aiPrompt = buildChapterUserPrompt({
@@ -1236,9 +1262,9 @@ export async function POST(req: NextRequest) {
 
         const aiRes = await generateAcademicAI({
           prompt: aiPrompt,
-          temperature: 0.65,
-          maxTokens: 4000,
-          preferredProvider: "groq",
+          temperature: 0.78,
+          maxTokens: 5000,
+          preferredProvider: "gemini",
         });
 
         if (aiRes && aiRes.content && aiRes.content.length > 800 && !aiRes.content.includes("codethesis-academic-heuristic")) {
@@ -1248,78 +1274,45 @@ export async function POST(req: NextRequest) {
         console.warn(`AI synthesis for Chapter ${ch} fallback to dynamic generator:`, err);
       }
 
-      // If AI did not return complete text or failed, use our comprehensive topic-tailored generator
+      // If AI did not return complete text or failed, use our comprehensive domain-adaptive generator
       if (!chapterMarkdown || chapterMarkdown.length < 800) {
         chapterMarkdown = generateDynamicChapterText(topic, course, institution, effectiveCaseStudy, ch);
       }
 
-      const finalChapterMarkdown = ch < 5 ? stripTrailingReferences(chapterMarkdown) : chapterMarkdown;
+      return { ch, markdown: chapterMarkdown };
+    });
+
+    const chapterResults = await Promise.all(chapterPromises);
+
+    for (const res of chapterResults) {
+      const finalChapterMarkdown = res.ch < 5 ? stripTrailingReferences(res.markdown) : res.markdown;
       docChildren.push(...parseMarkdownToDocx(finalChapterMarkdown));
-      await appendChapterVisuals(ch);
+      await appendChapterVisuals(res.ch);
       docChildren.push(new Paragraph({ children: [new PageBreak()] }));
     }
 
     // =========================================================================
-    // 9. REFERENCES (APA 7th Edition)
+    // 9. REFERENCES (APA 7th Edition - Domain Adapted)
     // =========================================================================
+    const domainReferences = getDomainReferences(topic, course);
     docChildren.push(
       ...academicHeading1("REFERENCES"),
-      academicPara("Adebayo, O. S., & Eze, K. C. (2022). Automated information systems in African tertiary institutions: Challenges and architectural solutions. Journal of African Computer Science, 14(2), 112–128. https://doi.org/10.1016/j.jacs.2022.04.012", false),
-      academicPara("Ahmadu, B., & Ibrahim, M. (2023). Empirical evaluation of database normalization and transaction concurrency in enterprise software. Nigerian Journal of Technology, 42(1), 89–101. https://doi.org/10.4314/njt.v42i1.11", false),
-      academicPara("Brooke, J. (1996). SUS: A quick and dirty usability scale. Usability Evaluation in Industry, 189(194), 4–7.", false),
-      academicPara("Central Bank of Nigeria [CBN]. (2023). Annual financial technology and electronic payments report. Abuja: Central Bank of Nigeria.", false),
-      academicPara("Chen, P. P. (1976). The entity-relationship model—Toward a unified view of data. ACM Transactions on Database Systems, 1(1), 9–36. https://doi.org/10.1145/320434.320440", false),
-      academicPara("Codd, E. F. (1970). A relational model of data for large shared data banks. Communications of the ACM, 13(6), 377–387. https://doi.org/10.1145/362384.362685", false),
-      academicPara("Davis, F. D. (1989). Perceived usefulness, perceived ease of use, and user acceptance of information technology. MIS Quarterly, 13(3), 319–340. https://doi.org/10.2307/249008", false),
-      academicPara("Federal Ministry of Communications and Digital Economy [FMCDE]. (2023). National digital economy policy and strategy (2020–2030). Federal Government of Nigeria.", false),
-      academicPara("Laudon, K. C., & Laudon, J. P. (2024). Management information systems: Managing the digital firm (17th ed.). Pearson Education.", false),
-      academicPara("Mohammed, Y., Aliyu, A., & Garba, S. (2023). Web-based management portals in Nigerian universities: A review of usability and security paradigms. African Journal of Computing & ICT, 16(3), 45–58.", false),
-      academicPara("National Universities Commission [NUC]. (2022). Core curriculum and minimum academic standards for Nigerian universities (CCMAS). Abuja: National Universities Commission.", false),
-      academicPara("Pressman, R. S., & Maxim, B. R. (2020). Software engineering: A practitioner's approach (9th ed.). McGraw-Hill.", false),
-      academicPara("Silberschatz, A., Korth, H. F., & Sudarshan, S. (2020). Database system concepts (7th ed.). McGraw-Hill.", false),
-      academicPara("Sommerville, I. (2021). Software engineering (10th ed.). Pearson.", false),
-      academicPara("Williams, T., & Bello, U. (2024). Real-time transactional architectures for higher education administration. Journal of Systems and Software, 198, 111589. https://doi.org/10.1016/j.jss.2024.111589", false),
+      ...domainReferences.map((ref) => academicPara(ref, false)),
       new Paragraph({ children: [new PageBreak()] })
     );
 
     // =========================================================================
-    // 10. APPENDICES (Code Listings & Schema)
+    // 10. APPENDICES (Code Listings & Schema - Domain Tailored)
     // =========================================================================
-    const topicSlug = topic.toLowerCase().replace(/[^a-z0-9]/g, "_");
+    const { pythonCode, sqlDdl } = getDomainTailoredCodeAndDdl(topic, course, institution, studentName, matricNumber);
     docChildren.push(
       ...academicHeading1("APPENDIX A", "CORE APPLICATION SOURCE CODE"),
-      academicPara(`The following Python listing demonstrates the core transactional controller and database initialization module engineered for ${topic}:`, false),
+      academicPara(`The following Python listing demonstrates the core transactional controller and hardware/software service modules engineered for ${topic}:`, false),
       new Paragraph({
         spacing: { before: 120, after: 120 },
         children: [
           new TextRun({
-            text: `# ==============================================================================\n` +
-                  `# Project: ${topic}\n` +
-                  `# Department: ${course}, ${institution}\n` +
-                  `# Author: ${studentName} (${matricNumber})\n` +
-                  `# ==============================================================================\n` +
-                  `import sqlite3\n` +
-                  `from http.server import HTTPServer, BaseHTTPRequestHandler\n` +
-                  `import json\n\n` +
-                  `DATABASE = "${topicSlug}.db"\n\n` +
-                  `def init_database():\n` +
-                  `    conn = sqlite3.connect(DATABASE)\n` +
-                  `    cursor = conn.cursor()\n` +
-                  `    cursor.execute("""\n` +
-                  `        CREATE TABLE IF NOT EXISTS records (\n` +
-                  `            id INTEGER PRIMARY KEY AUTOINCREMENT,\n` +
-                  `            title TEXT NOT NULL,\n` +
-                  `            category TEXT DEFAULT 'general',\n` +
-                  `            status TEXT CHECK(status IN ('active', 'pending', 'resolved')) DEFAULT 'active',\n` +
-                  `            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n` +
-                  `        )\n` +
-                  `    """)\n` +
-                  `    conn.commit()\n` +
-                  `    conn.close()\n` +
-                  `    print("Database schema successfully verified.")\n\n` +
-                  `if __name__ == '__main__':\n` +
-                  `    init_database()\n` +
-                  `    print("Application Server running for ${topic}...")\n`,
+            text: pythonCode,
             font: "Courier New",
             size: 18,
           }),
@@ -1332,27 +1325,7 @@ export async function POST(req: NextRequest) {
         spacing: { before: 120, after: 120 },
         children: [
           new TextRun({
-            text: `-- =============================================================================\n` +
-                  `-- Relational SQL DDL Definition for: ${topic}\n` +
-                  `-- Department of ${course}, ${institution}\n` +
-                  `-- =============================================================================\n\n` +
-                  `CREATE TABLE IF NOT EXISTS users (\n` +
-                  `    user_id INTEGER PRIMARY KEY AUTOINCREMENT,\n` +
-                  `    username VARCHAR(100) UNIQUE NOT NULL,\n` +
-                  `    password_hash VARCHAR(255) NOT NULL,\n` +
-                  `    full_name VARCHAR(150) NOT NULL,\n` +
-                  `    role VARCHAR(50) CHECK(role IN ('admin', 'staff', 'student')) DEFAULT 'student',\n` +
-                  `    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n` +
-                  `);\n\n` +
-                  `CREATE TABLE IF NOT EXISTS records (\n` +
-                  `    record_id INTEGER PRIMARY KEY AUTOINCREMENT,\n` +
-                  `    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,\n` +
-                  `    title VARCHAR(255) NOT NULL,\n` +
-                  `    description TEXT,\n` +
-                  `    status VARCHAR(50) DEFAULT 'active',\n` +
-                  `    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n` +
-                  `);\n\n` +
-                  `CREATE INDEX IF NOT EXISTS idx_records_user ON records(user_id);\n`,
+            text: sqlDdl,
             font: "Courier New",
             size: 18,
           }),

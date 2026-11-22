@@ -76,10 +76,10 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
     engineConfig = {};
   }
 
-  // Prioritize Groq with the 15-key rotating pool for ultra-fast response
-  const activeProvider = options.preferredProvider || engineConfig.activeProvider || 'groq';
-  const temperature = options.temperature ?? engineConfig.temperature ?? 0.65;
-  const maxTokens = options.maxTokens ?? engineConfig.maxTokens ?? 4000;
+  // Prioritize Gemini for ultra-fast, high-capacity, non-rate-limited unique generation
+  const activeProvider = options.preferredProvider || engineConfig.activeProvider || 'gemini';
+  const temperature = options.temperature ?? engineConfig.temperature ?? 0.75;
+  const maxTokens = options.maxTokens ?? engineConfig.maxTokens ?? 5000;
   const systemPrompt = options.systemPrompt || engineConfig.systemPromptOverride || 
     'You are CodeThesis AI, the authoritative academic engineering and scientific copilot for Nigerian and African tertiary university dissertations, technical defenses, and coursework.';
 
@@ -149,11 +149,11 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
   // 2. Google Gemini
   async function callGemini(targetModel?: string): Promise<AIResponse | null> {
     if (!geminiKey) return null;
-    const models = targetModel ? [targetModel] : ['gemini-1.5-flash', 'gemini-2.0-flash-exp'];
+    const models = targetModel ? [targetModel] : ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
     for (const m of models) {
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 20000);
+        const timer = setTimeout(() => controller.abort(), 35000);
 
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`, {
           method: 'POST',
@@ -165,7 +165,7 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
                 parts: [{ text: `${systemPrompt}\n\nTask:\n${options.prompt}` }]
               }
             ],
-            generationConfig: { temperature, maxOutputTokens: Math.min(maxTokens, 4000) }
+            generationConfig: { temperature, maxOutputTokens: Math.min(maxTokens, 8192) }
           }),
           signal: controller.signal,
         });
@@ -287,12 +287,7 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
     }
   }
 
-  // Full Fallback Cascade: Groq Pool -> Gemini -> OpenRouter -> OpenAI
-  if (!tried.has('groq')) {
-    const groqRes = await callGroq('qwen/qwen3.8-27b');
-    if (groqRes) return groqRes;
-  }
-
+  // Full Fallback Cascade: Gemini -> OpenRouter -> Groq -> OpenAI
   if (!tried.has('gemini')) {
     const geminiRes = await callGemini();
     if (geminiRes) return geminiRes;
@@ -301,6 +296,11 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
   if (!tried.has('openrouter')) {
     const orRes = await callOpenRouter();
     if (orRes) return orRes;
+  }
+
+  if (!tried.has('groq')) {
+    const groqRes = await callGroq('qwen/qwen3.8-27b');
+    if (groqRes) return groqRes;
   }
 
   if (!tried.has('openai')) {
@@ -565,6 +565,11 @@ CRITICAL FORMATTING & EXTENSIVE LENGTH REQUIREMENTS:
    (Equation 3.1)    S = 1 / [1 + d(F_q, F_t)]
    where d(F_q, F_t) is the distance function between feature vectors F_q and F_t.
 5. STRICTLY NO REFERENCES OR BIBLIOGRAPHY AT THE END: Do NOT output a "References" or "Bibliography" list at the end of this chapter. In canonical university dissertation format, references are compiled exclusively in a single dedicated section at the very end of the entire thesis (after Chapter Five). Conclude this chapter immediately after its final operational section without any trailing references list.
+6. PREVENT GENERIC CLICHES & GUARANTEE 100% DOMAIN UNIQUENESS: Every single paragraph, operational workflow, problem statement, hardware component, database table, and algorithmic parameter must be 100% SPECIFIC TO "${topic}" with direct application to "${effectiveCaseStudy}".
+   - If the project involves security, police stations, locks, biometrics, armories, surveillance, or law enforcement: describe real physical security protocols at ${effectiveCaseStudy} including cell blocks, armories, duty officers, solenoids, RFID badges, panic alarms, tamper switches, and power backup.
+   - If the project involves healthcare, finance, agriculture, commerce, logistics, or IoT: describe the exact real-world operational workflows of that specific industry.
+   - NEVER fabricate student registration, bursary queues, or student fees unless the project topic is explicitly an educational student portal.
+   - Dynamic Uniqueness Seed: Formulate a fresh, innovative technical approach with specific hardware/software protocols, detailed domain-specific data structures, and tailored empirical metrics so that this project is truly one-of-a-kind.
 `;
 
   if (chapterNumber === 1) {
@@ -694,9 +699,9 @@ Write in authoritative, publishable academic English adhering strictly to Nation
   const aiRes = await generateAcademicAI({
     prompt,
     systemPrompt,
-    temperature: 0.65,
-    maxTokens: 4000,
-    preferredProvider: 'groq',
+    temperature: 0.78,
+    maxTokens: 5000,
+    preferredProvider: 'gemini',
   });
 
   if (params.chapterNumber < 5 && aiRes && aiRes.content) {
