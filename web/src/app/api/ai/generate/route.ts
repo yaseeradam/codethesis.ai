@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const topic = rawBody.topic || rawBody.context?.topic || rawBody.projectName || '';
     const course = rawBody.course || rawBody.context?.course || rawBody.department || 'Computer Science / Engineering';
     const institution = rawBody.institution || rawBody.context?.institution || 'Nigerian Tertiary Institution';
-    const caseStudy = rawBody.caseStudy || institution;
+    const caseStudy = rawBody.caseStudy ? rawBody.caseStudy.trim() : '';
     const chapterNumber = rawBody.chapterNumber;
     const prompt = rawBody.prompt || rawBody.userQuery || '';
     const deductCredits = rawBody.deductCredits === true;
@@ -62,8 +62,9 @@ export async function POST(req: NextRequest) {
     const systemPrompt = `You are CodeThesis AI, the authoritative academic engineering and scientific copilot for tertiary university dissertations, technical defenses, and coursework in Nigeria.
 Topic: "${topic || prompt}"
 Department / Course: "${course}"
-Institution: "${institution}"
-Adhere strictly to formal academic English, APA 7th referencing with Crossref DOIs, clean mathematical derivations with LaTeX, and NUC benchmark criteria. Write comprehensive, deep, multi-paragraph scholarly analyses without raw Markdown syntax (no asterisks or hashes in headings or prose).`;
+Awarding Institution: "${institution}"
+${caseStudy ? `Target Case Study: "${caseStudy}"` : ''}
+Adhere strictly to formal academic English, APA 7th referencing with Crossref DOIs, clean standard academic mathematical notation without raw LaTeX markup (such as $$ or \\frac), and NUC benchmark criteria. Write comprehensive, deep, multi-paragraph scholarly analyses without raw Markdown syntax (no asterisks or hashes in headings or prose).`;
 
     // Multi-Chapter Batch Generation for Academic Studio
     if (rawBody.generateAllChapters === true || rawBody.toolId === 'thesis-all') {

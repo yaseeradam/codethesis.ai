@@ -2,6 +2,8 @@
 // Exhaustive, NUC-compliant multi-section academic chapter generator for CodeThesis
 // Produces 3,500 - 4,500+ words per chapter with true academic rigor, empirical tables, and models.
 
+import { extractDomainFromTopic, cleanThesisTopicTitle } from './thesisHelpers';
+
 export function generateDynamicChapterText(
   topic: string,
   course: string,
@@ -10,9 +12,10 @@ export function generateDynamicChapterText(
   ch: number
 ): string {
   const safeTopic = topic.trim() || "Automated Enterprise Information System";
+  const cleanTopic = cleanThesisTopicTitle(safeTopic) || safeTopic;
   const safeCourse = course.trim() || "Computer Science & Engineering";
   const safeInstitution = institution.trim() || "Tertiary Educational Institution";
-  const safeCaseStudy = caseStudy.trim() || "Institutional Operations Division";
+  const safeCaseStudy = caseStudy.trim() || extractDomainFromTopic(safeTopic);
 
   if (ch === 1) {
     return `# CHAPTER ONE: INTRODUCTION
@@ -37,7 +40,7 @@ Without a robust, automated, and tamper-resistant digital architecture, ${safeCa
 
 ## 1.3 Aim and Objectives of the Study
 ### 1.3.1 Aim
-The overarching aim of this research dissertation is to design, develop, test, and empirically evaluate a turnkey, automated software system for ${safeTopic} at ${safeCaseStudy}, ${safeInstitution}.
+The overarching aim of this research dissertation is to design, develop, test, and empirically evaluate a turnkey, automated software system for ${cleanTopic} with application to ${safeCaseStudy}, submitted in partial fulfillment of the requirements for the award of the degree of Bachelor of Science in ${safeCourse} at ${safeInstitution}.
 
 ### 1.3.2 Objectives
 To accomplish this comprehensive aim, the research pursues the following five specific, action-oriented academic objectives:
@@ -386,7 +389,7 @@ The implementation and testing verified that the developed software fulfills all
 This concluding chapter provides an executive synthesis of the research journey, summarizes key empirical findings mapped against original objectives, draws definitive conclusions, highlights contributions to knowledge, and provides actionable recommendations for institutional stakeholders and future researchers.
 
 ## 5.2 Summary of the Project
-This research dissertation designed, developed, tested, and empirically evaluated an automated software system for ${safeTopic} at ${safeCaseStudy}, ${safeInstitution}. Grounded in Agile methodology, the Technology Acceptance Model (TAM), and Relational Database Normalization Theory, the research addressed the acute operational bottlenecks, administrative delays, human errors, and lack of transparency inherent in traditional paper-based workflows.
+This research dissertation designed, developed, tested, and empirically evaluated an automated software system for ${cleanTopic} with application to ${safeCaseStudy}, submitted to the Department of ${safeCourse}, ${safeInstitution}. Grounded in Agile methodology, the Technology Acceptance Model (TAM), and Relational Database Normalization Theory, the research addressed the acute operational bottlenecks, administrative delays, human errors, and lack of transparency inherent in traditional paper-based workflows.
 
 The project delivered a decoupled 3-tier software architecture comprising a responsive presentation interface, a resilient Python HTTP application controller, and an ACID-compliant SQLite relational database. Rigorous unit testing, integration verification, concurrency stress analysis (500+ requests), and User Acceptance Testing (50 respondents) demonstrated that the software fulfills all statutory requirements for institutional deployment.
 

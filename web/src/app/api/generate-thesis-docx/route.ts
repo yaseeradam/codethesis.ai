@@ -30,7 +30,12 @@ import {
   PageBreak,
   BorderStyle,
   ImageRun,
+  PositionalTab,
+  PositionalTabAlignment,
+  PositionalTabLeader,
+  PositionalTabRelativeTo,
 } from "docx";
+import { extractDomainFromTopic, cleanThesisTopicTitle } from "@/lib/thesisHelpers";
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,12 +46,16 @@ export async function POST(req: NextRequest) {
       body = {};
     }
     const topic = (body.topic || "Design and Implementation of an Automated System").trim();
+    const cleanTopic = cleanThesisTopicTitle(topic) || topic;
     const course = (body.course || body.department || "Computer Science").trim();
     const institution = (body.institution || "Tertiary Educational Institution").trim();
-    const caseStudy = (body.caseStudy || institution).trim();
+    const caseStudy = (body.caseStudy || "").trim();
+    const effectiveCaseStudy = caseStudy || extractDomainFromTopic(topic);
     const studentName = (body.studentName || body.author || "STUDENT CANDIDATE").trim().toUpperCase();
     const matricNumber = (body.matricNumber || body.matricNo || "MATRIC/2026/0001").trim().toUpperCase();
-    const supervisor = (body.supervisor || "Dr. Abdulrazak Abdulrahim (Ph.D, MNCS, MCPN)").trim();
+    const supervisor = (body.supervisor && body.supervisor.trim())
+      ? body.supervisor.trim()
+      : "[Name of Project Supervisor]";
     const session = (body.session || "2025/2026").trim();
 
     // Check custom chapters passed from frontend
@@ -531,6 +540,124 @@ export async function POST(req: NextRequest) {
     // =========================================================================
     // 2. DECLARATION (Reference: MY PROJECT ORIGINAL.docx)
     // =========================================================================
+    const createSignatureTable = (rows: { name: string; title: string; dept?: string; dateLabel?: string }[]) =>
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: {
+          top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+          bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+          left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+          right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+          insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+          insideVertical: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+        },
+        rows: rows.map(r =>
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 68, type: WidthType.PERCENTAGE },
+                margins: { top: 80, bottom: 40, left: 0, right: 60 },
+                borders: {
+                  top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                },
+                children: [
+                  new Paragraph({
+                    spacing: { before: 240, after: 40 },
+                    children: [
+                      new TextRun({
+                        text: "________________________________________________",
+                        font: "Times New Roman",
+                        size: 22,
+                        color: "333333",
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    spacing: { after: 20 },
+                    children: [
+                      new TextRun({
+                        text: r.name,
+                        bold: true,
+                        font: "Times New Roman",
+                        size: 22,
+                        color: "000000",
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    spacing: { after: 20 },
+                    children: [
+                      new TextRun({
+                        text: r.title,
+                        font: "Times New Roman",
+                        size: 20,
+                        italics: true,
+                        color: "1F2937",
+                      }),
+                    ],
+                  }),
+                  ...(r.dept ? [
+                    new Paragraph({
+                      spacing: { after: 60 },
+                      children: [
+                        new TextRun({
+                          text: r.dept,
+                          font: "Times New Roman",
+                          size: 18,
+                          color: "4B5563",
+                        }),
+                      ],
+                    }),
+                  ] : [
+                    new Paragraph({ spacing: { after: 60 }, children: [] }),
+                  ]),
+                ],
+              }),
+              new TableCell({
+                width: { size: 32, type: WidthType.PERCENTAGE },
+                margins: { top: 80, bottom: 40, left: 60, right: 0 },
+                borders: {
+                  top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                },
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.RIGHT,
+                    spacing: { before: 240, after: 40 },
+                    children: [
+                      new TextRun({
+                        text: "________________________",
+                        font: "Times New Roman",
+                        size: 22,
+                        color: "333333",
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.RIGHT,
+                    spacing: { after: 20 },
+                    children: [
+                      new TextRun({
+                        text: r.dateLabel || "Date",
+                        bold: true,
+                        font: "Times New Roman",
+                        size: 22,
+                        color: "000000",
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          })
+        ),
+      });
+
     docChildren.push(
       ...academicHeading1("DECLARATION"),
       academicPara(
@@ -542,19 +669,14 @@ export async function POST(req: NextRequest) {
       academicPara(
         "All sources of empirical data, scholarly literature, software libraries, and academic citations utilized within this dissertation have been specifically acknowledged by means of comprehensive references in strict accordance with the American Psychological Association (APA 7th Edition) standard."
       ),
-      new Paragraph({
-        spacing: { before: 1200 },
-        children: [
-          new TextRun({
-            text: "_______________________________\t\t\t\t________________________\n" +
-                  `${studentName} (${matricNumber})\t\t\t\tDate of Signature\n` +
-                  `Student Researcher`,
-            bold: true,
-            size: 22,
-            font: "Times New Roman",
-          }),
-        ],
-      }),
+      createSignatureTable([
+        {
+          name: `${studentName} (${matricNumber})`,
+          title: "Student Researcher",
+          dept: `Department of ${course}, ${institution}`,
+          dateLabel: "Date of Signature",
+        },
+      ]),
       new Paragraph({ children: [new PageBreak()] })
     );
 
@@ -566,31 +688,28 @@ export async function POST(req: NextRequest) {
       academicPara(
         `This project dissertation entitled "${topic.toUpperCase()}" by ${studentName} (${matricNumber}) meets the statutory academic regulations governing the award of the degree of Bachelor of Science (B.Sc. Hons.) in ${course} in the Department of ${course}, ${institution}, and is hereby approved for its intellectual contribution to knowledge and literary presentation.`
       ),
-      new Paragraph({
-        spacing: { before: 1000 },
-        children: [
-          new TextRun({
-            text: "_____________________________________\t\t\t\t_____________________\n" +
-                  `${supervisor}\t\t\t\tDate\n` +
-                  "Project Supervisor\n\n\n" +
-                  "_____________________________________\t\t\t\t_____________________\n" +
-                  `Head of Department\t\t\t\t\t\tDate\n` +
-                  `Department of ${course}, ${institution}\n\n\n` +
-                  "_____________________________________\t\t\t\t_____________________\n" +
-                  "External Examiner\t\t\t\t\t\tDate\n" +
-                  "Senate Board of Examiners Representative",
-            bold: true,
-            size: 22,
-            font: "Times New Roman",
-          }),
-        ],
-      }),
+      createSignatureTable([
+        {
+          name: supervisor,
+          title: "Project Supervisor",
+        },
+        {
+          name: "Head of Department",
+          title: `Department of ${course}`,
+          dept: institution,
+        },
+        {
+          name: "External Examiner",
+          title: "Representative, Senate Board of Examiners",
+        },
+      ]),
       new Paragraph({ children: [new PageBreak()] })
     );
 
     // =========================================================================
     // 4. DEDICATION & ACKNOWLEDGEMENT (Reference: MY PROJECT ORIGINAL.docx)
     // =========================================================================
+    const thanksEntity = caseStudy || effectiveCaseStudy;
     docChildren.push(
       ...academicHeading1("DEDICATION"),
       academicPara(
@@ -610,7 +729,7 @@ export async function POST(req: NextRequest) {
         `I am equally indebted to the Head of Department, academic lecturers, and technical staff of the Department of ${course}, ${institution}, for imparting the computational paradigms, theoretical rigour, and engineering principles that made this project possible.`
       ),
       academicPara(
-        `Special thanks are extended to the management and administrative officers of ${caseStudy} who participated in system discovery sessions, user interviews, and provided the operational parameters necessary for testing and evaluating the system.`
+        `Special thanks are extended to the management and administrative officers of ${thanksEntity} who participated in system discovery sessions, user interviews, and provided the operational parameters necessary for testing and evaluating the system.`
       ),
       academicPara(
         "Finally, my heartfelt appreciation goes to my distinguished course colleagues, research collaborators, and lifelong friends for their camaraderie and intellectual stimulation throughout my undergraduate studies."
@@ -621,7 +740,7 @@ export async function POST(req: NextRequest) {
     // =========================================================================
     // 5. ABSTRACT (Dynamically crafted for the specific topic)
     // =========================================================================
-    const abstractText1 = `This project presents the design and implementation of an automated, robust software solution for ${topic} at ${caseStudy}, ${institution}. In modern organizational and academic environments, conventional paper-based and legacy manual workflows are inherently susceptible to administrative friction, human transcription errors, operational delays, data redundancy, and a fundamental lack of real-time auditability. These chronic limitations impede decision-making, increase transactional turnaround latency, and compromise data integrity.`;
+    const abstractText1 = `This project dissertation presents the design and implementation of an automated, robust technological solution for ${cleanTopic}${caseStudy ? ` with application to ${caseStudy}` : ` (${effectiveCaseStudy})`}, submitted in partial fulfillment of the requirements for the degree of Bachelor of Science in ${course} at ${institution}. In modern operational and enterprise environments, conventional paper-based and legacy manual workflows are inherently susceptible to administrative friction, human transcription errors, operational delays, data redundancy, and a fundamental lack of real-time auditability. These chronic limitations impede decision-making, increase transactional turnaround latency, and compromise data integrity.`;
     const abstractText2 = `To resolve these operational bottlenecks, an automated digital framework was developed adopting modern software engineering standards. The system integrates a decoupled presentation interface, a resilient business logic coordinator, and an ACID-compliant relational persistence layer utilizing Python, SQL relational databases, and responsive web technologies. The core engine implements automated constraint satisfaction, structured validation protocols, and comprehensive role-based access control (RBAC) to ensure seamless transaction processing and secure record management.`;
     const abstractText3 = `The Software Development Life Cycle (SDLC) methodology was adopted across requirements gathering, system design, architectural modeling, implementation, and empirical testing. Comprehensive multi-tier evaluation was conducted, encompassing unit verification, integration testing, and User Acceptance Testing (UAT). Empirical benchmarking demonstrated a 100% transaction integrity rate under concurrent simulated user requests, with average response latency below 50 milliseconds. The system achieved a System Usability Scale (SUS) score exceeding 88%, representing a significant enhancement in operational efficiency, transparency, and data accessibility compared to legacy procedures.`;
 
@@ -640,7 +759,7 @@ export async function POST(req: NextRequest) {
             font: "Times New Roman",
           }),
           new TextRun({
-            text: `${topic}, Automated Information System, Relational Database Normalization, Software Architecture, Empirical Evaluation, User Acceptance Testing (UAT).`,
+            text: `${cleanTopic || topic}, Automated System, Relational Database Normalization, Software Architecture, Empirical Evaluation, User Acceptance Testing (UAT).`,
             italics: true,
             size: 22,
             font: "Times New Roman",
@@ -783,23 +902,53 @@ export async function POST(req: NextRequest) {
     // =========================================================================
     // 7. LIST OF TABLES & LIST OF FIGURES (Reference: MY PROJECT ORIGINAL.docx)
     // =========================================================================
+    const createListRow = (label: string, page: string) =>
+      new Paragraph({
+        alignment: AlignmentType.LEFT,
+        spacing: { before: 80, after: 80, line: 360 },
+        children: [
+          new TextRun({
+            text: label,
+            font: "Times New Roman",
+            size: 22,
+            color: "1F2937",
+          }),
+          new TextRun({
+            children: [
+              new PositionalTab({
+                alignment: PositionalTabAlignment.RIGHT,
+                relativeTo: PositionalTabRelativeTo.MARGIN,
+                leader: PositionalTabLeader.DOT,
+              }),
+            ],
+          }),
+          new TextRun({
+            text: page,
+            font: "Times New Roman",
+            size: 22,
+            bold: true,
+            color: "111827",
+          }),
+        ],
+      });
+
     docChildren.push(
       ...academicHeading1("LIST OF TABLES"),
-      academicPara("Table 3.1: Core Primary Data Dictionary Structure\t...................................................................... 39", false),
-      academicPara("Table 3.2: Transaction & Operational Data Dictionary\t...................................................................... 40", false),
-      academicPara("Table 3.3: Hardware Development Environment Specifications\t...................................................................... 46", false),
-      academicPara("Table 3.4: Software Development Environment Specifications\t...................................................................... 47", false),
-      academicPara("Table 4.1: Empirical Test Cases Execution Matrix\t...................................................................... 61", false),
-      academicPara("Table 4.2: System Usability Scale (SUS) Evaluation Metrics\t...................................................................... 63", false),
+      createListRow("Table 3.1: Core Primary Data Dictionary Structure", "39"),
+      createListRow("Table 3.2: Transaction & Operational Data Dictionary", "40"),
+      createListRow("Table 3.3: Hardware Development Environment Specifications", "46"),
+      createListRow("Table 3.4: Software Development Environment Specifications", "47"),
+      createListRow("Table 4.1: Empirical Test Cases Execution Matrix", "61"),
+      createListRow("Table 4.2: System Usability Scale (SUS) Evaluation Metrics", "63"),
       ...academicHeading1("LIST OF FIGURES"),
-      academicPara("Figure 3.1: Decoupled 3-Tier System Architecture\t...................................................................... 34", false),
-      academicPara("Figure 3.2: Context Analysis Diagram of the Proposed System\t...................................................................... 36", false),
-      academicPara("Figure 3.3: Level-1 Data Flow Diagram (DFD)\t...................................................................... 37", false),
-      academicPara("Figure 3.4: Entity-Relationship Model (ERD)\t...................................................................... 38", false),
-      academicPara("Figure 3.5: Operational Process Flowchart\t...................................................................... 43", false),
-      academicPara("Figure 4.1: System User Authentication Interface\t...................................................................... 55", false),
-      academicPara("Figure 4.2: Primary User Action Dashboard Interface\t...................................................................... 56", false),
-      academicPara("Figure 4.3: Administrator Telemetry & Reports Dashboard\t...................................................................... 57", false),
+      createListRow("Figure 3.1: Decoupled 3-Tier System Architecture", "34"),
+      createListRow("Figure 3.2: Context Analysis Diagram of the Proposed System", "36"),
+      createListRow("Figure 3.3: Level-1 Data Flow Diagram (DFD)", "37"),
+      createListRow("Figure 3.4: Entity-Relationship Model (ERD)", "38"),
+      createListRow("Figure 3.5: Operational Process Flowchart", "43"),
+      createListRow("Figure 4.1: System User Authentication Interface", "55"),
+      createListRow("Figure 4.2: Primary User Action Dashboard Interface", "56"),
+      createListRow("Figure 4.3: Administrator Telemetry & Reports Dashboard", "57"),
       new Paragraph({ children: [new PageBreak()] })
     );
 
@@ -902,7 +1051,7 @@ export async function POST(req: NextRequest) {
           course,
           institution,
           chapterNumber: ch,
-          caseStudy,
+          caseStudy: effectiveCaseStudy,
         });
 
         const aiRes = await generateAcademicAI({
@@ -921,7 +1070,7 @@ export async function POST(req: NextRequest) {
 
       // If AI did not return complete text or failed, use our comprehensive topic-tailored generator
       if (!chapterMarkdown || chapterMarkdown.length < 800) {
-        chapterMarkdown = generateDynamicChapterText(topic, course, institution, caseStudy, ch);
+        chapterMarkdown = generateDynamicChapterText(topic, course, institution, effectiveCaseStudy, ch);
       }
 
       docChildren.push(...parseMarkdownToDocx(chapterMarkdown));

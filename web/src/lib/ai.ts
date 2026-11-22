@@ -25,6 +25,7 @@ export function getGroqPoolKeys(): string[] {
 }
 
 import { convertLatexFormula, sanitizeAcademicTextMath } from './mathConverter';
+import { extractDomainFromTopic } from './thesisHelpers';
 
 export interface AIResponse {
   content: string;
@@ -545,7 +546,15 @@ export interface ThesisChapterPromptParams {
 
 export function buildChapterUserPrompt(params: ThesisChapterPromptParams): string {
   const { topic, course, institution, chapterNumber, caseStudy } = params;
-  const org = caseStudy || institution;
+  const effectiveCaseStudy = (caseStudy && caseStudy.trim())
+    ? caseStudy.trim()
+    : extractDomainFromTopic(topic);
+
+  const contextHeader = `
+ACADEMIC CONTEXT & DOMAIN BOUNDARIES:
+- Degree-Awarding University: "${institution}" (CRITICAL RULE: This is SOLELY the university awarding the student's degree. Do NOT fabricate operational departments, police stations, hospital wards, or commercial operations inside "${institution}" unless the project topic is explicitly an internal university campus portal).
+- Target Operational Domain / Case Study: "${effectiveCaseStudy}" (All empirical problem statements, manual workflow reviews, structural bottlenecks, and system operational requirements MUST focus strictly on this organization/domain).
+`;
 
   const formattingRules = `
 CRITICAL FORMATTING & EXTENSIVE LENGTH REQUIREMENTS:
@@ -561,18 +570,17 @@ CRITICAL FORMATTING & EXTENSIVE LENGTH REQUIREMENTS:
     return `Write an exhaustive, publishable CHAPTER ONE (INTRODUCTION) for the undergraduate/postgraduate dissertation titled:
 "${topic}"
 Department: ${course}
-Institution: ${institution}
-Case Study: ${org}
+${contextHeader}
 
 Follow the canonical 10-section dissertation structure (Reference: Nigerian University System B.Sc/B.Tech guidelines):
 1.1 Background of the Study (In-depth analysis of the problem domain, historical context, emergence of digital/automated solutions, and challenges in the Nigerian context)
-1.2 Statement of the Problem (Concrete examination of existing operational bottlenecks, administrative delays, human error rates, data loss, and lack of transparency)
+1.2 Statement of the Problem (Concrete examination of existing operational bottlenecks, administrative delays, human error rates, data loss, and lack of transparency within ${effectiveCaseStudy})
 1.3 Aim and Objectives of the Study
-   1.3.1 Aim (Overarching technical goal of the software/system)
-   1.3.2 Specific Objectives (Exactly 5 numbered action-oriented objectives: 1. To examine..., 2. To identify..., 3. To design..., 4. To develop..., 5. To test and evaluate...)
-1.4 Significance of the Study (Academic, institutional, economic, and practical contributions to students, administration, and industry)
-1.5 Scope of the Study (Clear functional, technological, geographical, and organizational boundaries)
-1.6 Limitations of the Study (5 realistic constraints: time, finance, institutional data access, hardware/network dependencies)
+   1.3.1 Aim (Overarching technical goal of the software/system for ${effectiveCaseStudy}, submitted to the Department of ${course}, ${institution})
+   1.3.2 Specific Objectives (Exactly 5 numbered action-oriented objectives: 1. To examine operational workflows at ${effectiveCaseStudy}..., 2. To identify..., 3. To design..., 4. To develop..., 5. To test and evaluate...)
+1.4 Significance of the Study (Academic, institutional, economic, and practical contributions to operational personnel, administrators, and the host domain)
+1.5 Scope of the Study (Clear functional, technological, geographical, and organizational boundaries focused on ${effectiveCaseStudy})
+1.6 Limitations of the Study (5 realistic constraints: time, finance, operational data access, hardware/network dependencies)
 1.7 Assumptions of the Study (5 numbered core operational assumptions)
 1.8 Methodology (Software development lifecycle model adopted e.g. Agile/Prototyping/Waterfall, data gathering instruments)
 1.9 Organization of the Study (Paragraph-by-paragraph structural overview of Chapters 1 through 5)
@@ -584,7 +592,7 @@ Write complete, rigorous academic paragraphs for every single section. Do not su
     return `Write an exhaustive, publishable CHAPTER TWO (LITERATURE REVIEW) for the dissertation titled:
 "${topic}"
 Department: ${course}
-Institution: ${institution}
+${contextHeader}
 
 Follow the canonical academic structure:
 2.1 Introduction (Thematic scope and outline of literature surveyed)
@@ -602,12 +610,11 @@ Write full scholarly paragraphs with formal APA 7th citations.`;
     return `Write an exhaustive, publishable CHAPTER THREE (SYSTEM ANALYSIS AND DESIGN) for the dissertation titled:
 "${topic}"
 Department: ${course}
-Institution: ${institution}
-Case Study: ${org}
+${contextHeader}
 
 Follow the canonical engineering structure:
 3.1 Introduction (Design philosophy and objectives of system analysis)
-3.2 Analysis of the Existing System & Current Workflow (Step-by-step description of how operations are conducted manually at ${org})
+3.2 Analysis of the Existing System & Current Workflow (Step-by-step description of how operations are conducted manually within ${effectiveCaseStudy})
    3.2.1 Problems and Bottlenecks of the Existing System
 3.3 Analysis of the Proposed System & Technical Improvements (How the proposed software eliminates manual bottlenecks and introduces automation)
 3.4 Objectives of the Proposed System (Measurable operational targets)
@@ -627,7 +634,7 @@ Provide complete text and formatted database tables.`;
     return `Write an exhaustive, publishable CHAPTER FOUR (SYSTEM IMPLEMENTATION AND EVALUATION) for the dissertation titled:
 "${topic}"
 Department: ${course}
-Institution: ${institution}
+${contextHeader}
 
 Follow the canonical implementation and evaluation structure:
 4.1 Introduction (Implementation roadmap and testing objectives)
@@ -653,7 +660,7 @@ Provide complete text and formatted test case tables.`;
     return `Write an exhaustive, publishable CHAPTER FIVE (SUMMARY, CONCLUSIONS AND RECOMMENDATIONS) for the dissertation titled:
 "${topic}"
 Department: ${course}
-Institution: ${institution}
+${contextHeader}
 
 Follow the canonical concluding structure:
 5.1 Introduction (Overview of the concluding chapter)
@@ -662,7 +669,7 @@ Follow the canonical concluding structure:
 5.4 Conclusions (Definitive closing statement on the efficacy, performance, and practical impact of the software)
 5.5 Contributions to Knowledge (Distinct theoretical, technical, practical, and institutional contributions)
 5.6 Recommendations
-   5.6.1 Recommendations for the Tertiary Institution & Stakeholders
+   5.6.1 Recommendations for Operational Leadership & Stakeholders of ${effectiveCaseStudy}
    5.6.2 Recommendations for System Administrators & Technical Staff
    5.6.3 Recommendations for Future Research and Scalability
 
