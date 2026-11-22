@@ -141,6 +141,8 @@ def run_audit():
         ("/api/notifications", "GET"),
         ("/api/credits/history", "GET"),
         ("/api/admin/settings", "GET"),
+        ("/api/ai/build-software", "POST"),
+        ("/api/ai/generate", "POST"),
         ("/api/generate-software-zip", "POST"),
         ("/api/generate-thesis-docx", "POST"),
         ("/api/generate-viva-pptx", "POST"),
@@ -233,7 +235,7 @@ def run_audit():
             "clearance_hierarchy": "Strict Sequential Workflow: Bursary -> Library -> HOD -> Dean"
         }
     }
-    res = send_request("POST", "/api/ai/build-software", build_payload)
+    res = send_request("POST", "/api/ai/build-software", build_payload, headers={"Cookie": auth_cookie})
     if res["status"] == 200:
         try:
             data = json.loads(res["data"].decode("utf-8"))

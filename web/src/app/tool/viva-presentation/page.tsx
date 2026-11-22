@@ -22,6 +22,7 @@ import {
   Lightbulb,
   Copy,
   Layers,
+  Palette,
   Loader2
 } from 'lucide-react';
 
@@ -35,10 +36,146 @@ interface Slide {
   accent: string;
 }
 
+export interface UITheme {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  coverBg: string;
+  coverText: string;
+  coverBorder: string;
+  coverHighlight: string;
+  coverSub: string;
+  coverPillBg: string;
+  coverPillBorder: string;
+  coverGold: string;
+  slideBg: string;
+  headerBg: string;
+  headerAccent: string;
+  categoryColor: string;
+  bulletColor: string;
+  cardBorder: string;
+  badgeBg: string;
+  swatches: string[];
+}
+
+export const SLIDE_THEMES_UI: Record<string, UITheme> = {
+  midnight: {
+    id: 'midnight',
+    name: 'Midnight Tech',
+    category: 'Engineering & Computing',
+    description: 'Deep obsidian navy with electric cyan & gold. Ideal for Computer Science and Software Engineering.',
+    coverBg: 'bg-[#070C1E]',
+    coverText: 'text-white',
+    coverBorder: 'border-sky-500/30',
+    coverHighlight: 'text-sky-400',
+    coverSub: 'text-slate-300',
+    coverPillBg: 'bg-[#0B132B]',
+    coverPillBorder: 'border-sky-500/40',
+    coverGold: 'text-amber-400 border-amber-500/40',
+    slideBg: 'bg-slate-50',
+    headerBg: 'bg-[#0B132B]',
+    headerAccent: 'bg-sky-500',
+    categoryColor: 'text-sky-400',
+    bulletColor: 'bg-sky-500',
+    cardBorder: 'border-slate-200',
+    badgeBg: 'bg-sky-100 text-sky-800',
+    swatches: ['#0B132B', '#0284C7', '#38BDF8', '#F59E0B'],
+  },
+  oxford: {
+    id: 'oxford',
+    name: 'Oxford Emerald',
+    category: 'Ivy League & Sciences',
+    description: 'Regal forest emerald with warm scholastic gold. Favored by university senates and academic panels.',
+    coverBg: 'bg-[#022C22]',
+    coverText: 'text-white',
+    coverBorder: 'border-emerald-500/30',
+    coverHighlight: 'text-emerald-300',
+    coverSub: 'text-emerald-100',
+    coverPillBg: 'bg-[#064E3B]',
+    coverPillBorder: 'border-emerald-500/40',
+    coverGold: 'text-amber-400 border-amber-500/40',
+    slideBg: 'bg-[#FDFBF7]',
+    headerBg: 'bg-[#064E3B]',
+    headerAccent: 'bg-emerald-500',
+    categoryColor: 'text-emerald-300',
+    bulletColor: 'bg-emerald-600',
+    cardBorder: 'border-stone-200',
+    badgeBg: 'bg-emerald-100 text-emerald-800',
+    swatches: ['#064E3B', '#059669', '#34D399', '#D97706'],
+  },
+  crimson: {
+    id: 'crimson',
+    name: 'Cambridge Crimson',
+    category: 'Executive & Health/Law',
+    description: 'Deep regal burgundy with vivid rose crimson. Prestigious aesthetic for clinical and governance research.',
+    coverBg: 'bg-[#4C0519]',
+    coverText: 'text-white',
+    coverBorder: 'border-rose-500/30',
+    coverHighlight: 'text-rose-300',
+    coverSub: 'text-rose-100',
+    coverPillBg: 'bg-[#881337]',
+    coverPillBorder: 'border-rose-500/40',
+    coverGold: 'text-amber-400 border-amber-500/40',
+    slideBg: 'bg-[#FFF1F2]',
+    headerBg: 'bg-[#881337]',
+    headerAccent: 'bg-rose-500',
+    categoryColor: 'text-rose-300',
+    bulletColor: 'bg-rose-600',
+    cardBorder: 'border-rose-200',
+    badgeBg: 'bg-rose-100 text-rose-800',
+    swatches: ['#881337', '#E11D48', '#FB7185', '#F59E0B'],
+  },
+  minimalist: {
+    id: 'minimalist',
+    name: 'Nordic Minimalist',
+    category: 'Swiss Clean & Typographic',
+    description: 'High-contrast zinc obsidian with crisp cobalt lines and generous whitespace. Distraction-free clarity.',
+    coverBg: 'bg-[#09090B]',
+    coverText: 'text-white',
+    coverBorder: 'border-zinc-700',
+    coverHighlight: 'text-blue-400',
+    coverSub: 'text-zinc-400',
+    coverPillBg: 'bg-[#18181B]',
+    coverPillBorder: 'border-zinc-700',
+    coverGold: 'text-blue-400 border-blue-500/40',
+    slideBg: 'bg-[#FAFAFA]',
+    headerBg: 'bg-[#18181B]',
+    headerAccent: 'bg-blue-600',
+    categoryColor: 'text-blue-400',
+    bulletColor: 'bg-blue-600',
+    cardBorder: 'border-zinc-200',
+    badgeBg: 'bg-zinc-200 text-zinc-900',
+    swatches: ['#18181B', '#2563EB', '#60A5FA', '#71717A'],
+  },
+  solaris: {
+    id: 'solaris',
+    name: 'Solaris Amber',
+    category: 'Innovation & Startup',
+    description: 'Deep indigo twilight with radiant imperial amber. High impact for modern innovations and startup projects.',
+    coverBg: 'bg-[#0F0D2E]',
+    coverText: 'text-white',
+    coverBorder: 'border-amber-500/30',
+    coverHighlight: 'text-amber-400',
+    coverSub: 'text-amber-100',
+    coverPillBg: 'bg-[#1E1B4B]',
+    coverPillBorder: 'border-amber-500/40',
+    coverGold: 'text-orange-400 border-orange-500/40',
+    slideBg: 'bg-[#FFFBEB]',
+    headerBg: 'bg-[#1E1B4B]',
+    headerAccent: 'bg-amber-500',
+    categoryColor: 'text-amber-400',
+    bulletColor: 'bg-amber-600',
+    cardBorder: 'border-amber-200',
+    badgeBg: 'bg-amber-100 text-amber-900',
+    swatches: ['#1E1B4B', '#D97706', '#F59E0B', '#EA580C'],
+  },
+};
+
 export default function VivaPresentationPage() {
   const { user } = useAuth();
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<string>('midnight');
   const [topic, setTopic] = useState('');
   const [studentName, setStudentName] = useState(user?.fullName?.toUpperCase() || '');
   const [matricNumber, setMatricNumber] = useState(user?.matricNumber || '');
@@ -68,6 +205,8 @@ export default function VivaPresentationPage() {
 
   const [slides, setSlides] = useState<Slide[]>([]);
 
+  const activeTheme = SLIDE_THEMES_UI[selectedTheme] || SLIDE_THEMES_UI.midnight;
+
   const activeSlide = slides[currentSlideIndex] || slides[0] || {
     number: 1,
     title: 'Presentation Overview',
@@ -89,8 +228,9 @@ export default function VivaPresentationPage() {
         supervisor,
         institution,
         course,
+        theme: selectedTheme,
       },
-      `Viva_Defense_Slides_${studentName.replace(/\s+/g, '_')}.pptx`
+      `Viva_Defense_Slides_${selectedTheme}_${studentName.replace(/\s+/g, '_')}.pptx`
     );
     setIsDownloading(false);
   }
@@ -299,7 +439,7 @@ export default function VivaPresentationPage() {
 
       setSlides(newSlides);
       setCurrentSlideIndex(0);
-      setSuccessBanner(`Deck synthesized for "${targetTopic}"!`);
+      setSuccessBanner(`Deck synthesized for "${targetTopic}" in ${activeTheme.name}!`);
     } catch (err) {
       console.error('Error recompiling slides:', err);
       setSuccessBanner(`Slide deck updated for "${targetTopic}"!`);
@@ -313,7 +453,7 @@ export default function VivaPresentationPage() {
     <AppLayout
       activeItem="viva-presentation"
       title="Viva Presentation Studio"
-      subtitle="Generates 15-Slide 16:9 widescreen defense decks with slide-by-slide speaker notes, timekeeper, and .pptx export"
+      subtitle="Generates 15-Slide 16:9 widescreen defense decks with slide-by-slide speaker notes, customizable design themes, and .pptx export"
     >
       {/* Viva Defense Suite Tab Switcher */}
       <div className="flex items-center gap-2 mb-5 bg-slate-200/80 p-1.5 rounded-2xl w-fit">
@@ -322,7 +462,7 @@ export default function VivaPresentationPage() {
           className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white text-slate-900 shadow-xs flex items-center gap-2"
         >
           <Presentation className="w-3.5 h-3.5 text-blue-600" />
-          <span>15-Slide Defense Deck (.pptx)</span>
+          <span>Defense Presentation Deck (.pptx)</span>
         </Link>
         <Link
           href="/tool/viva-simulator"
@@ -343,6 +483,7 @@ export default function VivaPresentationPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Slide List & Controls (4 Cols) */}
         <div className="lg:col-span-4 space-y-4">
+          {/* Form Card */}
           <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider">
@@ -411,8 +552,64 @@ export default function VivaPresentationPage() {
             </button>
           </div>
 
+          {/* Slide Design Themes Selector Card */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider">
+                <Palette className="w-4 h-4 text-indigo-600" />
+                <span>Presentation Design Themes</span>
+              </div>
+              <span className="text-[10px] text-slate-500 font-semibold">5 Aesthetics</span>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-normal">
+              Select an academic aesthetic for your presentation deck. Applied live to preview and PowerPoint export.
+            </p>
+
+            <div className="space-y-2">
+              {Object.values(SLIDE_THEMES_UI).map((th) => {
+                const isSelected = selectedTheme === th.id;
+                return (
+                  <button
+                    key={th.id}
+                    onClick={() => setSelectedTheme(th.id)}
+                    className={`w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between ${
+                      isSelected
+                        ? 'border-indigo-600 bg-indigo-50/70 shadow-xs ring-1 ring-indigo-500/20'
+                        : 'border-slate-200/80 hover:border-slate-300 bg-white text-slate-700'
+                    }`}
+                  >
+                    <div className="min-w-0 pr-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-bold ${isSelected ? 'text-indigo-950' : 'text-slate-800'}`}>
+                          {th.name}
+                        </span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium truncate">
+                          {th.category}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
+                        {th.description}
+                      </p>
+                    </div>
+
+                    {/* Color Swatch Indicators */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {th.swatches.map((color, i) => (
+                        <span
+                          key={i}
+                          className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Slide Deck Navigator */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-2 max-h-[420px] overflow-y-auto">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-2 max-h-[380px] overflow-y-auto">
             <div className="text-xs font-bold text-slate-800 px-1 mb-2">Slide Deck Overview</div>
             {slides.length === 0 ? (
               <div className="text-center py-8 text-slate-400 text-xs font-medium">
@@ -473,8 +670,11 @@ export default function VivaPresentationPage() {
                     <span className="font-bold text-xs text-slate-900">
                       Slide {activeSlide.number} of {slides.length}
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-semibold">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${activeTheme.badgeBg}`}>
                       {activeSlide.category}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-medium">
+                      Theme: {activeTheme.name}
                     </span>
                   </div>
 
@@ -487,7 +687,7 @@ export default function VivaPresentationPage() {
                     <button
                       onClick={handleExportPPTX}
                       disabled={isDownloading}
-                      className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50"
+                      className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-xs font-bold shadow-xs hover:opacity-95 flex items-center gap-1.5 transition-all disabled:opacity-50"
                     >
                       {isDownloading ? (
                         <>
@@ -497,7 +697,7 @@ export default function VivaPresentationPage() {
                       ) : (
                         <>
                           <Download className="w-3.5 h-3.5" />
-                          <span>Export .PPTX</span>
+                          <span>Export .PPTX ({activeTheme.name})</span>
                         </>
                       )}
                     </button>
@@ -506,38 +706,86 @@ export default function VivaPresentationPage() {
 
                 {/* 16:9 Simulated Slide Frame */}
                 <div className="p-6 bg-slate-900 flex items-center justify-center">
-                  <div className="w-full min-h-[300px] sm:aspect-[16/9] max-w-[760px] bg-white rounded-xl shadow-2xl p-5 sm:p-7 flex flex-col justify-between border border-slate-300 relative overflow-hidden">
-                    {/* Decorative Top Accent Bar */}
-                    <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${activeSlide.accent}`} />
+                  {currentSlideIndex === 0 ? (
+                    /* Slide 1: Cover Slide Design Preview */
+                    <div className={`w-full min-h-[340px] sm:aspect-[16/9] max-w-[760px] ${activeTheme.coverBg} rounded-xl shadow-2xl p-6 sm:p-8 flex flex-col justify-between border ${activeTheme.coverBorder} relative overflow-hidden transition-all duration-300`}>
+                      {/* Top Accent Strip */}
+                      <div className={`absolute top-0 left-0 right-0 h-2 ${activeTheme.headerAccent}`} />
 
-                    {/* Header */}
-                    <div>
-                      <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                        <span>{institution.split(',')[0]}</span>
-                        <span>{course ? `${course.toUpperCase()} DEFENSE` : 'FINAL DEFENSE'}</span>
+                      {/* Institution Badge Pill */}
+                      <div className={`mx-auto px-4 py-1.5 rounded-full ${activeTheme.coverPillBg} border ${activeTheme.coverPillBorder} text-center`}>
+                        <span className={`text-[10px] sm:text-[11px] font-bold tracking-widest uppercase ${activeTheme.coverHighlight}`}>
+                          {effectiveCourse ? `DEPARTMENT OF ${effectiveCourse.toUpperCase()}` : 'DEPARTMENT OF COMPUTER SCIENCE'} • {effectiveInstitution.toUpperCase()}
+                        </span>
                       </div>
-                      <h2 className="text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight leading-snug">
-                        {activeSlide.title}
-                      </h2>
-                    </div>
 
-                    {/* Slide Body */}
-                    <div className="space-y-2.5 my-auto">
-                      {activeSlide.content.map((bullet, i) => (
-                        <div key={i} className="flex items-start gap-2.5 text-xs lg:text-sm text-slate-700 leading-relaxed">
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
-                          <span>{bullet}</span>
+                      {/* Title */}
+                      <div className="text-center my-auto px-2">
+                        <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight uppercase leading-snug line-clamp-3">
+                          {effectiveTopic}
+                        </h1>
+                      </div>
+
+                      {/* Candidate Box */}
+                      <div className={`mx-auto w-full max-w-md px-5 py-2.5 rounded-xl ${activeTheme.coverPillBg} border ${activeTheme.coverPillBorder} text-center shadow-md space-y-0.5`}>
+                        <div className={`text-xs sm:text-sm font-black ${activeTheme.coverHighlight}`}>
+                          PRESENTED BY: {effectiveCandidate.toUpperCase()}
                         </div>
-                      ))}
-                    </div>
+                        <div className="text-[10px] sm:text-xs text-slate-300 font-semibold">
+                          MATRICULATION NUMBER: {effectiveMatric.toUpperCase()}
+                        </div>
+                      </div>
 
-                    {/* Footer */}
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-semibold">
-                      <span>Candidate: {studentName} ({matricNumber})</span>
-                      <span>Supervisor: {supervisor.split('(')[0]}</span>
-                      <span>Slide {activeSlide.number} / {slides.length}</span>
+                      {/* Supervisor & Session Pill */}
+                      <div className="mt-3 text-center border-t border-white/10 pt-2 flex items-center justify-between text-[10px] sm:text-[11px]">
+                        <span className={`font-semibold ${activeTheme.coverGold}`}>
+                          SUPERVISOR: {effectiveSupervisor.toUpperCase()}
+                        </span>
+                        <span className="text-slate-400 font-medium">
+                          SESSION: 2025/2026
+                        </span>
+                        <span className="text-[9px] text-slate-400">
+                          Theme: {activeTheme.name}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* Slide 2+: Content Slide Design Preview */
+                    <div className={`w-full min-h-[340px] sm:aspect-[16/9] max-w-[760px] ${activeTheme.slideBg} rounded-xl shadow-2xl flex flex-col justify-between border ${activeTheme.cardBorder} relative overflow-hidden transition-all duration-300`}>
+                      {/* Top Header Banner */}
+                      <div className={`${activeTheme.headerBg} px-5 sm:px-7 py-3 relative border-b-2 border-transparent`}>
+                        <div className={`absolute bottom-0 left-0 right-0 h-1 ${activeTheme.headerAccent}`} />
+                        <div className="flex items-center justify-between">
+                          <span className={`text-[10px] font-bold tracking-widest uppercase ${activeTheme.categoryColor}`}>
+                            {activeSlide.category.toUpperCase()}
+                          </span>
+                          <span className="text-[10px] font-bold text-white/80 bg-white/10 px-2 py-0.5 rounded-md">
+                            Slide {activeSlide.number} / {slides.length}
+                          </span>
+                        </div>
+                        <h2 className="text-base sm:text-lg font-black text-white tracking-tight leading-snug mt-0.5">
+                          {activeSlide.title}
+                        </h2>
+                      </div>
+
+                      {/* Slide Body */}
+                      <div className="p-5 sm:p-7 space-y-2.5 my-auto">
+                        {activeSlide.content.map((bullet, i) => (
+                          <div key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-800 leading-relaxed bg-white/70 p-2.5 rounded-lg border border-slate-200/60 shadow-2xs">
+                            <div className={`w-2 h-2 rounded-full ${activeTheme.bulletColor} mt-1.5 flex-shrink-0`} />
+                            <span className="font-medium">{bullet}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Slide Footer */}
+                      <div className="px-5 sm:px-7 py-2.5 border-t border-slate-200 bg-white/90 flex items-center justify-between text-[10px] text-slate-500 font-semibold">
+                        <span className="truncate max-w-[320px]">{effectiveTopic} • Dept of {effectiveCourse}</span>
+                        <span>Candidate: {effectiveCandidate}</span>
+                        <span className="font-bold text-slate-700">{activeTheme.name}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Slide Navigation Controls */}
@@ -551,12 +799,12 @@ export default function VivaPresentationPage() {
                     <span>Previous Slide</span>
                   </button>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 overflow-x-auto max-w-[260px] py-1">
                     {slides.map((_, i) => (
                       <button
                         key={i}
                         onClick={() => setCurrentSlideIndex(i)}
-                        className={`w-2.5 h-2.5 rounded-full transition-all ${
+                        className={`w-2.5 h-2.5 rounded-full transition-all flex-shrink-0 ${
                           currentSlideIndex === i ? 'bg-blue-600 w-6' : 'bg-slate-300 hover:bg-slate-400'
                         }`}
                       />
