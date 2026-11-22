@@ -12,8 +12,12 @@ import {
   getArchitectureSvg,
   getUseCaseSvg,
   getErdSvg,
+  getContextDiagramSvg,
+  getFlowchartSvg,
   getLoginScreenshotSvg,
   getDashboardScreenshotSvg,
+  getAdminAuditScreenshotSvg,
+  getTestingResultsSvg,
   renderSvgToPngBuffer,
 } from "@/lib/academic-diagrams";
 import {
@@ -57,6 +61,7 @@ export async function POST(req: NextRequest) {
       ? body.supervisor.trim()
       : "[Name of Project Supervisor]";
     const session = (body.session || "2025/2026").trim();
+    const includeDiagrams = body.includeDiagrams !== false;
 
     // Check custom chapters passed from frontend
     const userChapters: Record<number, string> = {};
@@ -939,18 +944,139 @@ export async function POST(req: NextRequest) {
       createListRow("Table 3.3: Hardware Development Environment Specifications", "46"),
       createListRow("Table 3.4: Software Development Environment Specifications", "47"),
       createListRow("Table 4.1: Empirical Test Cases Execution Matrix", "61"),
-      createListRow("Table 4.2: System Usability Scale (SUS) Evaluation Metrics", "63"),
-      ...academicHeading1("LIST OF FIGURES"),
-      createListRow("Figure 3.1: Decoupled 3-Tier System Architecture", "34"),
-      createListRow("Figure 3.2: Context Analysis Diagram of the Proposed System", "36"),
-      createListRow("Figure 3.3: Level-1 Data Flow Diagram (DFD)", "37"),
-      createListRow("Figure 3.4: Entity-Relationship Model (ERD)", "38"),
-      createListRow("Figure 3.5: Operational Process Flowchart", "43"),
-      createListRow("Figure 4.1: System User Authentication Interface", "55"),
-      createListRow("Figure 4.2: Primary User Action Dashboard Interface", "56"),
-      createListRow("Figure 4.3: Administrator Telemetry & Reports Dashboard", "57"),
-      new Paragraph({ children: [new PageBreak()] })
+      createListRow("Table 4.2: System Usability Scale (SUS) Evaluation Metrics", "63")
     );
+
+    if (includeDiagrams) {
+      docChildren.push(
+        ...academicHeading1("LIST OF FIGURES"),
+        createListRow("Figure 3.1: Decoupled 3-Tier System Architecture", "34"),
+        createListRow("Figure 3.2: Top-Level Context Analysis Diagram (DFD Level-0)", "36"),
+        createListRow("Figure 3.3: UML Use Case Functional Specification", "37"),
+        createListRow("Figure 3.4: Third Normal Form (3NF) Relational Database Schema", "38"),
+        createListRow("Figure 3.5: Operational Process & Decision Flowchart", "43"),
+        createListRow("Figure 4.1: Secure Role-Based Authentication Interface", "55"),
+        createListRow("Figure 4.2: Primary Operational Action & Telemetry Dashboard", "56"),
+        createListRow("Figure 4.3: Real-Time Event Audit Trail & Telemetry Inspection Interface", "57"),
+        createListRow("Figure 4.4: Automated Test Execution Suite & Quality Assurance Pass Matrix", "58")
+      );
+    }
+
+    docChildren.push(new Paragraph({ children: [new PageBreak()] }));
+
+    // Helper to format an explicit academic screenshot placement guide for students/researchers
+    const createScreenshotPlaceholderCallout = (
+      figNum: string,
+      title: string,
+      instructions: string,
+      requiredElements: string[]
+    ) => {
+      return new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: {
+          top: { style: BorderStyle.DASHED, size: 8, color: "94A3B8" },
+          bottom: { style: BorderStyle.DASHED, size: 8, color: "94A3B8" },
+          left: { style: BorderStyle.SINGLE, size: 24, color: "2563EB" },
+          right: { style: BorderStyle.DASHED, size: 8, color: "94A3B8" },
+          insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+          insideVertical: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+        },
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                shading: { fill: "F8FAFC" },
+                margins: { top: 140, bottom: 140, left: 180, right: 180 },
+                borders: {
+                  top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                },
+                children: [
+                  new Paragraph({
+                    spacing: { after: 60 },
+                    children: [
+                      new TextRun({
+                        text: `[CANDIDATE IMPLEMENTATION NOTICE: SCREENSHOT INSERTION REQUIRED]`,
+                        bold: true,
+                        size: 20, // 10pt
+                        font: "Times New Roman",
+                        color: "1E40AF",
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    spacing: { after: 60, line: 300 },
+                    children: [
+                      new TextRun({
+                        text: `Figure Target: `,
+                        bold: true,
+                        size: 22,
+                        font: "Times New Roman",
+                        color: "0F172A",
+                      }),
+                      new TextRun({
+                        text: `${figNum} — ${title}`,
+                        bold: true,
+                        size: 22,
+                        font: "Times New Roman",
+                        color: "2563EB",
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    spacing: { after: 80, line: 320 },
+                    children: [
+                      new TextRun({
+                        text: `Instructions for Candidate: `,
+                        bold: true,
+                        size: 20,
+                        font: "Times New Roman",
+                        color: "334155",
+                      }),
+                      new TextRun({
+                        text: instructions,
+                        size: 20,
+                        font: "Times New Roman",
+                        color: "334155",
+                      }),
+                    ],
+                  }),
+                  ...requiredElements.map(
+                    (elem) =>
+                      new Paragraph({
+                        bullet: { level: 0 },
+                        spacing: { before: 20, after: 20, line: 280 },
+                        children: [
+                          new TextRun({
+                            text: elem,
+                            size: 19,
+                            font: "Times New Roman",
+                            color: "475569",
+                          }),
+                        ],
+                      })
+                  ),
+                  new Paragraph({
+                    spacing: { before: 80, after: 0 },
+                    children: [
+                      new TextRun({
+                        text: `Notice: The high-resolution vector illustration below acts as your immediate placeholder diagram until your prototype screenshot is pasted.`,
+                        italics: true,
+                        size: 18,
+                        font: "Times New Roman",
+                        color: "64748B",
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+    };
 
     // Helper to format an academic figure with centered image and APA caption
     const createFigureParagraph = (pngBuffer: Buffer, caption: string, source: string = "Field Study (2026)") => {
@@ -1000,16 +1126,22 @@ export async function POST(req: NextRequest) {
 
     // Helper to append Chapter 3 and Chapter 4 diagrams & screenshots
     const appendChapterVisuals = async (chNum: number) => {
+      if (!includeDiagrams) return;
+
       if (chNum === 3) {
         try {
           const archPng = await renderSvgToPngBuffer(getArchitectureSvg(topic, course));
+          const contextPng = await renderSvgToPngBuffer(getContextDiagramSvg(topic));
           const useCasePng = await renderSvgToPngBuffer(getUseCaseSvg(topic));
           const erdPng = await renderSvgToPngBuffer(getErdSvg(topic));
+          const flowchartPng = await renderSvgToPngBuffer(getFlowchartSvg(topic));
 
           docChildren.push(
             ...createFigureParagraph(archPng, `Figure 3.1: High-Level Three-Tier Architecture of the Proposed System`),
-            ...createFigureParagraph(useCasePng, `Figure 3.2: UML Use Case Diagram for User and Administrative Roles`),
-            ...createFigureParagraph(erdPng, `Figure 3.3: Third Normal Form (3NF) Relational Database Schema`)
+            ...createFigureParagraph(contextPng, `Figure 3.2: Top-Level Context Analysis Diagram (DFD Level-0)`),
+            ...createFigureParagraph(useCasePng, `Figure 3.3: UML Use Case Functional Specification for User and Admin Roles`),
+            ...createFigureParagraph(erdPng, `Figure 3.4: Third Normal Form (3NF) Relational Database Schema & Foreign Keys`),
+            ...createFigureParagraph(flowchartPng, `Figure 3.5: Operational Process Flowchart & Decision Logic Execution Pipeline`)
           );
         } catch (diagErr) {
           console.warn("Failed to embed Chapter 3 vector diagrams:", diagErr);
@@ -1018,10 +1150,57 @@ export async function POST(req: NextRequest) {
         try {
           const loginPng = await renderSvgToPngBuffer(getLoginScreenshotSvg(topic));
           const dashPng = await renderSvgToPngBuffer(getDashboardScreenshotSvg(topic));
+          const auditPng = await renderSvgToPngBuffer(getAdminAuditScreenshotSvg(topic));
+          const testPng = await renderSvgToPngBuffer(getTestingResultsSvg(topic));
 
           docChildren.push(
-            ...createFigureParagraph(loginPng, `Figure 4.1: Secure Role-Based Authentication Interface`),
-            ...createFigureParagraph(dashPng, `Figure 4.2: Administrator Central Operational Telemetry Dashboard`)
+            createScreenshotPlaceholderCallout(
+              "Figure 4.1",
+              "System User Authentication & Access Control Interface",
+              "Before your final departmental defense, capture a high-resolution screenshot of your prototype's Login Screen and paste it here in place of or directly above this vector preview:",
+              [
+                "Ensure username/email and password masked input fields are visible.",
+                "Ensure user role selector, authentication submit button, and security status indicator are active.",
+                "Capture at 1920x1080 or minimum 300 DPI to avoid blurriness in printed binding.",
+              ]
+            ),
+            ...createFigureParagraph(loginPng, `Figure 4.1: Secure Role-Based Authentication Interface`, "Developed Software Prototype (2026)"),
+
+            createScreenshotPlaceholderCallout(
+              "Figure 4.2",
+              "Primary Operational Action & Central Telemetry Dashboard",
+              "Insert a screenshot of your deployed system's main administrative dashboard or officer command workspace showing active records and telemetry:",
+              [
+                "Top navigation bar with authenticated officer/operator profile and active database status.",
+                "Key performance indicator (KPI) metric cards (e.g. Total Transactions, Active Devices, Security Health).",
+                "Primary operational data table with action triggers (Verify, Modify, Approve, Filter).",
+              ]
+            ),
+            ...createFigureParagraph(dashPng, `Figure 4.2: Administrator Central Operational Telemetry & Monitoring Dashboard`, "Developed Software Prototype (2026)"),
+
+            createScreenshotPlaceholderCallout(
+              "Figure 4.3",
+              "Administrator Telemetry & Event Audit Trail Interface",
+              "Capture and paste a screenshot of your prototype's security audit log console demonstrating compliance, event persistence, and tamper-resistance:",
+              [
+                "Chronological event ledger showing timestamps, operator IDs, event classifications, and station ports.",
+                "Security verdict indicators (green for authorized access, red for denied attempts or alarms).",
+                "Audit export action controls (e.g. Export CSV / PDF) confirming institutional accountability.",
+              ]
+            ),
+            ...createFigureParagraph(auditPng, `Figure 4.3: Real-Time Event Audit Trail & Telemetry Inspection Interface`, "Developed Software Prototype (2026)"),
+
+            createScreenshotPlaceholderCallout(
+              "Figure 4.4",
+              "Automated Test Execution Suite & Quality Assurance Pass Matrix",
+              "In this verification section, capture an actual screenshot of your IDE, terminal, or test runner (PyTest, Jest, JUnit, Postman, or hardware test bench) confirming test execution:",
+              [
+                "Terminal prompt executing automated test runner (e.g. 'pytest tests/ -v' or 'npm test').",
+                "Complete breakdown of unit and integration test assertions with 100% pass verification.",
+                "Response execution benchmarks and latency confirmation (<150ms per test).",
+              ]
+            ),
+            ...createFigureParagraph(testPng, `Figure 4.4: Automated Test Execution Suite & Quality Assurance Pass Matrix`, "Empirical Test Bench Runner (2026)")
           );
         } catch (diagErr) {
           console.warn("Failed to embed Chapter 4 software screenshots:", diagErr);

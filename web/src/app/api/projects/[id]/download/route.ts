@@ -55,6 +55,7 @@ export async function GET(
         studentName: project.metadata?.studentName || '',
         matricNumber: project.metadata?.matricNumber || '',
         session: project.metadata?.session || '2025/2026',
+        includeDiagrams: project.metadata?.includeDiagrams !== false,
         isRedownload: true,
       }),
     });

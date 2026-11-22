@@ -513,6 +513,493 @@ export function getDashboardScreenshotSvg(topic: string): string {
   </svg>`;
 }
 
+// 6. Chapter 3 Context Analysis Diagram (DFD Level-0) (Figure 3.2)
+export function getContextDiagramSvg(topic: string): string {
+  const safeTopic = (topic || 'Automated Software System').slice(0, 40);
+  return `
+  <svg width="800" height="480" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="processGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#1e3a8a" />
+        <stop offset="100%" stop-color="#2563eb" />
+      </linearGradient>
+      <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+        <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.15"/>
+      </filter>
+    </defs>
+
+    <rect width="800" height="480" fill="#ffffff" rx="16" />
+    <rect x="15" y="15" width="770" height="450" fill="none" stroke="#cbd5e1" stroke-width="1.5" rx="12" />
+
+    <!-- Diagram Header -->
+    <text x="400" y="42" font-family="'Times New Roman', serif" font-size="16" font-weight="bold" fill="#0f172a" text-anchor="middle">
+      FIGURE 3.2: TOP-LEVEL CONTEXT ANALYSIS DIAGRAM (DFD LEVEL-0)
+    </text>
+    <text x="400" y="62" font-family="Arial, sans-serif" font-size="11" fill="#64748b" text-anchor="middle">
+      Context Boundary for: ${safeTopic}
+    </text>
+
+    <!-- LEFT EXTERNAL ENTITY: User / Client Personnel -->
+    <g transform="translate(40, 160)">
+      <rect width="170" height="130" rx="8" fill="#f8fafc" stroke="#3b82f6" stroke-width="2" filter="url(#shadow)" />
+      <rect width="170" height="28" rx="8" fill="#3b82f6" />
+      <text x="85" y="19" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        EXTERNAL ENTITY 1
+      </text>
+      <text x="85" y="55" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1e293b" text-anchor="middle">
+        End User / Officer
+      </text>
+      <text x="85" y="75" font-family="Arial, sans-serif" font-size="9" fill="#64748b" text-anchor="middle">
+        Operational Personnel
+      </text>
+      <text x="85" y="95" font-family="Arial, sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">
+        Identity Credentials &amp;
+      </text>
+      <text x="85" y="110" font-family="Arial, sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">
+        Service Transaction Inputs
+      </text>
+    </g>
+
+    <!-- CENTRAL CIRCLE: Primary System Process (0.0) -->
+    <g transform="translate(400, 225)">
+      <circle cx="0" cy="0" r="105" fill="url(#processGrad)" stroke="#1d4ed8" stroke-width="3" filter="url(#shadow)" />
+      <circle cx="0" cy="0" r="95" fill="none" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="4 2" />
+      <text x="0" y="-45" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#93c5fd" text-anchor="middle">
+        PROCESS 0.0
+      </text>
+      <text x="0" y="-20" font-family="Arial, sans-serif" font-size="13" font-weight="black" fill="#ffffff" text-anchor="middle">
+        CENTRAL ENGINE
+      </text>
+      <text x="0" y="5" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        ${safeTopic}
+      </text>
+      <text x="0" y="28" font-family="Arial, sans-serif" font-size="9" fill="#bfdbfe" text-anchor="middle">
+        Authentication, Telemetry,
+      </text>
+      <text x="0" y="44" font-family="Arial, sans-serif" font-size="9" fill="#bfdbfe" text-anchor="middle">
+        Control Logic &amp; Logging
+      </text>
+    </g>
+
+    <!-- RIGHT EXTERNAL ENTITY: System Administrator -->
+    <g transform="translate(590, 160)">
+      <rect width="170" height="130" rx="8" fill="#f8fafc" stroke="#8b5cf6" stroke-width="2" filter="url(#shadow)" />
+      <rect width="170" height="28" rx="8" fill="#8b5cf6" />
+      <text x="85" y="19" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        EXTERNAL ENTITY 2
+      </text>
+      <text x="85" y="55" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1e293b" text-anchor="middle">
+        System Administrator
+      </text>
+      <text x="85" y="75" font-family="Arial, sans-serif" font-size="9" fill="#64748b" text-anchor="middle">
+        Supervisor / Command Unit
+      </text>
+      <text x="85" y="95" font-family="Arial, sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">
+        Policy Configuration,
+      </text>
+      <text x="85" y="110" font-family="Arial, sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">
+        User Privileges &amp; Audits
+      </text>
+    </g>
+
+    <!-- BOTTOM EXTERNAL ENTITY: Hardware Actuators / External Database -->
+    <g transform="translate(295, 365)">
+      <rect width="210" height="85" rx="8" fill="#f8fafc" stroke="#059669" stroke-width="2" filter="url(#shadow)" />
+      <rect width="210" height="24" rx="8" fill="#059669" />
+      <text x="105" y="16" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        EXTERNAL ENTITY 3 (HARDWARE / IO)
+      </text>
+      <text x="105" y="45" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1e293b" text-anchor="middle">
+        Hardware Actuators &amp; Sensors
+      </text>
+      <text x="105" y="65" font-family="Arial, sans-serif" font-size="8" fill="#64748b" text-anchor="middle">
+        Door Relays, Solenoids, Alarm Siren &amp; Telemetry
+      </text>
+    </g>
+
+    <!-- FLOW ARROWS: Left Entity <-> Process 0.0 -->
+    <!-- Forward: User -> Process -->
+    <path d="M 210 205 L 295 205" stroke="#2563eb" stroke-width="2" />
+    <polygon points="295,200 305,205 295,210" fill="#2563eb" />
+    <text x="252" y="195" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#1e40af" text-anchor="middle">
+      1: Access Request
+    </text>
+
+    <!-- Return: Process -> User -->
+    <path d="M 305 235 L 220 235" stroke="#059669" stroke-width="2" stroke-dasharray="3 2" />
+    <polygon points="220,230 210,235 220,240" fill="#059669" />
+    <text x="258" y="250" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#047857" text-anchor="middle">
+      2: Access Status
+    </text>
+
+    <!-- FLOW ARROWS: Right Entity <-> Process 0.0 -->
+    <!-- Admin -> Process -->
+    <path d="M 590 205 L 505 205" stroke="#8b5cf6" stroke-width="2" />
+    <polygon points="505,200 495,205 505,210" fill="#8b5cf6" />
+    <text x="548" y="195" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#6d28d9" text-anchor="middle">
+      3: Security Policy
+    </text>
+
+    <!-- Process -> Admin -->
+    <path d="M 495 235 L 580 235" stroke="#d97706" stroke-width="2" stroke-dasharray="3 2" />
+    <polygon points="580,230 590,235 580,240" fill="#d97706" />
+    <text x="542" y="250" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#b45309" text-anchor="middle">
+      4: Audit Logs &amp; Alert
+    </text>
+
+    <!-- FLOW ARROWS: Process <-> Bottom Entity -->
+    <path d="M 385 330 L 385 365" stroke="#059669" stroke-width="2" />
+    <polygon points="380,360 385,370 390,360" fill="#059669" />
+    <text x="350" y="352" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#047857" text-anchor="middle">
+      5: Relay Trigger
+    </text>
+
+    <path d="M 415 365 L 415 330" stroke="#0284c7" stroke-width="2" stroke-dasharray="3 2" />
+    <polygon points="410,335 415,325 420,335" fill="#0284c7" />
+    <text x="450" y="352" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#0369a1" text-anchor="middle">
+      6: Sensor Feedback
+    </text>
+
+    <!-- Footer Note -->
+    <text x="400" y="468" font-family="'Times New Roman', serif" font-size="10" font-style="italic" fill="#64748b" text-anchor="middle">
+      Source: Prepared by Author for System Design &amp; Architectural Verification (2026)
+    </text>
+  </svg>`;
+}
+
+// 7. Chapter 3 Operational Process Flowchart (Figure 3.5)
+export function getFlowchartSvg(topic: string): string {
+  const safeTopic = (topic || 'Automated System').slice(0, 40);
+  return `
+  <svg width="800" height="520" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="boxShadow" x="-5%" y="-5%" width="110%" height="110%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000000" flood-opacity="0.12"/>
+      </filter>
+    </defs>
+
+    <rect width="800" height="520" fill="#ffffff" rx="16" />
+    <rect x="15" y="15" width="770" height="490" fill="none" stroke="#cbd5e1" stroke-width="1.5" rx="12" />
+
+    <!-- Title -->
+    <text x="400" y="42" font-family="'Times New Roman', serif" font-size="16" font-weight="bold" fill="#0f172a" text-anchor="middle">
+      FIGURE 3.5: OPERATIONAL PROCESS &amp; DECISION FLOWCHART
+    </text>
+    <text x="400" y="60" font-family="Arial, sans-serif" font-size="11" fill="#64748b" text-anchor="middle">
+      Sequential Execution Pipeline for: ${safeTopic}
+    </text>
+
+    <!-- Step 1: START (Capsule) -->
+    <g transform="translate(325, 75)">
+      <rect width="150" height="38" rx="19" fill="#059669" filter="url(#boxShadow)" />
+      <text x="75" y="24" font-family="Arial, sans-serif" font-size="12" font-weight="black" fill="#ffffff" text-anchor="middle">
+        START
+      </text>
+    </g>
+
+    <!-- Arrow 1 -> 2 -->
+    <line x1="400" y1="113" x2="400" y2="135" stroke="#334155" stroke-width="2" />
+    <polygon points="396,135 400,143 404,135" fill="#334155" />
+
+    <!-- Step 2: Initialize System & Check Sensors -->
+    <g transform="translate(290, 143)">
+      <rect width="220" height="45" rx="8" fill="#f8fafc" stroke="#0284c7" stroke-width="1.8" filter="url(#boxShadow)" />
+      <text x="110" y="20" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">
+        Initialize Hardware &amp; Services
+      </text>
+      <text x="110" y="35" font-family="Arial, sans-serif" font-size="9" fill="#64748b" text-anchor="middle">
+        Establish SQLite WAL Mode Connection
+      </text>
+    </g>
+
+    <!-- Arrow 2 -> 3 -->
+    <line x1="400" y1="188" x2="400" y2="208" stroke="#334155" stroke-width="2" />
+    <polygon points="396,208 400,216 404,208" fill="#334155" />
+
+    <!-- Step 3: Input Capture (Parallelogram) -->
+    <g transform="translate(270, 216)">
+      <polygon points="20,0 260,0 240,45 0,45" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8" filter="url(#boxShadow)" />
+      <text x="130" y="20" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#1e40af" text-anchor="middle">
+        Read Input / Credentials
+      </text>
+      <text x="130" y="35" font-family="Arial, sans-serif" font-size="9" fill="#3b82f6" text-anchor="middle">
+        PIN, RFID Badge, Biometric, or Token
+      </text>
+    </g>
+
+    <!-- Arrow 3 -> 4 -->
+    <line x1="400" y1="261" x2="400" y2="283" stroke="#334155" stroke-width="2" />
+    <polygon points="396,283 400,291 404,283" fill="#334155" />
+
+    <!-- Step 4: Decision Diamond -->
+    <g transform="translate(400, 335)">
+      <polygon points="0,-44 110,0 0,44 -110,0" fill="#fef3c7" stroke="#d97706" stroke-width="2" filter="url(#boxShadow)" />
+      <text x="0" y="-8" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#92400e" text-anchor="middle">
+        Credentials Valid
+      </text>
+      <text x="0" y="8" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#92400e" text-anchor="middle">
+        &amp; Authorized?
+      </text>
+    </g>
+
+    <!-- Decision NO (Branch Left) -->
+    <line x1="290" y1="335" x2="160" y2="335" stroke="#ef4444" stroke-width="2" />
+    <polygon points="160,331 152,335 160,339" fill="#ef4444" />
+    <text x="215" y="325" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#dc2626" text-anchor="middle">
+      [NO / ACCESS DENIED]
+    </text>
+
+    <!-- Denied Handler -->
+    <g transform="translate(40, 312)">
+      <rect width="112" height="48" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.8" filter="url(#boxShadow)" />
+      <text x="56" y="20" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#991b1b" text-anchor="middle">
+        Log Security Alert
+      </text>
+      <text x="56" y="35" font-family="Arial, sans-serif" font-size="8" fill="#b91c1c" text-anchor="middle">
+        Trigger Buzzer / Lock
+      </text>
+    </g>
+
+    <!-- Denied loops back to Standby -->
+    <path d="M 96 312 L 96 238 L 260 238" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3" />
+    <polygon points="260,234 268,238 260,242" fill="#ef4444" />
+    <text x="175" y="230" font-family="Arial, sans-serif" font-size="8" fill="#dc2626" text-anchor="middle">
+      Return to Idle
+    </text>
+
+    <!-- Decision YES (Branch Down) -->
+    <line x1="400" y1="379" x2="400" y2="405" stroke="#059669" stroke-width="2" />
+    <polygon points="396,405 400,413 404,405" fill="#059669" />
+    <text x="430" y="398" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#059669" text-anchor="start">
+      [YES / GRANTED]
+    </text>
+
+    <!-- Step 5: Execute Actuation & Record in DB -->
+    <g transform="translate(270, 413)">
+      <rect width="260" height="44" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.8" filter="url(#boxShadow)" />
+      <text x="130" y="18" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#065f46" text-anchor="middle">
+        Trigger Actuator &amp; Commit ACID Audit
+      </text>
+      <text x="130" y="33" font-family="Arial, sans-serif" font-size="8" fill="#047857" text-anchor="middle">
+        Disengage Solenoid Lock (5s) + Insert Audit Row
+      </text>
+    </g>
+
+    <!-- Arrow 5 -> END -->
+    <line x1="530" y1="435" x2="630" y2="435" stroke="#334155" stroke-width="2" />
+    <polygon points="630,431 638,435 630,439" fill="#334155" />
+
+    <!-- Step 6: END (Capsule) -->
+    <g transform="translate(638, 416)">
+      <rect width="110" height="38" rx="19" fill="#1e293b" filter="url(#boxShadow)" />
+      <text x="55" y="24" font-family="Arial, sans-serif" font-size="11" font-weight="black" fill="#ffffff" text-anchor="middle">
+        STANDBY
+      </text>
+    </g>
+
+    <text x="400" y="495" font-family="'Times New Roman', serif" font-size="10" font-style="italic" fill="#64748b" text-anchor="middle">
+      Source: Prepared by Candidate Researcher for Formal Algorithmic Verification (2026)
+    </text>
+  </svg>`;
+}
+
+// 8. Chapter 4 Software UI Screenshot: Administrator Audit Log & Telemetry (Figure 4.3)
+export function getAdminAuditScreenshotSvg(topic: string): string {
+  const safeTopic = (topic || 'Automated Software System').slice(0, 42);
+  return `
+  <svg width="800" height="480" xmlns="http://www.w3.org/2000/svg">
+    <!-- Window Frame -->
+    <rect width="800" height="480" rx="14" fill="#0f172a" />
+    
+    <!-- Title Bar -->
+    <rect width="800" height="40" rx="14" fill="#1e293b" />
+    <rect y="26" width="800" height="14" fill="#1e293b" />
+    <circle cx="22" cy="20" r="5.5" fill="#ef4444" />
+    <circle cx="38" cy="20" r="5.5" fill="#f59e0b" />
+    <circle cx="54" cy="20" r="5.5" fill="#10b981" />
+    
+    <!-- Address Bar -->
+    <rect x="180" y="8" width="440" height="24" rx="6" fill="#0f172a" />
+    <text x="400" y="24" font-family="monospace" font-size="10" fill="#38bdf8" text-anchor="middle">
+      🔒 http://localhost:8000/admin/audit-logs
+    </text>
+
+    <!-- Main Viewport -->
+    <rect x="0" y="40" width="800" height="440" fill="#f8fafc" />
+
+    <!-- Top Sub-Header -->
+    <g transform="translate(25, 55)">
+      <rect width="750" height="52" rx="10" fill="#ffffff" stroke="#e2e8f0" />
+      <text x="20" y="24" font-family="Arial, sans-serif" font-size="13" font-weight="black" fill="#0f172a">
+        ${safeTopic} — Security &amp; Event Audit Trail
+      </text>
+      <text x="20" y="41" font-family="Arial, sans-serif" font-size="9" fill="#64748b">
+        Cryptographic Proof of Access • Immutable SQLite Log • 24/7 Monitoring
+      </text>
+
+      <rect x="580" y="11" width="150" height="30" rx="6" fill="#059669" />
+      <text x="655" y="30" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        Export Audit (.CSV)
+      </text>
+    </g>
+
+    <!-- Security KPI Tiles -->
+    <g transform="translate(25, 118)">
+      <rect x="0" y="0" width="235" height="55" rx="8" fill="#ffffff" stroke="#e2e8f0" />
+      <text x="15" y="22" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#64748b">LOGGED EVENTS (24H)</text>
+      <text x="15" y="44" font-family="Arial, sans-serif" font-size="18" font-weight="black" fill="#0f172a">1,489 Entries</text>
+
+      <rect x="257" y="0" width="235" height="55" rx="8" fill="#ffffff" stroke="#e2e8f0" />
+      <text x="272" y="22" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#64748b">UNAUTHORIZED ATTEMPTS</text>
+      <text x="272" y="44" font-family="Arial, sans-serif" font-size="18" font-weight="black" fill="#dc2626">2 Denied (0 Breach)</text>
+
+      <rect x="515" y="0" width="235" height="55" rx="8" fill="#ffffff" stroke="#e2e8f0" />
+      <text x="530" y="22" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#64748b">SYSTEM INTEGRITY</text>
+      <text x="530" y="44" font-family="Arial, sans-serif" font-size="18" font-weight="black" fill="#059669">100% OPERATIONAL</text>
+    </g>
+
+    <!-- Audit Log Table -->
+    <g transform="translate(25, 185)">
+      <rect width="750" height="280" rx="10" fill="#ffffff" stroke="#e2e8f0" />
+      
+      <!-- Header Row -->
+      <rect width="750" height="34" rx="10" fill="#f1f5f9" />
+      <text x="15" y="22" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#475569">TIMESTAMP</text>
+      <text x="150" y="22" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#475569">ACTOR / OPERATOR</text>
+      <text x="310" y="22" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#475569">EVENT CLASSIFICATION</text>
+      <text x="490" y="22" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#475569">STATION / PORT</text>
+      <text x="630" y="22" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#475569">SECURITY VERDICT</text>
+
+      <!-- Row 1 -->
+      <line x1="0" y1="75" x2="750" y2="75" stroke="#f1f5f9" />
+      <text x="15" y="58" font-family="monospace" font-size="10" fill="#0f172a">2026-11-22 10:14:02</text>
+      <text x="150" y="58" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#0f172a">Officer K. Adamu (#0812)</text>
+      <text x="310" y="58" font-family="Arial, sans-serif" font-size="10" fill="#334155">Secure Biometric Entry</text>
+      <text x="490" y="58" font-family="monospace" font-size="10" fill="#64748b">Door_Relay_01</text>
+      <rect x="625" y="44" width="75" height="18" rx="4" fill="#dcfce7" />
+      <text x="662" y="57" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#166534" text-anchor="middle">GRANTED</text>
+
+      <!-- Row 2 -->
+      <line x1="0" y1="120" x2="750" y2="120" stroke="#f1f5f9" />
+      <text x="15" y="103" font-family="monospace" font-size="10" fill="#0f172a">2026-11-22 10:18:45</text>
+      <text x="150" y="103" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#0f172a">Supervisory Terminal</text>
+      <text x="310" y="103" font-family="Arial, sans-serif" font-size="10" fill="#334155">Door Override Lockout</text>
+      <text x="490" y="103" font-family="monospace" font-size="10" fill="#64748b">Armory_Lock_03</text>
+      <rect x="625" y="89" width="75" height="18" rx="4" fill="#dcfce7" />
+      <text x="662" y="102" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#166534" text-anchor="middle">SUCCESS</text>
+
+      <!-- Row 3 -->
+      <line x1="0" y1="165" x2="750" y2="165" stroke="#f1f5f9" />
+      <text x="15" y="148" font-family="monospace" font-size="10" fill="#dc2626">2026-11-22 10:22:19</text>
+      <text x="150" y="148" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#dc2626">Unknown Card (UID: 7F2A)</text>
+      <text x="310" y="148" font-family="Arial, sans-serif" font-size="10" fill="#dc2626">Unregistered Access Attempt</text>
+      <text x="490" y="148" font-family="monospace" font-size="10" fill="#64748b">Door_Relay_02</text>
+      <rect x="625" y="134" width="75" height="18" rx="4" fill="#fee2e2" />
+      <text x="662" y="147" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#991b1b" text-anchor="middle">DENIED</text>
+
+      <!-- Row 4 -->
+      <line x1="0" y1="210" x2="750" y2="210" stroke="#f1f5f9" />
+      <text x="15" y="193" font-family="monospace" font-size="10" fill="#0f172a">2026-11-22 10:25:30</text>
+      <text x="150" y="193" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#0f172a">System Daemon</text>
+      <text x="310" y="193" font-family="Arial, sans-serif" font-size="10" fill="#334155">Telemetry Health Benchmark</text>
+      <text x="490" y="193" font-family="monospace" font-size="10" fill="#64748b">Master_Controller</text>
+      <rect x="625" y="179" width="75" height="18" rx="4" fill="#e0f2fe" />
+      <text x="662" y="192" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#0369a1" text-anchor="middle">VERIFIED</text>
+    </g>
+  </svg>`;
+}
+
+// 9. Chapter 4 Automated Test Execution Runner & Pass Matrix (Figure 4.4)
+export function getTestingResultsSvg(topic: string): string {
+  const safeTopic = (topic || 'Automated Software System').slice(0, 42);
+  return `
+  <svg width="800" height="480" xmlns="http://www.w3.org/2000/svg">
+    <!-- Dark Terminal Console Frame -->
+    <rect width="800" height="480" rx="14" fill="#090d16" />
+    
+    <!-- Window Bar -->
+    <rect width="800" height="38" rx="14" fill="#131b2e" />
+    <rect y="24" width="800" height="14" fill="#131b2e" />
+    <circle cx="20" cy="19" r="5" fill="#ef4444" />
+    <circle cx="36" cy="19" r="5" fill="#f59e0b" />
+    <circle cx="52" cy="19" r="5" fill="#10b981" />
+    <text x="400" y="24" font-family="monospace" font-size="11" font-weight="bold" fill="#94a3b8" text-anchor="middle">
+      Terminal — Automated Test Bench Execution Runner (PyTest / Unit Verification)
+    </text>
+
+    <!-- Terminal Output Body -->
+    <g transform="translate(30, 65)">
+      <!-- Command Invocation -->
+      <text x="0" y="20" font-family="monospace" font-size="11" fill="#38bdf8">
+        developer@codethesis-bench:~$ python -m pytest tests/ -v --tb=short
+      </text>
+
+      <!-- Suite Header -->
+      <text x="0" y="45" font-family="monospace" font-size="10" fill="#64748b">
+        ============================= test session starts ==============================
+      </text>
+      <text x="0" y="65" font-family="monospace" font-size="10" fill="#94a3b8">
+        platform linux -- Python 3.11.8, pytest-8.1.1, pluggy-1.4.0 -- /usr/bin/python3
+      </text>
+      <text x="0" y="85" font-family="monospace" font-size="10" fill="#94a3b8">
+        rootdir: /opt/codethesis/prototype/${safeTopic.replace(/\s+/g, '_').toLowerCase()}
+      </text>
+      <text x="0" y="105" font-family="monospace" font-size="10" fill="#94a3b8">
+        collected 8 items
+      </text>
+
+      <!-- Test Cases -->
+      <text x="0" y="135" font-family="monospace" font-size="11" fill="#e2e8f0">
+        tests/test_auth.py::test_pbkdf2_password_hashing
+      </text>
+      <text x="560" y="135" font-family="monospace" font-size="11" font-weight="bold" fill="#4ade80">PASSED [ 12% ]</text>
+
+      <text x="0" y="160" font-family="monospace" font-size="11" fill="#e2e8f0">
+        tests/test_auth.py::test_role_based_access_control_matrix
+      </text>
+      <text x="560" y="160" font-family="monospace" font-size="11" font-weight="bold" fill="#4ade80">PASSED [ 25% ]</text>
+
+      <text x="0" y="185" font-family="monospace" font-size="11" fill="#e2e8f0">
+        tests/test_security.py::test_door_lock_actuator_response_time
+      </text>
+      <text x="560" y="185" font-family="monospace" font-size="11" font-weight="bold" fill="#4ade80">PASSED [ 37% ]</text>
+
+      <text x="0" y="210" font-family="monospace" font-size="11" fill="#e2e8f0">
+        tests/test_security.py::test_tamper_sensor_emergency_trigger
+      </text>
+      <text x="560" y="210" font-family="monospace" font-size="11" font-weight="bold" fill="#4ade80">PASSED [ 50% ]</text>
+
+      <text x="0" y="235" font-family="monospace" font-size="11" fill="#e2e8f0">
+        tests/test_db.py::test_sqlite_wal_acid_transaction_locking
+      </text>
+      <text x="560" y="235" font-family="monospace" font-size="11" font-weight="bold" fill="#4ade80">PASSED [ 62% ]</text>
+
+      <text x="0" y="260" font-family="monospace" font-size="11" fill="#e2e8f0">
+        tests/test_db.py::test_foreign_key_referential_integrity
+      </text>
+      <text x="560" y="260" font-family="monospace" font-size="11" font-weight="bold" fill="#4ade80">PASSED [ 75% ]</text>
+
+      <text x="0" y="285" font-family="monospace" font-size="11" fill="#e2e8f0">
+        tests/test_audit.py::test_immutable_audit_log_persisted
+      </text>
+      <text x="560" y="285" font-family="monospace" font-size="11" font-weight="bold" fill="#4ade80">PASSED [ 87% ]</text>
+
+      <text x="0" y="310" font-family="monospace" font-size="11" fill="#e2e8f0">
+        tests/test_load.py::test_50_concurrent_requests_latency
+      </text>
+      <text x="560" y="310" font-family="monospace" font-size="11" font-weight="bold" fill="#4ade80">PASSED [ 100% ]</text>
+
+      <!-- Summary Banner Box -->
+      <g transform="translate(0, 335)">
+        <rect width="740" height="42" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1.5" />
+        <text x="370" y="26" font-family="monospace" font-size="12" font-weight="bold" fill="#f0fdf4" text-anchor="middle">
+          ====== 8 passed, 0 failed, 0 warnings in 0.318s (100% PASS RATE) ======
+        </text>
+      </g>
+    </g>
+  </svg>`;
+}
+
 // Convert SVG strings to high-resolution PNG buffers via Sharp
 export async function renderSvgToPngBuffer(svgString: string): Promise<Buffer> {
   return await sharp(Buffer.from(svgString)).png().toBuffer();

@@ -53,6 +53,7 @@ export default function ThesisToolPage() {
   }, [user]);
 
   const [activeChapter, setActiveChapter] = useState(1);
+  const [includeDiagrams, setIncludeDiagrams] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -80,6 +81,7 @@ export default function ThesisToolPage() {
         matricNumber,
         session,
         aiCustomContent,
+        includeDiagrams,
       },
       `5_Chapter_Thesis_${course ? course.replace(/\s+/g, '_') : 'Dissertation'}.docx`
     );
@@ -274,6 +276,30 @@ export default function ThesisToolPage() {
               </div>
             </div>
 
+            {/* Architectural Diagrams & Screenshot Placement Guides Toggle */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label
+                  className="text-xs font-bold text-slate-800 flex items-center gap-1.5 cursor-pointer select-none"
+                  onClick={() => setIncludeDiagrams(!includeDiagrams)}
+                >
+                  <Layers className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Engineering Diagrams & Guides</span>
+                </label>
+                <input
+                  type="checkbox"
+                  checked={includeDiagrams}
+                  onChange={e => setIncludeDiagrams(e.target.checked)}
+                  className="w-4 h-4 accent-amber-500 cursor-pointer rounded"
+                />
+              </div>
+              <p className="text-[10px] text-slate-500 leading-relaxed">
+                {includeDiagrams
+                  ? "Includes 9+ high-resolution figures (DFD Context, Architecture, ERD, Flowchart, UI Mockups) with explicit candidate screenshot guides."
+                  : "Generates a clean text-only dissertation without embedded diagrams or List of Figures."}
+              </p>
+            </div>
+
             {/* Primary Action Button */}
             <button
               onClick={handleStartGeneration}
@@ -369,6 +395,31 @@ export default function ThesisToolPage() {
               </button>
             </div>
           </div>
+
+          {/* Diagrams & Visuals Notice in Preview */}
+          {includeDiagrams && activeChapter === 3 && (
+            <div className="bg-blue-50/80 border border-blue-200/90 rounded-xl p-3 text-xs text-blue-900 flex items-start gap-2.5">
+              <Layers className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">Chapter 3 Vector Architecture Suite Enabled: </span>
+                <span className="text-blue-800">
+                  Includes 5 publication-ready diagrams in Word (.docx): Figure 3.1 (3-Tier Architecture), Figure 3.2 (DFD Context Diagram Level-0), Figure 3.3 (UML Use Case Specification), Figure 3.4 (3NF ERD Relational Schema), and Figure 3.5 (Operational Process Flowchart).
+                </span>
+              </div>
+            </div>
+          )}
+
+          {includeDiagrams && activeChapter === 4 && (
+            <div className="bg-blue-50/80 border border-blue-200/90 rounded-xl p-3 text-xs text-blue-900 flex items-start gap-2.5">
+              <Layers className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">Chapter 4 Prototype Interfaces &amp; Screenshot Guides Enabled: </span>
+                <span className="text-blue-800">
+                  Includes 4 prototype figures (Figure 4.1 Login, Figure 4.2 Dashboard, Figure 4.3 Audit Trail, Figure 4.4 Automated PyTest Suite) complete with candidate screenshot placement instructions!
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Academic Content Preview Area */}
           <div className="font-serif text-slate-800 text-xs sm:text-sm leading-relaxed space-y-4 max-h-[600px] overflow-y-auto pr-2">
@@ -485,6 +536,50 @@ export default function ThesisToolPage() {
                 placeholder="e.g. Dr. A. B. Ibrahim (Ph.D)"
                 className="w-full h-10 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 rounded-xl px-2.5 text-xs text-slate-800 outline-none transition-all shadow-xs"
               />
+            </div>
+
+            {/* Visual Engineering Diagrams Option */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-800 flex items-center justify-between">
+                <span>Visual Diagrams &amp; Screenshot Guides:</span>
+                <span className="text-[10px] text-amber-600 font-semibold">{includeDiagrams ? '9+ Figures Enabled' : 'Text-Only'}</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIncludeDiagrams(true)}
+                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    includeDiagrams
+                      ? 'bg-amber-500/10 border-amber-500 text-amber-950 font-bold ring-2 ring-amber-500/20'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="text-xs font-bold flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Include Diagrams (9+)</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-1 font-normal leading-tight">
+                    Architecture, DFD Context, ERD, Flowchart, UI &amp; screenshot placement guides.
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIncludeDiagrams(false)}
+                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    !includeDiagrams
+                      ? 'bg-amber-500/10 border-amber-500 text-amber-950 font-bold ring-2 ring-amber-500/20'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="text-xs font-bold flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Text-Only Thesis</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-1 font-normal leading-tight">
+                    Pure academic dissertation text without embedded diagrams or List of Figures.
+                  </div>
+                </button>
+              </div>
             </div>
 
             {/* Action Buttons */}
