@@ -35,7 +35,7 @@ import {
   PositionalTabLeader,
   PositionalTabRelativeTo,
 } from "docx";
-import { extractDomainFromTopic, cleanThesisTopicTitle } from "@/lib/thesisHelpers";
+import { extractDomainFromTopic, cleanThesisTopicTitle, stripTrailingReferences } from "@/lib/thesisHelpers";
 
 export async function POST(req: NextRequest) {
   try {
@@ -1037,7 +1037,8 @@ export async function POST(req: NextRequest) {
       // If it exists AND is sufficiently long (not a 2-sentence stub!), use it
       const userChapterText = userChapters[ch];
       if (userChapterText && userChapterText.trim().length >= 800) {
-        docChildren.push(...parseMarkdownToDocx(userChapterText));
+        const textToRender = ch < 5 ? stripTrailingReferences(userChapterText) : userChapterText;
+        docChildren.push(...parseMarkdownToDocx(textToRender));
         await appendChapterVisuals(ch);
         docChildren.push(new Paragraph({ children: [new PageBreak()] }));
         continue;
@@ -1073,7 +1074,8 @@ export async function POST(req: NextRequest) {
         chapterMarkdown = generateDynamicChapterText(topic, course, institution, effectiveCaseStudy, ch);
       }
 
-      docChildren.push(...parseMarkdownToDocx(chapterMarkdown));
+      const finalChapterMarkdown = ch < 5 ? stripTrailingReferences(chapterMarkdown) : chapterMarkdown;
+      docChildren.push(...parseMarkdownToDocx(finalChapterMarkdown));
       await appendChapterVisuals(ch);
       docChildren.push(new Paragraph({ children: [new PageBreak()] }));
     }

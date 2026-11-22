@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authorizeAndDeductCredits, ToolKey } from '@/lib/credits';
 import { generateAcademicAI, buildChapterUserPrompt } from '@/lib/ai';
+import { stripTrailingReferences } from '@/lib/thesisHelpers';
 import { checkRateLimit } from '@/lib/rateLimiter';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -85,7 +86,8 @@ Adhere strictly to formal academic English, APA 7th referencing with Crossref DO
             maxTokens: 4000,
             preferredProvider: 'groq',
           });
-          return { ch: `ch${chNum}`, content: res.content };
+          const cleanedContent = (chNum < 5 && res.content) ? stripTrailingReferences(res.content) : res.content;
+          return { ch: `ch${chNum}`, content: cleanedContent };
         } catch {
           return { ch: `ch${chNum}`, content: '' };
         }
@@ -116,7 +118,7 @@ Adhere strictly to formal academic English, APA 7th referencing with Crossref DO
         caseStudy,
       });
     } else if (!userQuery) {
-      userQuery = `Generate an exhaustive academic section for Chapter ${chapterNumber || 1} on the topic: "${topic}". Include introduction, theoretical framework, methodology/implementation analysis, and references.`;
+      userQuery = `Generate an exhaustive academic section for Chapter ${chapterNumber || 1} on the topic: "${topic}". Include introduction, theoretical framework, methodology/implementation analysis. Do NOT append references at the end.`;
     }
 
     const aiRes = await generateAcademicAI({
@@ -127,10 +129,14 @@ Adhere strictly to formal academic English, APA 7th referencing with Crossref DO
       preferredProvider: 'groq',
     });
 
+    const finalContent = (chapterNumber && Number(chapterNumber) < 5 && aiRes.content)
+      ? stripTrailingReferences(aiRes.content)
+      : aiRes.content;
+
     return NextResponse.json({
       success: true,
       provider: `${aiRes.provider} (${aiRes.model})`,
-      content: aiRes.content,
+      content: finalContent,
       topic,
       course,
       institution,

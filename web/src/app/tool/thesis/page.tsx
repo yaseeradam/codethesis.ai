@@ -26,7 +26,7 @@ import {
 import CourseSelect from '@/components/ui/CourseSelect';
 import InstitutionSelect from '@/components/ui/InstitutionSelect';
 import AcademicTextRenderer from '@/components/ui/AcademicTextRenderer';
-import { getSuggestedCaseStudies, extractDomainFromTopic } from '@/lib/thesisHelpers';
+import { getSuggestedCaseStudies, extractDomainFromTopic, stripTrailingReferences } from '@/lib/thesisHelpers';
 
 export default function ThesisToolPage() {
   const { user } = useAuth();
@@ -127,9 +127,10 @@ export default function ThesisToolPage() {
       });
       const data = await res.json();
       if (data.success && data.content) {
+        const displayContent = activeChapter < 5 ? stripTrailingReferences(data.content) : data.content;
         setAiCustomContent(prev => ({
           ...prev,
-          [activeChapter]: data.content,
+          [activeChapter]: displayContent,
         }));
         setSuccessBanner(`Chapter ${activeChapter} synthesized successfully for ${resolvedCaseStudy}! Preview updated below.`);
         if (typeof data.remainingCredits === 'number' && typeof window !== 'undefined') {

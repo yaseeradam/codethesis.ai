@@ -25,7 +25,7 @@ export function getGroqPoolKeys(): string[] {
 }
 
 import { convertLatexFormula, sanitizeAcademicTextMath } from './mathConverter';
-import { extractDomainFromTopic } from './thesisHelpers';
+import { extractDomainFromTopic, stripTrailingReferences } from './thesisHelpers';
 
 export interface AIResponse {
   content: string;
@@ -564,6 +564,7 @@ CRITICAL FORMATTING & EXTENSIVE LENGTH REQUIREMENTS:
 4. NO RAW LATEX MATH MARKUP: Strictly do NOT output raw LaTeX math markup (such as $$, $, \\frac{...}{...}, \\sum, \\sqrt, or \\begin{equation}). Format all mathematical formulas and equations using clean, universally readable standard academic notation with explicit equation numbering on its own centered line:
    (Equation 3.1)    S = 1 / [1 + d(F_q, F_t)]
    where d(F_q, F_t) is the distance function between feature vectors F_q and F_t.
+5. STRICTLY NO REFERENCES OR BIBLIOGRAPHY AT THE END: Do NOT output a "References" or "Bibliography" list at the end of this chapter. In canonical university dissertation format, references are compiled exclusively in a single dedicated section at the very end of the entire thesis (after Chapter Five). Conclude this chapter immediately after its final operational section without any trailing references list.
 `;
 
   if (chapterNumber === 1) {
@@ -585,6 +586,8 @@ Follow the canonical 10-section dissertation structure (Reference: Nigerian Univ
 1.8 Methodology (Software development lifecycle model adopted e.g. Agile/Prototyping/Waterfall, data gathering instruments)
 1.9 Organization of the Study (Paragraph-by-paragraph structural overview of Chapters 1 through 5)
 1.10 Definition of Terms (Key operational and technical terms defined in the specific context of this project)
+
+CRITICAL INSTRUCTION: Conclude Chapter One immediately after Section 1.10 (Definition of Terms). DO NOT append any References or Bibliography list at the end of Chapter One.
 
 ${formattingRules}
 Write complete, rigorous academic paragraphs for every single section. Do not summarize or omit any section.`;
@@ -688,11 +691,17 @@ export async function generateThesisChapterAI(params: ThesisChapterPromptParams)
   const systemPrompt = `You are CodeThesis AI, a distinguished university professor and academic project supervisor in ${params.course} at ${params.institution}.
 Write in authoritative, publishable academic English adhering strictly to National Universities Commission (NUC) benchmark dissertation standards.`;
 
-  return generateAcademicAI({
+  const aiRes = await generateAcademicAI({
     prompt,
     systemPrompt,
     temperature: 0.65,
     maxTokens: 4000,
     preferredProvider: 'groq',
   });
+
+  if (params.chapterNumber < 5 && aiRes && aiRes.content) {
+    aiRes.content = stripTrailingReferences(aiRes.content);
+  }
+
+  return aiRes;
 }

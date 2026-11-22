@@ -173,3 +173,15 @@ export function getSuggestedCaseStudies(topic: string, awardingInstitution?: str
     "Generalized Academic Research (Broad Domain)",
   ];
 }
+
+/**
+ * Strips any stray References or Bibliography section from individual chapters (Chapters 1–4).
+ * In Nigerian and standard university dissertations, the References section belongs
+ * exclusively at the very end of the entire thesis (after Chapter 5).
+ */
+export function stripTrailingReferences(text: string): string {
+  if (!text) return "";
+  const refPattern = /(?:\r?\n)+\s*(?:#{1,4}\s*|\*{1,3}\s*)?(?:REFERENCES|BIBLIOGRAPHY|WORKS CITED|REFERENCE LIST)\b[\s\S]*$/i;
+  return text.replace(refPattern, "").trim();
+}
+
