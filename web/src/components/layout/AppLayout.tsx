@@ -242,37 +242,8 @@ export default function AppLayout({
           </div>
         </div>
 
-        {/* Bottom Section: In-Sidebar Upgrade Card & Student Profile */}
-        <div className="mt-4 pt-1">
-          {/* Upgrade to Pro Card */}
-          {!isSidebarCollapsed ? (
-            <div className="relative overflow-hidden rounded-2xl p-3.5 bg-gradient-to-b from-[#131D42]/90 to-[#0B132B]/90 border border-amber-500/30 shadow-lg mb-3">
-              <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
-                <Crown className="w-4 h-4 fill-amber-400" />
-                <span>Upgrade to Pro</span>
-              </div>
-              <p className="text-[11px] text-slate-300 leading-tight mb-2.5">
-                Unlock unlimited access to all tools and features.
-              </p>
-              <Link
-                href="/pricing"
-                prefetch={false}
-                className="block text-center w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold py-1.5 px-3 rounded-xl text-xs shadow-md gold-shimmer transition-transform active:scale-95"
-              >
-                Go Pro &rarr;
-              </Link>
-            </div>
-          ) : (
-            <Link
-              href="/pricing"
-              prefetch={false}
-              title="Upgrade to Pro"
-              className="flex justify-center p-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 transition-colors mb-2.5"
-            >
-              <Crown className="w-4 h-4 fill-amber-400" />
-            </Link>
-          )}
-
+        {/* Bottom Section: Student Profile & Settings */}
+        <div className="mt-4 pt-1 border-t border-white/5">
           {/* Student Profile Pill */}
           <Link
             href="/settings"
