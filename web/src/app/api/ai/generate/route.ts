@@ -82,9 +82,9 @@ Adhere strictly to formal academic English, APA 7th referencing with Crossref DO
           const res = await generateAcademicAI({
             prompt: chPrompt,
             systemPrompt,
-            temperature: 0.65,
-            maxTokens: 4000,
-            preferredProvider: 'groq',
+            temperature: 0.78,
+            maxTokens: 5000,
+            preferredProvider: 'gemini',
           });
           const cleanedContent = (chNum < 5 && res.content) ? stripTrailingReferences(res.content) : res.content;
           return { ch: `ch${chNum}`, content: cleanedContent };
@@ -109,7 +109,7 @@ Adhere strictly to formal academic English, APA 7th referencing with Crossref DO
     }
 
     let userQuery = prompt;
-    if (!userQuery && chapterNumber) {
+    if (chapterNumber) {
       userQuery = buildChapterUserPrompt({
         topic,
         course,
@@ -118,15 +118,15 @@ Adhere strictly to formal academic English, APA 7th referencing with Crossref DO
         caseStudy,
       });
     } else if (!userQuery) {
-      userQuery = `Generate an exhaustive academic section for Chapter ${chapterNumber || 1} on the topic: "${topic}". Include introduction, theoretical framework, methodology/implementation analysis. Do NOT append references at the end.`;
+      userQuery = `Generate an exhaustive academic section on the topic: "${topic}". Include introduction, theoretical framework, methodology/implementation analysis. Do NOT append references at the end.`;
     }
 
     const aiRes = await generateAcademicAI({
       prompt: userQuery,
       systemPrompt,
-      temperature: 0.7,
-      maxTokens: 4000,
-      preferredProvider: 'groq',
+      temperature: 0.78,
+      maxTokens: 5000,
+      preferredProvider: 'gemini',
     });
 
     const finalContent = (chapterNumber && Number(chapterNumber) < 5 && aiRes.content)

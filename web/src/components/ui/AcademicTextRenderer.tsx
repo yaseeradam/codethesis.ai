@@ -14,12 +14,21 @@ export default function AcademicTextRenderer({ content, chapterNumber = 1 }: Aca
   // Split into paragraphs / lines
   const lines = content.split('\n');
   let equationCount = 1;
+  let activeSection = '';
 
   return (
     <div className="space-y-3.5 text-slate-800 font-serif leading-relaxed text-xs sm:text-sm text-justify">
       {lines.map((rawLine, idx) => {
-        const line = rawLine.trim();
+        let line = rawLine.trim();
         if (!line) return null;
+
+        // Strip outer bold wrapping if an entire paragraph was accidentally wrapped in **...**
+        if (line.startsWith('**') && line.endsWith('**') && line.length > 80) {
+          line = line.slice(2, -2).trim();
+        }
+        if (line.startsWith('__') && line.endsWith('__') && line.length > 80) {
+          line = line.slice(2, -2).trim();
+        }
 
         // Mathematical Equation Block
         if (isMathEquation(line)) {
@@ -43,9 +52,30 @@ export default function AcademicTextRenderer({ content, chapterNumber = 1 }: Aca
           );
         }
 
+        const cleanNoMd = line.replace(/^#+\s*/, '').replace(/[*_#`]/g, '').trim();
+
+        // Track section numbers
+        const secMatch = cleanNoMd.match(/^(\d+\.\d+)(?!\.\d)/);
+        if (secMatch) {
+          activeSection = secMatch[1];
+        }
+
+        // SPECIAL FIX FOR 3.1: All text under 3.1 is regular normal paragraph, never headed or bolded
+        if (activeSection === '3.1' && !cleanNoMd.toLowerCase().includes('3.1 introduction') && !/^3\.2\b/.test(cleanNoMd) && !/^##\s+3\.2\b/.test(line)) {
+          if (!/^[-*+]\s+/.test(line) && !/^\d+\.\s+/.test(line)) {
+            const cleanBodyText = cleanNoMd.replace(/^(\d+\.\d+(\.\d+)?\s*[-:–—]?\s*)/, '');
+            const sanitizedPara = sanitizeAcademicTextMath(cleanBodyText);
+            return (
+              <p key={idx} className="indent-6 leading-relaxed">
+                {sanitizedPara}
+              </p>
+            );
+          }
+        }
+
         // Section Heading (e.g. "1.1 Background of the Study" or "### ...")
-        const isHeading = /^(\d+\.\d+(\.\d+)?|\bCHAPTER\b)/i.test(line) || /^#+\s+/.test(line);
-        if (isHeading && line.length < 120) {
+        const isHeading = (/^(\d+\.\d+(\.\d+)?|\bCHAPTER\b)/i.test(line) || /^#+\s+/.test(line)) && cleanNoMd.length < 110 && !/[.!?]$/.test(cleanNoMd);
+        if (isHeading) {
           const cleanHeading = line.replace(/^#+\s*/, '').replace(/[*_#`]/g, '').trim();
           return (
             <h3 key={idx} className="font-sans font-bold text-slate-900 text-sm sm:text-base pt-3 pb-1 border-b border-slate-100">

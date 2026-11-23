@@ -570,6 +570,7 @@ CRITICAL FORMATTING & EXTENSIVE LENGTH REQUIREMENTS:
    - If the project involves healthcare, finance, agriculture, commerce, logistics, or IoT: describe the exact real-world operational workflows of that specific industry.
    - NEVER fabricate student registration, bursary queues, or student fees unless the project topic is explicitly an educational student portal.
    - Dynamic Uniqueness Seed: Formulate a fresh, innovative technical approach with specific hardware/software protocols, detailed domain-specific data structures, and tailored empirical metrics so that this project is truly one-of-a-kind.
+7. SECTION INTRODUCTIONS ARE STANDARD BODY PARAGRAPHS: All introductory sections (such as 1.1, 2.1, 3.1, 4.1, 5.1) must contain ONLY standard, regular narrative paragraphs. Do NOT insert any sub-headings (e.g. no 3.1.1, no bold title headers like "Design Philosophy and Objectives") or bullet lists under 3.1; all text under 3.1 must be regular flowing academic prose like the rest of the text.
 `;
 
   if (chapterNumber === 1) {
@@ -621,7 +622,7 @@ Department: ${course}
 ${contextHeader}
 
 Follow the canonical engineering structure:
-3.1 Introduction (Design philosophy and objectives of system analysis)
+3.1 Introduction (Write 2 to 3 dense academic paragraphs introducing system analysis goals, design philosophy, and operational context. Strictly do NOT insert any sub-headings, bullet lists, or bold title headers under 3.1; all text under 3.1 must be regular flowing normal body paragraphs)
 3.2 Analysis of the Existing System & Current Workflow (Step-by-step description of how operations are conducted manually within ${effectiveCaseStudy})
    3.2.1 Problems and Bottlenecks of the Existing System
 3.3 Analysis of the Proposed System & Technical Improvements (How the proposed software eliminates manual bottlenecks and introduces automation)

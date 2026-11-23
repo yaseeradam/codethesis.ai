@@ -112,7 +112,16 @@ export async function POST(req: NextRequest) {
       // First convert any inline LaTeX equations into clean academic math notation
       const cleanMathText = sanitizeAcademicTextMath(text);
       // Clean leading markdown hashes or stray backticks
-      const cleanText = cleanMathText.replace(/^#+\s*/, "").trim();
+      let cleanText = cleanMathText.replace(/^#+\s*/, "").trim();
+
+      // If entire paragraph is wrapped in **...** or __...__ and is > 80 chars, unwrap outer bold
+      if (cleanText.startsWith("**") && cleanText.endsWith("**") && cleanText.length > 80) {
+        cleanText = cleanText.slice(2, -2).trim();
+      }
+      if (cleanText.startsWith("__") && cleanText.endsWith("__") && cleanText.length > 80) {
+        cleanText = cleanText.slice(2, -2).trim();
+      }
+
       const runs: TextRun[] = [];
 
       // Tokenize by inline markdown markers: ***bold italic***, **bold**, *italic*, `code`
@@ -363,8 +372,10 @@ export async function POST(req: NextRequest) {
         }
       };
 
+      let currentSectionNum = "";
+
       for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
+        let line = lines[i].trim();
         if (!line) continue;
 
         // Check for markdown table
@@ -379,6 +390,14 @@ export async function POST(req: NextRequest) {
           flushTable();
         }
 
+        // Strip outer bold wrapping if an entire paragraph was accidentally wrapped in **...**
+        if (line.startsWith("**") && line.endsWith("**") && line.length > 80) {
+          line = line.slice(2, -2).trim();
+        }
+        if (line.startsWith("__") && line.endsWith("__") && line.length > 80) {
+          line = line.slice(2, -2).trim();
+        }
+
         const cleanNoMd = line.replace(/^#+\s*/, "").replace(/[*_#`]/g, "").trim();
 
         // 1. Heading 1: starts with "# " (H1) or CHAPTER 1/ONE..FIVE (with optional colon/dash)
@@ -387,7 +406,8 @@ export async function POST(req: NextRequest) {
         const isPrelimH1Regex = /^(DEDICATION|CERTIFICATION|DECLARATION|ACKNOWLEDGEMENT|ACKNOWLEDGEMENTS|ABSTRACT|TABLE OF CONTENTS|LIST OF TABLES|LIST OF FIGURES|REFERENCES|BIBLIOGRAPHY|APPENDIX\s+[A-Z0-9])\b/i;
         const isMarkdownH1 = /^#\s+/.test(line) && !/^###?/.test(line);
 
-        if (isChapterRegex.test(cleanNoMd) || isPrelimH1Regex.test(cleanNoMd) || isMarkdownH1) {
+        if ((isChapterRegex.test(cleanNoMd) || isPrelimH1Regex.test(cleanNoMd) || isMarkdownH1) && cleanNoMd.length < 100) {
+          currentSectionNum = "";
           let fullTitle = cleanNoMd;
           // If the line is just "CHAPTER 1" or "CHAPTER ONE" without a subtitle, check if next line is the subtitle
           if (isChapterRegex.test(cleanNoMd) && !cleanNoMd.includes(":") && !cleanNoMd.includes("-") && i + 1 < lines.length) {
@@ -401,19 +421,44 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        // 2. Heading 3: starts with "### " or numbered like "1.3.1 Aim" (checked before H2 so 1.3.1 is not caught by 1.3)
-        const isH3Markdown = /^###\s+/.test(line);
-        const isH3Number = /^(\d+\.\d+\.\d+)[\s:.\-–—]/.test(cleanNoMd) || /^(\d+\.\d+\.\d+)$/.test(cleanNoMd);
-        if (isH3Markdown || (isH3Number && cleanNoMd.length < 130)) {
-          elements.push(academicHeading3(cleanNoMd));
+        // SPECIAL FIX FOR 3.1: Text under 3.1 must ALWAYS be normal paragraph text, NEVER headed or bold!
+        if (currentSectionNum === "3.1") {
+          // If a line begins with 3.2, break out of 3.1 and let it become Heading 2
+          if (/^3\.2\b/.test(cleanNoMd) || /^##\s+3\.2\b/.test(line)) {
+            currentSectionNum = "3.2";
+            elements.push(academicHeading2(cleanNoMd));
+            continue;
+          }
+          // Any text under 3.1 (even if starting with 3.1.1, ###, or bold) is rendered as a normal paragraph!
+          if (!/^[-*+]\s+/.test(line) && !/^\d+\.\s+/.test(line) && !isMathEquation(line)) {
+            const cleanBodyText = cleanNoMd.replace(/^(\d+\.\d+(\.\d+)?\s*[-:–—]?\s*)/, "");
+            elements.push(academicPara(cleanBodyText));
+            continue;
+          }
+        }
+
+        // 2. Heading 2: starts with "## " or numbered like "1.1 Background", "3.1 Introduction", "3.2 Analysis..."
+        // Use negative lookahead (?!\.\d) so 3.1.1 is NOT matched as 3.1!
+        const isH2Markdown = /^##\s+/.test(line) && !/^###/.test(line);
+        const h2NumberMatch = cleanNoMd.match(/^(\d+\.\d+)(?!\.\d)[\s:.\-–—]/) || cleanNoMd.match(/^(\d+\.\d+)$/);
+        const isH2Number = Boolean(h2NumberMatch);
+
+        if ((isH2Markdown || isH2Number) && cleanNoMd.length < 110 && !/[.!?]$/.test(cleanNoMd)) {
+          if (h2NumberMatch) {
+            currentSectionNum = h2NumberMatch[1];
+          } else {
+            const inferredMatch = cleanNoMd.match(/^(\d+\.\d+)(?!\.\d)/);
+            if (inferredMatch) currentSectionNum = inferredMatch[1];
+          }
+          elements.push(academicHeading2(cleanNoMd));
           continue;
         }
 
-        // 3. Heading 2: starts with "## " or numbered like "1.1 Background" or "1.10 Definition"
-        const isH2Markdown = /^##\s+/.test(line);
-        const isH2Number = /^(\d+\.\d+)[\s:.\-–—]/.test(cleanNoMd) || /^(\d+\.\d+)$/.test(cleanNoMd);
-        if (isH2Markdown || (isH2Number && cleanNoMd.length < 130)) {
-          elements.push(academicHeading2(cleanNoMd));
+        // 3. Heading 3: starts with "### " or numbered like "1.3.1 Aim" (checked before H2 so 1.3.1 is not caught by 1.3)
+        const isH3Markdown = /^###\s+/.test(line);
+        const isH3Number = /^(\d+\.\d+\.\d+)[\s:.\-–—]/.test(cleanNoMd) || /^(\d+\.\d+\.\d+)$/.test(cleanNoMd);
+        if ((isH3Markdown || isH3Number) && cleanNoMd.length < 110 && !/[.!?]$/.test(cleanNoMd)) {
+          elements.push(academicHeading3(cleanNoMd));
           continue;
         }
 
