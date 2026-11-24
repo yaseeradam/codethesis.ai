@@ -984,58 +984,100 @@ Do NOT use raw markdown symbols (no **, ##). Write 3 clear, distinct scholarly p
     // =========================================================================
     // 7. LIST OF TABLES & LIST OF FIGURES (Reference: MY PROJECT ORIGINAL.docx)
     // =========================================================================
-    const createListRow = (label: string, page: string) =>
-      new Paragraph({
-        alignment: AlignmentType.LEFT,
-        spacing: { before: 80, after: 80, line: 360 },
-        children: [
-          new TextRun({
-            text: label,
-            font: "Times New Roman",
-            size: 22,
-            color: "1F2937",
-          }),
-          new TextRun({
+    const createListTable = (items: { label: string; page: string }[]) =>
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: {
+          top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+          bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+          left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+          right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+          insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+          insideVertical: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+        },
+        rows: items.map(item =>
+          new TableRow({
             children: [
-              new PositionalTab({
-                alignment: PositionalTabAlignment.RIGHT,
-                relativeTo: PositionalTabRelativeTo.MARGIN,
-                leader: PositionalTabLeader.DOT,
+              new TableCell({
+                width: { size: 88, type: WidthType.PERCENTAGE },
+                margins: { top: 60, bottom: 60, left: 0, right: 80 },
+                borders: {
+                  top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                },
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.LEFT,
+                    spacing: { before: 40, after: 40 },
+                    children: [
+                      new TextRun({
+                        text: item.label,
+                        font: "Times New Roman",
+                        size: 22,
+                        color: "1F2937",
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+              new TableCell({
+                width: { size: 12, type: WidthType.PERCENTAGE },
+                margins: { top: 60, bottom: 60, left: 80, right: 0 },
+                borders: {
+                  top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                },
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.RIGHT,
+                    spacing: { before: 40, after: 40 },
+                    children: [
+                      new TextRun({
+                        text: item.page,
+                        font: "Times New Roman",
+                        size: 22,
+                        bold: true,
+                        color: "111827",
+                      }),
+                    ],
+                  }),
+                ],
               }),
             ],
-          }),
-          new TextRun({
-            text: page,
-            font: "Times New Roman",
-            size: 22,
-            bold: true,
-            color: "111827",
-          }),
-        ],
+          })
+        ),
       });
 
     docChildren.push(
       ...academicHeading1("LIST OF TABLES"),
-      createListRow("Table 3.1: Core Primary Data Dictionary Structure", "39"),
-      createListRow("Table 3.2: Transaction & Operational Data Dictionary", "40"),
-      createListRow("Table 3.3: Hardware Development Environment Specifications", "46"),
-      createListRow("Table 3.4: Software Development Environment Specifications", "47"),
-      createListRow("Table 4.1: Empirical Test Cases Execution Matrix", "61"),
-      createListRow("Table 4.2: System Usability Scale (SUS) Evaluation Metrics", "63")
+      createListTable([
+        { label: "Table 3.1: Core Primary Data Dictionary Structure", page: "39" },
+        { label: "Table 3.2: Transaction & Operational Data Dictionary", page: "40" },
+        { label: "Table 3.3: Hardware Development Environment Specifications", page: "46" },
+        { label: "Table 3.4: Software Development Environment Specifications", page: "47" },
+        { label: "Table 4.1: Empirical Test Cases Execution Matrix", page: "61" },
+        { label: "Table 4.2: System Usability Scale (SUS) Evaluation Metrics", page: "63" },
+      ])
     );
 
     if (includeDiagrams) {
       docChildren.push(
         ...academicHeading1("LIST OF FIGURES"),
-        createListRow("Figure 3.1: Decoupled 3-Tier System Architecture", "34"),
-        createListRow("Figure 3.2: Top-Level Context Analysis Diagram (DFD Level-0)", "36"),
-        createListRow("Figure 3.3: UML Use Case Functional Specification", "37"),
-        createListRow("Figure 3.4: Third Normal Form (3NF) Relational Database Schema", "38"),
-        createListRow("Figure 3.5: Operational Process & Decision Flowchart", "43"),
-        createListRow("Figure 4.1: Secure Role-Based Authentication Interface", "55"),
-        createListRow("Figure 4.2: Primary Operational Action & Telemetry Dashboard", "56"),
-        createListRow("Figure 4.3: Real-Time Event Audit Trail & Telemetry Inspection Interface", "57"),
-        createListRow("Figure 4.4: Automated Test Execution Suite & Quality Assurance Pass Matrix", "58")
+        createListTable([
+          { label: "Figure 3.1: Decoupled 3-Tier System Architecture", page: "34" },
+          { label: "Figure 3.2: Top-Level Context Analysis Diagram (DFD Level-0)", page: "36" },
+          { label: "Figure 3.3: UML Use Case Functional Specification", page: "37" },
+          { label: "Figure 3.4: Third Normal Form (3NF) Relational Database Schema", page: "38" },
+          { label: "Figure 3.5: Operational Process & Decision Flowchart", page: "43" },
+          { label: "Figure 4.1: Secure Role-Based Authentication Interface", page: "55" },
+          { label: "Figure 4.2: Primary Operational Action & Telemetry Dashboard", page: "56" },
+          { label: "Figure 4.3: Real-Time Event Audit Trail & Telemetry Inspection Interface", page: "57" },
+          { label: "Figure 4.4: Automated Test Execution Suite & Quality Assurance Pass Matrix", page: "58" },
+        ])
       );
     }
 
