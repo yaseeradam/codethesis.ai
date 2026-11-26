@@ -89,9 +89,14 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
   const openaiKey = dynamicKeys.openai || process.env.OPENAI_API_KEY;
 
   // 1. Groq LPU with Round-Robin Key Pool (Fast inference at 500+ tok/s)
-  async function callGroq(targetModel = 'qwen/qwen3.8-27b'): Promise<AIResponse | null> {
+  async function callGroq(targetModel = 'meta-llama/llama-4-scout-17b-16e-instruct'): Promise<AIResponse | null> {
     const keyPool = getGroqPoolKeys();
-    const models = [targetModel, 'openai/gpt-oss-120b', 'openai/gpt-oss-20b'];
+    const models = [
+      targetModel,
+      'llama-3.1-8b-instant',
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b',
+    ];
 
     // Try keys from the pool up to 5 attempts
     const maxKeyAttempts = Math.min(keyPool.length, 5);
@@ -102,7 +107,7 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
       for (const m of models) {
         try {
           const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 25000);
+          const timer = setTimeout(() => controller.abort(), 30000);
 
           const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -116,7 +121,7 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: options.prompt }
               ],
-              max_tokens: Math.min(maxTokens, 4000),
+              max_tokens: Math.min(maxTokens, 4096),
               temperature
             }),
             signal: controller.signal
@@ -136,7 +141,7 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
             break; // Try next key in the pool
           } else {
             const errData = await res.json().catch(() => ({}));
-            console.warn(`Groq (${m}) Key ${keyIndex + 1} error:`, errData);
+            console.warn(`Groq (${m}) Key ${keyIndex + 1} error (${res.status}):`, errData);
           }
         } catch (err: any) {
           console.warn(`Groq (${m}) Key ${keyIndex + 1} fetch error:`, err?.message || err);
@@ -153,7 +158,16 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
     for (const m of models) {
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 35000);
+        const timer = setTimeout(() => controller.abort(), 55000);
+
+        const generationConfig: Record<string, any> = {
+          temperature,
+          maxOutputTokens: Math.min(maxTokens, 8192),
+        };
+        // Disable hidden thinking tokens on Gemini 2.5 Flash so full token budget goes to actual output & responds in <10s
+        if (m.includes('2.5')) {
+          generationConfig.thinkingConfig = { thinkingBudget: 0 };
+        }
 
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`, {
           method: 'POST',
@@ -165,7 +179,7 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
                 parts: [{ text: `${systemPrompt}\n\nTask:\n${options.prompt}` }]
               }
             ],
-            generationConfig: { temperature, maxOutputTokens: Math.min(maxTokens, 8192) }
+            generationConfig,
           }),
           signal: controller.signal,
         });
@@ -173,13 +187,22 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
 
         if (res.ok) {
           const data = await res.json();
-          const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (content && typeof content === 'string' && content.trim().length > 0) {
-            return { content: content.trim(), provider: 'google-gemini', model: m };
+          const parts = data.candidates?.[0]?.content?.parts || [];
+          const content = parts
+            .filter((p: any) => !p.thought && typeof p.text === 'string')
+            .map((p: any) => p.text)
+            .join('\n')
+            .trim();
+          if (content.length > 0) {
+            return { content, provider: 'google-gemini', model: m };
           }
+          console.warn(`Gemini (${m}) returned 200 OK but empty content:`, JSON.stringify(data).slice(0, 300));
+        } else {
+          const errText = await res.text().catch(() => '');
+          console.warn(`Gemini (${m}) HTTP ${res.status}:`, errText.slice(0, 300));
         }
-      } catch (err) {
-        console.warn(`Gemini (${m}) error:`, err);
+      } catch (err: any) {
+        console.warn(`Gemini (${m}) error:`, err?.message || err);
       }
     }
     return null;
@@ -192,14 +215,14 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
     for (const m of models) {
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 20000);
+        const timer = setTimeout(() => controller.abort(), 45000);
 
         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${openrouterKey}`,
-            'HTTP-Referer': 'https://codethesis.ai',
+            'HTTP-Referer': 'https://thesis.academyhub.com.ng',
             'X-Title': 'CodeThesis Academic AI'
           },
           body: JSON.stringify({
@@ -208,7 +231,7 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
               { role: 'system', content: systemPrompt },
               { role: 'user', content: options.prompt }
             ],
-            max_tokens: Math.min(maxTokens, 4000),
+            max_tokens: Math.min(maxTokens, 6000),
             temperature
           }),
           signal: controller.signal,
@@ -221,9 +244,12 @@ export async function generateAcademicAI(options: GenerateOptions): Promise<AIRe
           if (content && typeof content === 'string' && content.trim().length > 0) {
             return { content: content.trim(), provider: 'openrouter', model: m };
           }
+        } else {
+          const errText = await res.text().catch(() => '');
+          console.warn(`OpenRouter (${m}) HTTP ${res.status}:`, errText.slice(0, 300));
         }
-      } catch (err) {
-        console.warn(`OpenRouter (${m}) error:`, err);
+      } catch (err: any) {
+        console.warn(`OpenRouter (${m}) error:`, err?.message || err);
       }
     }
     return null;

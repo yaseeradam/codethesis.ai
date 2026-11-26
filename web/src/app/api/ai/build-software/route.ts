@@ -111,24 +111,25 @@ Respond strictly in valid JSON matching this schema:
 }`;
 
     let blueprint: DomainBlueprint | null = null;
+    let aiProviderUsed: string = 'heuristic';
 
     try {
       const aiRes = await Promise.race([
         generateAcademicAI({
           prompt: aiArchitectPrompt,
-          temperature: 0.25,
-          maxTokens: 3000,
+          temperature: 0.35,
+          maxTokens: 3500,
+          preferredProvider: 'gemini',
         }),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 28000)),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 45000)),
       ]);
 
-      if (aiRes && aiRes.content) {
-        let jsonStr = aiRes.content.trim();
-        if (jsonStr.startsWith('```json')) jsonStr = jsonStr.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-        else if (jsonStr.startsWith('```')) jsonStr = jsonStr.replace(/^```\s*/, '').replace(/\s*```$/, '');
-        
+      if (aiRes && aiRes.provider !== 'codethesis-academic-heuristic' && aiRes.content) {
+        const jsonMatch = aiRes.content.match(/\{[\s\S]*\}/);
+        const jsonStr = jsonMatch ? jsonMatch[0] : aiRes.content.trim();
         const parsed = JSON.parse(jsonStr);
         if (parsed.systemName && parsed.primaryEntityPlural && Array.isArray(parsed.schemaFields)) {
+          aiProviderUsed = `${aiRes.provider} (${aiRes.model})`;
           blueprint = {
             domainKey: parsed.primaryEntityPlural.toLowerCase().replace(/[^a-z0-9]/g, '_'),
             category: parsed.category || course || 'Applied Software Systems',
@@ -173,15 +174,111 @@ Respond strictly in valid JSON matching this schema:
       ];
     }
 
-    // 2. Synthesize all source files matching the AI Blueprint
+    // 2. Synthesize bespoke AI-written Frontend & Backend code tailored to this exact topic
+    const stackLower = effectiveStack.toLowerCase();
+    const backendFileName = stackLower.includes('node')
+      ? 'server.js'
+      : stackLower.includes('php')
+        ? 'index.php'
+        : 'server.py';
+
+    const frontendCodePrompt = `You are a Senior Full-Stack UI Engineer. Build a complete, self-contained, interactive single-file web application (public/index.html) for:
+SYSTEM NAME: "${blueprint.systemName}"
+TOPIC: "${cleanTopic}"
+TAGLINE: "${blueprint.tagline}"
+PRIMARY ENTITY: "${blueprint.primaryEntity}" (Plural: "${blueprint.primaryEntityPlural}")
+SCHEMA FIELDS: ${JSON.stringify(blueprint.schemaFields)}
+CATEGORIES: ${JSON.stringify(blueprint.categories)}
+STATUSES: ${JSON.stringify(blueprint.statuses)}
+INITIAL RECORDS: ${JSON.stringify(blueprint.seedRecords)}
+${answersContext}
+
+REQUIREMENTS:
+1. Output ONLY raw HTML starting with <!DOCTYPE html> and ending with </html> (NO markdown code fences, NO explanation).
+2. Include <script src="https://cdn.tailwindcss.com"></script> in <head>.
+3. Design a bespoke, authentic UI tailored specifically to "${cleanTopic}" — DO NOT use a generic template. Include domain-specific navigation tabs (e.g., Dashboard Overview, ${blueprint.primaryEntityPlural} Management, Analytics & Reports, Audit/Logs, Settings/Auth), interactive KPI cards, live search/filter, a working "Add New ${blueprint.primaryEntity}" modal/form, status transition buttons (Approve/Flag/Delete), and CSV export.
+4. Use vanilla JavaScript with localStorage persistence (seeded with the INITIAL RECORDS) AND optional fetch('/api/records') fallback so it works 100% interactively inside a standalone browser iframe preview.
+5. Make sure all buttons, tabs, forms, and filters actually work in JavaScript with zero syntax errors.`;
+
+    const backendCodePrompt = `You are a Principal Backend Engineer. Write a complete, clean, runnable ${effectiveStack} backend file (${backendFileName}) for:
+SYSTEM NAME: "${blueprint.systemName}"
+TOPIC: "${cleanTopic}"
+PRIMARY ENTITY: "${blueprint.primaryEntity}"
+SCHEMA FIELDS: ${JSON.stringify(blueprint.schemaFields)}
+${answersContext}
+
+REQUIREMENTS:
+1. Output ONLY raw source code for ${backendFileName} (NO markdown fences, NO explanation).
+2. Implement SQLite persistence, serving static files from ./public, and REST endpoints:
+   - GET /api/health
+   - GET /api/records (list & search)
+   - POST /api/records (create with validation)
+   - PATCH /api/records/:id (update status/fields)
+   - DELETE /api/records/:id
+   - GET /api/stats (domain-specific KPIs)
+3. Include domain-specific business logic, validation, and authentic comments for "${cleanTopic}".`;
+
+    const [aiFrontendRes, aiBackendRes] = await Promise.all([
+      Promise.race([
+        generateAcademicAI({
+          prompt: frontendCodePrompt,
+          temperature: 0.45,
+          maxTokens: 7500,
+          preferredProvider: 'gemini',
+        }),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 50000)),
+      ]).catch(() => null),
+      Promise.race([
+        generateAcademicAI({
+          prompt: backendCodePrompt,
+          temperature: 0.3,
+          maxTokens: 4500,
+          preferredProvider: 'gemini',
+        }),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 40000)),
+      ]).catch(() => null),
+    ]);
+
+    const cleanCodeOutput = (raw: string): string => {
+      let s = raw.trim();
+      s = s.replace(/^```[a-zA-Z]*\s*\n?/, '').replace(/\n?\s*```$/, '').trim();
+      return s;
+    };
+
     const files: Record<string, string> = {};
     files['database/schema.sql'] = generateSchemaSql(blueprint, cleanTopic);
     files['database/seed_data.sql'] = generateSeedSql(blueprint, cleanTopic);
 
-    const backend = generateBackendCode(blueprint, cleanTopic, effectiveStack);
-    files[backend.fileName] = backend.code;
+    const fallbackBackend = generateBackendCode(blueprint, cleanTopic, effectiveStack);
+    let aiCodeUsed = false;
 
-    files['public/index.html'] = generateFrontendHtml(blueprint, cleanTopic, effectiveStack);
+    if (
+      aiBackendRes &&
+      aiBackendRes.provider !== 'codethesis-academic-heuristic' &&
+      aiBackendRes.content &&
+      aiBackendRes.content.trim().length > 500
+    ) {
+      files[backendFileName] = cleanCodeOutput(aiBackendRes.content);
+      aiCodeUsed = true;
+      aiProviderUsed = `${aiBackendRes.provider} (${aiBackendRes.model})`;
+    } else {
+      files[fallbackBackend.fileName] = fallbackBackend.code;
+    }
+
+    const aiHtml =
+      aiFrontendRes &&
+      aiFrontendRes.provider !== 'codethesis-academic-heuristic' &&
+      aiFrontendRes.content
+        ? cleanCodeOutput(aiFrontendRes.content)
+        : '';
+
+    if (aiHtml.length > 1200 && /<html/i.test(aiHtml) && /<script/i.test(aiHtml)) {
+      files['public/index.html'] = aiHtml;
+      aiCodeUsed = true;
+      aiProviderUsed = `${aiFrontendRes!.provider} (${aiFrontendRes!.model})`;
+    } else {
+      files['public/index.html'] = generateFrontendHtml(blueprint, cleanTopic, effectiveStack);
+    }
 
     const extras = generateManifestAndLaunchers(blueprint, cleanTopic, effectiveStack);
     Object.assign(files, extras);
@@ -202,6 +299,8 @@ Respond strictly in valid JSON matching this schema:
       success: true,
       topic: cleanTopic,
       techStack: effectiveStack,
+      aiGenerated: aiCodeUsed,
+      aiProvider: aiProviderUsed,
       remainingCredits,
       blueprint: {
         category: blueprint.category,
