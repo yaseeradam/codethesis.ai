@@ -5,7 +5,8 @@ import {
   updateUser,
   getUserById,
   logCreditEntry,
-  createNotification
+  createNotification,
+  creditReferralCommission,
 } from '@/lib/db';
 import { resolvePlanCreditsAndPrice } from '@/lib/plans';
 
@@ -115,6 +116,10 @@ async function verifyAndCredit(reference: string) {
       type: 'payment',
       link: '/dashboard',
     });
+
+    await creditReferralCommission(user.id, tx.amount || resolved.priceNGN || 0).catch((err) =>
+      console.warn('Referral commission credit error:', err)
+    );
   }
 
   return NextResponse.json({

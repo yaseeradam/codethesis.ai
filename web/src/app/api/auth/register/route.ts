@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       matricNumber = '',
       institution = '',
       course = '',
+      referralCode = '',
     } = body as {
       fullName?: string;
       email?: string;
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
       matricNumber?: string;
       institution?: string;
       course?: string;
+      referralCode?: string;
     };
 
     if (!fullName || !email || !password) {
@@ -49,6 +51,8 @@ export async function POST(req: NextRequest) {
       fullName,
       matricNumber,
       institution,
+      department: course,
+      referredBy: referralCode,
     });
 
     // Log the free starter credits given on signup

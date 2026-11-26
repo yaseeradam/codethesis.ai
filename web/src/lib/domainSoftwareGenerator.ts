@@ -1856,12 +1856,67 @@ if %errorlevel% neq 0 (
     pause
     exit /b
 )
+echo Initializing SQLite database...
+if exist database\setup_db.py (
+    python database\setup_db.py
+)
 echo Launching local server at http://localhost:8000
-start http://localhost:8000
+start "" http://localhost:8000
 python server.py
 pause
 `;
   }
+
+  // Defense-Day Cheat Sheet & Examiner Q&A Guide
+  files['DEFENSE_GUIDE.txt'] = `==============================================================================
+CODETHESIS AI — DEFENSE-DAY CHEAT SHEET & EXAMINER Q&A GUIDE
+==============================================================================
+Project Topic: ${topic.trim()}
+System Name:   ${bp.systemName}
+Domain:        ${bp.category}
+Tech Stack:    ${techStack}
+
+1. HOW TO RUN ON DEFENSE DAY (1-CLICK)
+------------------------------------------------------------------------------
+- Windows: Double-click "run_project.bat". It checks Python/Node, initializes
+  the SQLite database automatically, opens http://localhost:8000 in your
+  browser, and starts the local server.
+- macOS/Linux: Run "bash run_defense_server.sh" in Terminal.
+- Run Automated Verification Tests: "python tests/test_system_integrity.py"
+
+2. WHAT EACH FILE DOES (FOR CODE WALKTHROUGH QUESTIONS)
+------------------------------------------------------------------------------
+- server.py / server.js : Main backend HTTP/API server handling routing, CRUD
+  operations for ${bp.primaryEntityPlural}, and SQLite persistence.
+- database/schema.sql   : 3NF relational database DDL defining tables, primary
+  keys, and constraints.
+- database/seed_data.sql: Pre-populated realistic Nigerian domain records so
+  the system is demo-ready immediately.
+- templates/ / public/  : Responsive frontend UI for ${bp.systemName}.
+- tests/test_system_integrity.py : Automated verification suite for Chapter 4.
+
+3. COMMON EXAMINER QUESTIONS & MODEL ANSWERS
+------------------------------------------------------------------------------
+Q1: Why did you choose SQLite instead of MySQL/PostgreSQL?
+A1: SQLite is serverless, zero-configuration, ACID-compliant, and stores the
+    entire relational schema in a single portable file—ideal for rapid
+    deployment and reliable offline defense demonstrations.
+
+Q2: How does your system prevent duplicate or invalid ${bp.primaryEntity} entries?
+A2: Both client-side form validation and server-side schema constraints
+    (UNIQUE keys, NOT NULL checks, and parameterized SQL queries to prevent
+    SQL injection) enforce data integrity.
+
+Q3: What are the key operational KPIs tracked by this software?
+A3: The dashboard tracks ${bp.kpis.map(k => k.label).join(', ')} in real time
+    to support evidence-based decision making.
+
+Q4: How can this prototype scale to production?
+A4: Because the database layer uses standard SQL DDL and REST endpoints, it can
+    be migrated to PostgreSQL or cloud hosting (Docker/VPS) with minimal
+    connection-string changes.
+==============================================================================
+`;
 
   // Cross-platform Unix / Mac Shell Script Launcher
   files['run_defense_server.sh'] = `#!/bin/bash

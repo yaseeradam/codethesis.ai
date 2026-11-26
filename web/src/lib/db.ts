@@ -31,6 +31,10 @@ export interface User {
   status?: 'active' | 'flagged' | 'suspended';
   role?: 'student' | 'admin';
   licenseId?: string;
+  referralCode?: string;
+  referredBy?: string;
+  referralEarnings?: number;
+  referralCount?: number;
   resetToken?: { token: string; expiresAt: string };
   createdAt: string;
 }
@@ -462,6 +466,7 @@ export async function createUser(userData: {
   graduationYear?: string;
   preferences?: UserPreferences;
   role?: 'student' | 'admin';
+  referredBy?: string;
 }): Promise<User> {
   const existing = await getUserByEmail(userData.email);
   if (existing) {
@@ -485,6 +490,8 @@ export async function createUser(userData: {
   };
   const freeCredits = 15;
   const role = userData.role || 'student';
+  const referralCode = `CT-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+  const referredBy = userData.referredBy?.trim().toUpperCase() || undefined;
   const createdAt = new Date().toISOString();
 
   if (isNeonConfigured()) {
@@ -499,7 +506,7 @@ export async function createUser(userData: {
                   status, role, reset_token as "resetToken", created_at as "createdAt";
       `;
       if (rows && rows.length > 0) {
-        return rows[0] as User;
+        return { ...(rows[0] as User), referralCode, referredBy, referralEarnings: 0, referralCount: 0 };
       }
     } catch (err) {
       console.error('Neon createUser error, falling back to local store:', err);
@@ -507,6 +514,17 @@ export async function createUser(userData: {
   }
 
   const db = readDb();
+  let validReferrerCode: string | undefined;
+  if (referredBy) {
+    const referrerIdx = db.users.findIndex(
+      (u) => (u.referralCode || '').toUpperCase() === referredBy || u.id === referredBy
+    );
+    if (referrerIdx !== -1) {
+      validReferrerCode = db.users[referrerIdx].referralCode || referredBy;
+      db.users[referrerIdx].referralCount = (db.users[referrerIdx].referralCount || 0) + 1;
+    }
+  }
+
   const newUser: User = {
     id,
     email: cleanEmail,
@@ -523,11 +541,50 @@ export async function createUser(userData: {
     credits: freeCredits,
     role,
     status: 'active',
+    referralCode,
+    referredBy: validReferrerCode,
+    referralEarnings: 0,
+    referralCount: 0,
     createdAt,
   };
   db.users.push(newUser);
   writeDb(db);
   return newUser;
+}
+
+export async function creditReferralCommission(buyerUserId: string, amountNGN: number): Promise<void> {
+  if (!amountNGN || amountNGN <= 0) return;
+  const db = readDb();
+  const buyer = db.users.find((u) => u.id === buyerUserId);
+  if (!buyer || !buyer.referredBy) return;
+
+  const referrerIdx = db.users.findIndex(
+    (u) => (u.referralCode || '').toUpperCase() === buyer.referredBy!.toUpperCase() || u.id === buyer.referredBy
+  );
+  if (referrerIdx === -1) return;
+
+  const commissionNGN = Math.round(amountNGN * 0.25); // 25% Campus Ambassador commission
+  const bonusCredits = 3;
+  const referrer = db.users[referrerIdx];
+  referrer.referralEarnings = (referrer.referralEarnings || 0) + commissionNGN;
+  referrer.credits = (referrer.credits || 0) + bonusCredits;
+  writeDb(db);
+
+  await logCreditEntry({
+    userId: referrer.id,
+    amount: bonusCredits,
+    type: 'admin_grant',
+    balanceAfter: referrer.credits,
+    description: `Campus Ambassador 25% commission (₦${commissionNGN.toLocaleString()}) + ${bonusCredits} bonus credits from ${buyer.fullName}`,
+  });
+
+  await createNotification({
+    userId: referrer.id,
+    title: `Referral Commission Earned: ₦${commissionNGN.toLocaleString()}!`,
+    message: `${buyer.fullName} just upgraded! You earned ₦${commissionNGN.toLocaleString()} (25%) and +${bonusCredits} bonus credits.`,
+    type: 'payment',
+    link: '/dashboard',
+  });
 }
 
 export async function updateUser(id: string, updates: Partial<User>): Promise<User | null> {

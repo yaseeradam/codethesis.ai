@@ -59,6 +59,12 @@ export default function ThesisToolPage() {
   const [copied, setCopied] = useState(false);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
   const [aiCustomContent, setAiCustomContent] = useState<{ [ch: number]: string }>({});
+  const [institutionPreset, setInstitutionPreset] = useState<string>('fubk');
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [freePreview, setFreePreview] = useState<{ toc: string[]; chapterOnePreview: string } | null>(null);
+  const [supervisorFeedback, setSupervisorFeedback] = useState('');
+  const [isRevising, setIsRevising] = useState(false);
+  const [showSoftwareUpsell, setShowSoftwareUpsell] = useState(false);
 
   const effectiveTopic = topic.trim() || 'Design and Implementation of an Automated System';
   const effectiveInstitution = institution.trim() || 'Tertiary Institution';
@@ -82,12 +88,81 @@ export default function ThesisToolPage() {
         session,
         aiCustomContent,
         includeDiagrams,
+        institutionPreset,
       },
       `5_Chapter_Thesis_${course ? course.replace(/\s+/g, '_') : 'Dissertation'}.docx`
     );
     setIsDownloading(false);
+    setShowSoftwareUpsell(true);
     setSuccessBanner('Complete 5-Chapter Thesis (.docx) generated and downloaded with verified citations & aligned signature blocks!');
     setTimeout(() => setSuccessBanner(null), 5000);
+  }
+
+  async function handleFreePreview() {
+    if (!topic.trim() || topic.trim().length < 8) {
+      setSuccessBanner('Please enter your research project topic (at least 8 characters) to preview Chapter 1 free.');
+      setTimeout(() => setSuccessBanner(null), 3500);
+      return;
+    }
+    setIsPreviewing(true);
+    try {
+      const res = await fetch('/api/thesis/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: effectiveTopic,
+          course: course || 'Computer Science',
+          institution: effectiveInstitution,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setFreePreview({ toc: data.toc || [], chapterOnePreview: data.chapterOnePreview || '' });
+        setSuccessBanner('Free Chapter 1 & Table of Contents preview ready!');
+      } else {
+        setSuccessBanner(data.error || 'Could not generate preview.');
+      }
+    } catch {
+      setSuccessBanner('Network error while generating free preview.');
+    } finally {
+      setIsPreviewing(false);
+      setTimeout(() => setSuccessBanner(null), 4000);
+    }
+  }
+
+  async function handleSupervisorRevision() {
+    if (!supervisorFeedback.trim() || !aiCustomContent[activeChapter]) return;
+    setIsRevising(true);
+    try {
+      const res = await fetch('/api/ai/revise-chapter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chapterNumber: activeChapter,
+          chapterContent: aiCustomContent[activeChapter],
+          supervisorFeedback: supervisorFeedback.trim(),
+          topic: effectiveTopic,
+          course: course || 'Computer Science',
+          institution: effectiveInstitution,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.revisedContent) {
+        setAiCustomContent((prev) => ({ ...prev, [activeChapter]: data.revisedContent }));
+        setSupervisorFeedback('');
+        setSuccessBanner(`Chapter ${activeChapter} revised based on supervisor feedback!`);
+        if (typeof data.remainingCredits === 'number' && typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('credits-updated', { detail: { credits: data.remainingCredits } }));
+        }
+      } else {
+        setSuccessBanner(data.error || 'Revision failed. Please ensure you have at least 1 credit.');
+      }
+    } catch {
+      setSuccessBanner('Network error during chapter revision.');
+    } finally {
+      setIsRevising(false);
+      setTimeout(() => setSuccessBanner(null), 5000);
+    }
   }
 
   function handleStartGeneration() {
@@ -237,6 +312,25 @@ export default function ThesisToolPage() {
               label="Course / Department"
             />
 
+            {/* School Formatting Preset */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">University Formatting Preset</label>
+              <select
+                value={institutionPreset}
+                onChange={(e) => setInstitutionPreset(e.target.value)}
+                className="w-full h-10 bg-white border border-slate-200 hover:border-slate-300 focus:border-sky-500 rounded-xl px-2.5 text-xs text-slate-800 outline-none shadow-xs"
+              >
+                <option value="fubk">FUBK (B.Sc, 1.5 Spacing, APA 7th)</option>
+                <option value="abu_zaria">ABU Zaria (B.Sc, Double Spacing, APA 7th)</option>
+                <option value="unilag">UNILAG (B.Sc, Double Spacing, APA 7th)</option>
+                <option value="futa">FUTA (B.Tech, Double Spacing, IEEE)</option>
+                <option value="ui">University of Ibadan (B.Sc, Double Spacing, APA 7th)</option>
+                <option value="futo">FUTO (B.Tech, 1.5 Spacing, IEEE)</option>
+                <option value="poly_nd">Polytechnic ND (1.5 Spacing, Harvard)</option>
+                <option value="poly_hnd">Polytechnic HND (1.5 Spacing, Harvard)</option>
+              </select>
+            </div>
+
             {/* Project Supervisor */}
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-700 flex items-center gap-1">
@@ -315,6 +409,24 @@ export default function ThesisToolPage() {
                 <>
                   <Sparkles className="w-4 h-4 fill-slate-950" />
                   <span>Generate 5-Chapter Thesis</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleFreePreview}
+              disabled={isPreviewing}
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded-xl text-xs border border-slate-200 flex items-center justify-center gap-2 transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {isPreviewing ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Generating Free Preview...</span>
+                </>
+              ) : (
+                <>
+                  <BookOpen className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Preview My Chapter 1 Free</span>
                 </>
               )}
             </button>
@@ -424,33 +536,112 @@ export default function ThesisToolPage() {
           {/* Academic Content Preview Area */}
           <div className="font-serif text-slate-800 text-xs sm:text-sm leading-relaxed space-y-4 max-h-[600px] overflow-y-auto pr-2">
             {!aiCustomContent[activeChapter] ? (
-              <div className="flex flex-col items-center justify-center py-16 px-6 text-center bg-slate-50 border border-slate-200/80 rounded-2xl">
-                <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 mb-3 shadow-inner">
-                  <FileText className="w-6 h-6" />
+              freePreview ? (
+                <div className="p-6 rounded-2xl bg-amber-50/40 border border-amber-200 text-slate-800 font-sans space-y-4">
+                  <div className="flex items-center justify-between border-b border-amber-200 pb-3">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Free Preview</span>
+                      <h4 className="text-sm font-bold text-slate-900 mt-1">Table of Contents &amp; Chapter 1 Sample</h4>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (!user) {
+                          window.location.href = '/auth/register?ref=thesis-preview';
+                        } else if ((user.credits ?? 0) < 3) {
+                          window.location.href = '/pricing?bundle=defense';
+                        } else {
+                          handleDownloadDocx();
+                        }
+                      }}
+                      className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Full 5-Chapter Thesis (.docx)</span>
+                    </button>
+                  </div>
+                  <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-1">
+                    <div className="text-[10px] font-bold uppercase text-slate-500">Full Dissertation Structure</div>
+                    {freePreview.toc.map((item, i) => (
+                      <div key={i} className="text-xs text-slate-700">&bull; {item}</div>
+                    ))}
+                  </div>
+                  <div className="bg-white border border-slate-200 rounded-xl p-4 font-serif text-xs sm:text-sm leading-relaxed whitespace-pre-line">
+                    {freePreview.chapterOnePreview}
+                  </div>
                 </div>
-                <h4 className="text-sm font-bold text-slate-800 mb-1 font-sans">Chapter {activeChapter} Not Generated Yet</h4>
-                <p className="text-xs text-slate-500 max-w-sm mb-4 leading-relaxed font-sans">
-                  Enter your dissertation topic and parameters on the left, then click <strong>&ldquo;Synthesize Chapter with AI&rdquo;</strong> to generate comprehensive academic text with APA 7th citations, or <strong>&ldquo;Download Full (.docx)&rdquo;</strong> to compile all 5 chapters.
-                </p>
-                <button
-                  onClick={handleStartGeneration}
-                  disabled={isGenerating || !topic.trim()}
-                  className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50 cursor-pointer font-sans"
-                >
-                  {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                  <span>Synthesize Chapter {activeChapter} with AI</span>
-                </button>
-              </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 px-6 text-center bg-slate-50 border border-slate-200/80 rounded-2xl">
+                  <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 mb-3 shadow-inner">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-800 mb-1 font-sans">Chapter {activeChapter} Not Generated Yet</h4>
+                  <p className="text-xs text-slate-500 max-w-sm mb-4 leading-relaxed font-sans">
+                    Enter your dissertation topic and parameters on the left, then click <strong>&ldquo;Synthesize Chapter with AI&rdquo;</strong> to generate comprehensive academic text with APA 7th citations, or <strong>&ldquo;Download Full (.docx)&rdquo;</strong> to compile all 5 chapters.
+                  </p>
+                  <button
+                    onClick={handleStartGeneration}
+                    disabled={isGenerating || !topic.trim()}
+                    className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50 cursor-pointer font-sans"
+                  >
+                    {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                    <span>Synthesize Chapter {activeChapter} with AI</span>
+                  </button>
+                </div>
+              )
             ) : (
-              <div className="p-6 rounded-2xl bg-white border border-slate-200 text-slate-800 font-serif leading-relaxed text-xs sm:text-sm shadow-xs">
-                <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs mb-3 font-sans pb-2 border-b border-amber-100">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-                  <span>Synthesized AI Research Text for Chapter {activeChapter}</span>
+              <div className="space-y-4">
+                <div className="p-6 rounded-2xl bg-white border border-slate-200 text-slate-800 font-serif leading-relaxed text-xs sm:text-sm shadow-xs">
+                  <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs mb-3 font-sans pb-2 border-b border-amber-100">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                    <span>Synthesized AI Research Text for Chapter {activeChapter}</span>
+                  </div>
+                  <AcademicTextRenderer content={aiCustomContent[activeChapter]} chapterNumber={activeChapter} />
                 </div>
-                <AcademicTextRenderer content={aiCustomContent[activeChapter]} chapterNumber={activeChapter} />
+
+                {/* Supervisor Correction Rewrite Loop */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 font-sans space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800">Supervisor Correction Rewrite Loop</span>
+                    <span className="text-[10px] font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">1 Credit</span>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={supervisorFeedback}
+                    onChange={(e) => setSupervisorFeedback(e.target.value)}
+                    placeholder="Paste your supervisor's exact comment (e.g. 'Expand section 1.2 with recent 2024 Nigerian statistics' or 'Use Waterfall methodology in 3.1')..."
+                    className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 outline-none focus:border-sky-500"
+                  />
+                  <button
+                    onClick={handleSupervisorRevision}
+                    disabled={isRevising || !supervisorFeedback.trim()}
+                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  >
+                    {isRevising ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                    <span>Apply Supervisor Correction to Chapter {activeChapter}</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
+
+          {/* Thesis-to-Software Upsell Banner */}
+          {showSoftwareUpsell && (
+            <div className="bg-gradient-to-r from-emerald-900 to-teal-900 text-white rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Next Step for Your Defense</div>
+                <p className="text-xs sm:text-sm font-semibold">
+                  Want working software + Chapter 4 screenshots for this exact thesis? Build your software prototype in 2 minutes.
+                </p>
+              </div>
+              <a
+                href={`/tool/software-builder?topic=${encodeURIComponent(effectiveTopic)}&course=${encodeURIComponent(course)}`}
+                className="px-4 py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold text-xs rounded-xl whitespace-nowrap flex items-center gap-1.5"
+              >
+                <span>Generate Software (2 credits)</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          )}
         </div>
       </div>
 

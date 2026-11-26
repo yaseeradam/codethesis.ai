@@ -39,7 +39,10 @@ import {
   Menu,
   Sun,
   Moon,
-  X
+  X,
+  Copy,
+  Check,
+  Users
 } from 'lucide-react';
 
 interface Project {
@@ -211,6 +214,13 @@ function DashboardMain() {
 
   // Live Neon DB projects state
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
+  const [referralInfo, setReferralInfo] = useState<{
+    referralCode: string;
+    referralLink: string;
+    referralCount: number;
+    referralEarnings: number;
+  } | null>(null);
+  const [copiedRef, setCopiedRef] = useState(false);
 
   // Fetch live projects from Neon PostgreSQL and sync user credits
   useEffect(() => {
@@ -282,6 +292,20 @@ function DashboardMain() {
     }
 
     loadNeonProjects();
+
+    fetch('/api/referral')
+      .then((r) => r.json())
+      .then((d) => {
+        if (isMounted && d.success) {
+          setReferralInfo({
+            referralCode: d.referralCode,
+            referralLink: d.referralLink,
+            referralCount: d.referralCount || 0,
+            referralEarnings: d.referralEarnings || 0,
+          });
+        }
+      })
+      .catch(() => {});
 
     return () => {
       isMounted = false;
@@ -978,6 +1002,55 @@ function DashboardMain() {
               </div>
             </div>
           </div>
+
+          {/* ─────────────────────────────────────────────────────────────
+              4.5 CAMPUS AMBASSADOR REFERRAL CARD (25% COMMISSION)
+          ─────────────────────────────────────────────────────────────── */}
+          {referralInfo && (
+            <div className="bg-gradient-to-r from-slate-900 via-[#0A1A4A] to-slate-900 border border-blue-900/60 rounded-3xl p-5 sm:p-6 text-white shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+              <div className="space-y-1.5 max-w-xl">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-[10px] font-bold uppercase tracking-wider">
+                  <Users className="w-3 h-3" />
+                  <span>Campus Ambassador Program • 25% Commission</span>
+                </div>
+                <h3 className="text-sm sm:text-base font-extrabold text-white">
+                  Share your link. Earn 25% (₦3,000) for every Defense Bundle sold through it!
+                </h3>
+                <p className="text-xs text-slate-300">
+                  Plus +3 bonus credits every time a referred coursemate tops up. Code:{' '}
+                  <span className="font-mono font-bold text-amber-300">{referralInfo.referralCode}</span>
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+                <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5">
+                  <div>
+                    <div className="text-[10px] text-slate-400 uppercase font-semibold">Referrals</div>
+                    <div className="text-sm font-black text-white">{referralInfo.referralCount}</div>
+                  </div>
+                  <div className="w-px h-7 bg-white/10" />
+                  <div>
+                    <div className="text-[10px] text-slate-400 uppercase font-semibold">Earnings</div>
+                    <div className="text-sm font-black text-emerald-400">
+                      ₦{referralInfo.referralEarnings.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(referralInfo.referralLink);
+                    setCopiedRef(true);
+                    setTimeout(() => setCopiedRef(false), 2500);
+                  }}
+                  className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 transition-colors cursor-pointer whitespace-nowrap"
+                >
+                  {copiedRef ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedRef ? 'Referral Link Copied!' : 'Copy Referral Link'}</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* ─────────────────────────────────────────────────────────────
               5. BOTTOM 3-CARD ECOSYSTEM ROW:

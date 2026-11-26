@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { updateTransactionByReference, updateUser, getUserById, getTransactionByReference, sql, isNeonConfigured } from '@/lib/db';
+import { updateTransactionByReference, updateUser, getUserById, getTransactionByReference, creditReferralCommission, sql, isNeonConfigured } from '@/lib/db';
 import { resolvePlanCreditsAndPrice } from '@/lib/plans';
 
 export async function POST(req: NextRequest) {
@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
             ...(isAcademic ? { plan: planId as any } : {}),
             credits: (user.credits || 0) + creditsToAdd,
           });
+          await creditReferralCommission(user.id, data.amount ? data.amount / 100 : 0).catch(() => {});
         }
       }
     }

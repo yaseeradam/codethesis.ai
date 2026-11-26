@@ -89,6 +89,21 @@ export const PLATFORM_PLANS: Record<string, PlanConfig> = {
     credits: 12000,
     category: 'developer',
   },
+  // High-converting Defense & Reseller Bundles
+  'defense-bundle': {
+    id: 'defense-bundle',
+    name: 'Full Defense Bundle',
+    priceNGN: 12000,
+    credits: 20,
+    category: 'academic',
+  },
+  'bulk-10': {
+    id: 'bulk-10',
+    name: 'Cyber Café Bulk Pack (10x)',
+    priceNGN: 50000,
+    credits: 200,
+    category: 'academic',
+  },
 };
 
 export const PRICE_PER_CUSTOM_CREDIT = 95; // ₦95 per credit

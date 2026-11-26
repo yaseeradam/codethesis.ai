@@ -121,6 +121,40 @@ export default function PricingPage() {
 
   const tiers = [
     {
+      id: 'defense-bundle',
+      name: 'Full Defense Bundle',
+      badge: 'Best Value • All-In-One',
+      priceNGN: 12000,
+      priceUSD: 16,
+      credits: 20,
+      popular: true,
+      features: [
+        'Complete 5-Chapter Thesis (.docx)',
+        'Working Software Prototype (.zip)',
+        '15-Slide Viva Defense Deck (.pptx)',
+        'AI Viva Defense Simulator Access',
+        '20 Academic Generation Credits',
+        'School-Specific Formatting & Supervisor Revisions'
+      ]
+    },
+    {
+      id: 'bulk-10',
+      name: 'Cyber Café Bulk Pack',
+      badge: '10 Complete Projects • Resellers',
+      priceNGN: 50000,
+      priceUSD: 65,
+      credits: 200,
+      popular: false,
+      features: [
+        '200 Academic AI Generation Credits',
+        'Sufficient for 10+ Full Project Bundles',
+        'Priority Multi-Provider AI Synthesis',
+        'All Nigerian University & Poly Presets',
+        'Zero-Pip Software + Defense Guides',
+        'Dedicated Reseller WhatsApp Support'
+      ]
+    },
+    {
       id: 'starter',
       name: 'Student Starter',
       badge: 'Single Assignment / Viva',
@@ -144,7 +178,7 @@ export default function PricingPage() {
       priceNGN: 8500,
       priceUSD: 12,
       credits: 100,
-      popular: true,
+      popular: false,
       features: [
         '100 Academic AI Generation Credits',
         'Complete 5-Chapter Thesis (~18,000+ words)',

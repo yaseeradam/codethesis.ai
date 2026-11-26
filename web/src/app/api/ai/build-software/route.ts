@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateAcademicAI } from '@/lib/ai';
 import { getCurrentUser } from '@/lib/auth';
 import { deductUserCredits, getUserById } from '@/lib/db';
+import { autoArchiveProject } from '@/lib/credits';
 import {
   detectDomainBlueprint,
   generateSchemaSql,
@@ -290,6 +291,16 @@ REQUIREMENTS:
         if (deductResult.success) {
           remainingCredits = deductResult.remainingCredits;
         }
+        await autoArchiveProject({
+          userId: user.id,
+          toolId: 'software-builder',
+          title: cleanTopic,
+          course,
+          institution: 'Turnkey Software Prototype',
+          summary: `${blueprint.systemName} (${effectiveStack}) — ${blueprint.tagline}`,
+          fileType: 'zip',
+          metadata: { techStack: effectiveStack, aiGenerated: aiCodeUsed, aiProvider: aiProviderUsed },
+        });
       } catch (deductErr) {
         console.warn('Credits deduction error on build-software:', deductErr);
       }

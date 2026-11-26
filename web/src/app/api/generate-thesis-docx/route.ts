@@ -68,6 +68,19 @@ export async function POST(req: NextRequest) {
       : "[Name of Project Supervisor]";
     const session = (body.session || "2025/2026").trim();
     const includeDiagrams = body.includeDiagrams !== false;
+    const institutionPreset = String(body.institutionPreset || "fubk").toLowerCase();
+
+    const PRESET_CONFIGS: Record<string, { degreeLabel: string; lineSpacing: number; citationStyle: string }> = {
+      fubk: { degreeLabel: "BACHELOR OF SCIENCE (B.SC. HONS)", lineSpacing: 360, citationStyle: "APA7" },
+      abu_zaria: { degreeLabel: "BACHELOR OF SCIENCE (B.SC. HONS)", lineSpacing: 480, citationStyle: "APA7" },
+      unilag: { degreeLabel: "BACHELOR OF SCIENCE (B.SC. HONS)", lineSpacing: 480, citationStyle: "APA7" },
+      futa: { degreeLabel: "BACHELOR OF TECHNOLOGY (B.TECH. HONS)", lineSpacing: 480, citationStyle: "IEEE" },
+      ui: { degreeLabel: "BACHELOR OF SCIENCE (B.SC. HONS)", lineSpacing: 480, citationStyle: "APA7" },
+      futo: { degreeLabel: "BACHELOR OF TECHNOLOGY (B.TECH. HONS)", lineSpacing: 360, citationStyle: "IEEE" },
+      poly_nd: { degreeLabel: "NATIONAL DIPLOMA (ND)", lineSpacing: 360, citationStyle: "Harvard" },
+      poly_hnd: { degreeLabel: "HIGHER NATIONAL DIPLOMA (HND)", lineSpacing: 360, citationStyle: "Harvard" },
+    };
+    const presetConfig = PRESET_CONFIGS[institutionPreset] || PRESET_CONFIGS.fubk;
 
     // Check custom chapters passed from frontend
     const userChapters: Record<number, string> = {};
@@ -205,7 +218,7 @@ export async function POST(req: NextRequest) {
       return runs;
     };
 
-    const academicPara = (text: string, indent = true, lineSpacing = 360) =>
+    const academicPara = (text: string, indent = true, lineSpacing = presetConfig.lineSpacing) =>
       new Paragraph({
         alignment: AlignmentType.JUSTIFIED,
         indent: indent ? { firstLine: 720 } : undefined, // 0.5 inch first line indent
@@ -559,7 +572,7 @@ export async function POST(req: NextRequest) {
         spacing: { before: 700, after: 300 },
         children: [
           new TextRun({
-            text: `A FINAL YEAR RESEARCH PROJECT DISSERTATION SUBMITTED TO THE DEPARTMENT OF ${course.toUpperCase()}, FACULTY OF PHYSICAL & COMPUTING SCIENCES, ${institution.toUpperCase()}, IN PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR THE AWARD OF THE DEGREE OF BACHELOR OF SCIENCE (B.SC. HONS) IN ${course.toUpperCase()}.`,
+            text: `A FINAL YEAR RESEARCH PROJECT DISSERTATION SUBMITTED TO THE DEPARTMENT OF ${course.toUpperCase()}, ${institution.toUpperCase()}, IN PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR THE AWARD OF THE ${presetConfig.degreeLabel} IN ${course.toUpperCase()}.`,
             size: 22,
             italics: true,
             font: "Times New Roman",
@@ -1380,6 +1393,28 @@ Do NOT use raw markdown symbols (no **, ##). Write 3 clear, distinct scholarly p
       if (!chapterMarkdown || chapterMarkdown.length < 600) {
         console.warn(`[Thesis DOCX] All AI providers failed for Chapter ${ch}, using domain-adaptive fallback.`);
         chapterMarkdown = generateDynamicChapterText(topic, course, institution, effectiveCaseStudy, ch);
+      }
+
+      // Built-in AI Humanizer post-processing pass for natural Nigerian academic tone
+      if (chapterMarkdown.length > 1000) {
+        try {
+          const humanizeRes = await generateAcademicAI({
+            prompt: `Humanize this Nigerian university academic text to sound naturally authored by a top final-year scholar. Vary sentence structure, eliminate repetitive AI-sounding transitions ("delve", "in today's fast-paced world", "it is crucial to note"), and preserve ALL technical details, headings, numbers, and citations intact. Return ONLY the revised text without commentary:\n\n${chapterMarkdown.slice(0, 12000)}`,
+            temperature: 0.55,
+            maxTokens: 5500,
+            preferredProvider: "openrouter",
+          });
+          if (
+            humanizeRes &&
+            humanizeRes.provider !== "codethesis-academic-heuristic" &&
+            humanizeRes.content &&
+            humanizeRes.content.trim().length > Math.floor(chapterMarkdown.length * 0.65)
+          ) {
+            chapterMarkdown = humanizeRes.content.trim();
+          }
+        } catch (err) {
+          console.warn(`[Thesis DOCX] Humanizer pass skipped for Chapter ${ch}:`, err);
+        }
       }
 
       return { ch, markdown: chapterMarkdown };
